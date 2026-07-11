@@ -34,6 +34,19 @@ await signUp({ email, password, nickname });
 const { messages, sendMessage } = useLobbyChat(myProfile);
 ```
 
-## 5. Realtime 활성화 확인
+## 5. 몬스터 이미지를 외부 리소스로 교체하기
+
+지금은 `src/assets/sprites/`에 있는 SVG 벡터로 그려지지만, 실사/외주 일러스트로
+바꿀 때 코드를 거의 안 건드리도록 `MonsterSprite` 컴포넌트가 자동 폴백 구조로
+되어 있음.
+
+1. 이미지를 올릴 CDN(Supabase Storage 등)에 `{sprite_key}.png` 이름으로 업로드
+   (예: `fire_1.png`, `water_2.png` — `monster_species.sprite_key` 컬럼값과 동일하게)
+2. `.env`의 `VITE_SPRITE_CDN_URL`에 그 base URL 채우기
+3. 끝. 이미지가 있으면 자동으로 이미지가 우선 표시되고, 아직 업로드 안 된
+   몬스터는 이미지 로드 실패 시 자동으로 기존 벡터로 폴백됨 — 몬스터별로
+   하나씩 순차 교체 가능
+
+## 6. Realtime 활성화 확인
 Supabase 대시보드 → Database → Replication 에서 `chat_messages` 테이블의
 Realtime 토글이 켜져 있는지 확인 (기본적으로 꺼져있을 수 있음).

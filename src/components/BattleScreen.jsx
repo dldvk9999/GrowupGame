@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import MonsterSprite from './MonsterSprite';
 
 const ELEMENT_COLORS = {
   fire: '#ff5a1f',
@@ -10,16 +11,16 @@ const ATTACK_COOLDOWN = 700; // ms
 const SKILL_COOLDOWN = 3000; // ms
 const ENEMY_ATTACK_INTERVAL = 1600; // ms
 
-function makeFighter({ name, element, maxHp, atk }) {
-  return { name, element, maxHp, hp: maxHp, atk };
+function makeFighter({ name, element, maxHp, atk, spriteKey }) {
+  return { name, element, maxHp, hp: maxHp, atk, spriteKey };
 }
 
 export default function BattleScreen() {
   const [player, setPlayer] = useState(() =>
-    makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14 })
+    makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14, spriteKey: 'fire_1' })
   );
   const [enemy, setEnemy] = useState(() =>
-    makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10 })
+    makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10, spriteKey: 'fire_1' })
   );
   const [attackReady, setAttackReady] = useState(true);
   const [skillReady, setSkillReady] = useState(true);
@@ -135,8 +136,8 @@ export default function BattleScreen() {
   }
 
   function handleRestart() {
-    setPlayer(makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14 }));
-    setEnemy(makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10 }));
+    setPlayer(makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14, spriteKey: 'fire_1' }));
+    setEnemy(makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10, spriteKey: 'fire_1' }));
     setResult(null);
     setLog('전투 시작!');
   }
@@ -203,18 +204,10 @@ function FighterBadge({ fighter, x, y, flip }) {
         top: y,
         width: 90,
         height: 90,
-        borderRadius: '50%',
-        background: ELEMENT_COLORS[fighter.element],
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 600,
-        fontSize: 13,
         transform: flip ? 'scaleX(-1)' : 'none',
       }}
     >
-      <span style={{ transform: flip ? 'scaleX(-1)' : 'none' }}>{fighter.name}</span>
+      <MonsterSprite speciesKey={fighter.spriteKey} size={90} alt={fighter.name} />
     </div>
   );
 }
