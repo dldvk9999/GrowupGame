@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
+import { createMonster, applyExpGain, expToNextLevel } from '../lib/growth';
 
 const ELEMENT_COLORS = {
   fire: '#ff5a1f',
@@ -11,17 +12,25 @@ const ATTACK_COOLDOWN = 700; // ms
 const SKILL_COOLDOWN = 3000; // ms
 const ENEMY_ATTACK_INTERVAL = 1600; // ms
 
-function makeFighter({ name, element, maxHp, atk, spriteKey }) {
-  return { name, element, maxHp, hp: maxHp, atk, spriteKey };
+function makeBossFighter() {
+  // 보스는 육성 대상이 아니라 고정 스탯 (원한다면 speciesData에 보스 종 추가 가능)
+  return {
+    name: '파이어킹',
+    element: 'fire',
+    spriteKey: 'fire_1',
+    maxHp: 200,
+    hp: 200,
+    atk: 10,
+  };
 }
 
-export default function BattleScreen() {
-  const [player, setPlayer] = useState(() =>
-    makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14, spriteKey: 'fire_1' })
-  );
-  const [enemy, setEnemy] = useState(() =>
-    makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10, spriteKey: 'fire_1' })
-  );
+/**
+ * onWin(updatedPlayerMonster) — 승리 후 최종 성장 결과를 그대로 넘겨줌.
+ * 나중에 로그인/포획 붙이면 여기서 persistMonsterGrowth() 호출하면 됨.
+ */
+export default function BattleScreen({ onWin }) {
+  const [player, setPlayer] = useState(() => createMonster('fire_1'));
+  const [enemy, setEnemy] = useState(() => makeBossFighter());
   const [attackReady, setAttackReady] = useState(true);
   const [skillReady, setSkillReady] = useState(true);
   const [log, setLog] = useState('전투 시작!');
@@ -101,7 +110,12 @@ export default function BattleScreen() {
     if (result) return;
     if (enemy.hp <= 0) {
       setResult('win');
-      setLog(`${enemy.name} 처치! 보스 획득!`);
+      const expReward = Math.round(enemy.maxHp * 0.5);
+      const grown = applyExpGain(player, expReward);
+      setPlayer(grown);
+      const growthLog = grown.events.length ? ' ' + grown.events.join(' ') : '';
+      setLog(`${enemy.name} 처치! 보스 획득! 경험치 +${expReward}${growthLog}`);
+      onWin?.(grown);
     } else if (player.hp <= 0) {
       setResult('lose');
       setLog(`${player.name}가 쓰러졌다...`);
@@ -136,8 +150,8 @@ export default function BattleScreen() {
   }
 
   function handleRestart() {
-    setPlayer(makeFighter({ name: '이모탄', element: 'fire', maxHp: 120, atk: 14, spriteKey: 'fire_1' }));
-    setEnemy(makeFighter({ name: '파이어킹', element: 'fire', maxHp: 200, atk: 10, spriteKey: 'fire_1' }));
+    setPlayer(createMonster('fire_1', player.level));
+    setEnemy(makeBossFighter());
     setResult(null);
     setLog('전투 시작!');
   }
@@ -169,6 +183,8 @@ export default function BattleScreen() {
         <HpBar label={player.name} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
         <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color={ELEMENT_COLORS[enemy.element]} />
       </div>
+
+      <ExpBar level={player.level} exp={player.exp} />
 
       <p style={{ minHeight: 24, color: '#333' }}>{log}</p>
 
@@ -207,7 +223,29 @@ function FighterBadge({ fighter, x, y, flip }) {
         transform: flip ? 'scaleX(-1)' : 'none',
       }}
     >
-      <MonsterSprite speciesKey={fighter.spriteKey} size={90} alt={fighter.name} />
+      <MonsterSprite speciesKey={fighter.spriteKey || fighter.speciesId} size={90} alt={fighter.name} />
+    </div>
+  );
+}
+
+function ExpBar({ level, exp }) {
+  const need = expToNextLevel(level);
+  const pct = Math.min((exp / need) * 100, 100);
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
+        Lv.{level} 경험치 ({exp}/{need})
+      </div>
+      <div style={{ height: 6, background: '#eee', borderRadius: 4, overflow: 'hidden' }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            background: '#f2b705',
+            transition: 'width 0.3s ease-out',
+          }}
+        />
+      </div>
     </div>
   );
 }
