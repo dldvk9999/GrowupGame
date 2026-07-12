@@ -50,6 +50,7 @@ export function applyExpGain(monster, gainedExp) {
     level,
     exp,
     speciesId,
+    speciesDbId: species.dbId,
     name: species.name,
     element: species.element,
     maxHp: stats.maxHp,
@@ -66,6 +67,7 @@ export function createMonster(speciesId, level = 1) {
   const stats = scaleStats(species, level);
   return {
     speciesId,
+    speciesDbId: species.dbId,
     name: species.name,
     element: species.element,
     level,

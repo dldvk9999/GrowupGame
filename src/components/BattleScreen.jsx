@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
-import { createMonster, applyExpGain, expToNextLevel } from '../lib/growth';
+import { applyExpGain, expToNextLevel } from '../lib/growth';
+import { SKILLS } from '../lib/skills';
 
 const ELEMENT_COLORS = {
   fire: '#ff5a1f',
@@ -8,43 +9,54 @@ const ELEMENT_COLORS = {
   grass: '#5cb83c',
 };
 
-const ATTACK_COOLDOWN = 700; // ms
-const SKILL_COOLDOWN = 3000; // ms
-const ENEMY_ATTACK_INTERVAL = 1600; // ms
-
-function makeBossFighter() {
-  // 보스는 육성 대상이 아니라 고정 스탯 (원한다면 speciesData에 보스 종 추가 가능)
+// 난이도 하향: 보스 체력/공격력 낮추고 공격 텀도 늘림 (초반 진입장벽 완화)
+function makeBoss() {
   return {
-    name: '파이어킹',
+    name: '꼬마 파이어킹',
     element: 'fire',
     spriteKey: 'fire_1',
-    maxHp: 200,
-    hp: 200,
-    atk: 10,
+    maxHp: 70,
+    hp: 70,
+    atk: 5,
   };
 }
+const ENEMY_ATTACK_INTERVAL = 2400; // ms, 여유 있게 반격 텀 확보
 
 /**
- * onWin(updatedPlayerMonster) — 승리 후 최종 성장 결과를 그대로 넘겨줌.
- * 나중에 로그인/포획 붙이면 여기서 persistMonsterGrowth() 호출하면 됨.
+ * props
+ * - initialMonster: growth.js 형태의 몬스터 객체 (필수)
+ * - onWin(grownMonster): 승리 시 최종 성장 결과 전달 (DB 저장 지점)
  */
-export default function BattleScreen({ onWin }) {
-  const [player, setPlayer] = useState(() => createMonster('fire_1'));
-  const [enemy, setEnemy] = useState(() => makeBossFighter());
-  const [attackReady, setAttackReady] = useState(true);
-  const [skillReady, setSkillReady] = useState(true);
-  const [log, setLog] = useState('전투 시작!');
+export default function BattleScreen({ initialMonster, onWin }) {
+  const [player, setPlayer] = useState(initialMonster);
+  const [enemy, setEnemy] = useState(() => makeBoss());
+  const [cooldowns, setCooldowns] = useState({});
+  const [log, setLog] = useState(`${initialMonster.name}(와)과 함께 모험을 시작합니다!`);
   const [shake, setShake] = useState(false);
-  const [result, setResult] = useState(null); // 'win' | 'lose' | null
+  const [result, setResult] = useState(null);
 
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const rafRef = useRef(null);
+  const dimsRef = useRef({ w: 600, h: 220 });
 
-  // 캔버스 파티클 애니메이션 루프
+  useEffect(() => {
+    setPlayer(initialMonster);
+  }, [initialMonster]);
+
+  // 캔버스 파티클 애니메이션 루프 (반응형 크기 대응)
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      dimsRef.current = { w: rect.width, h: rect.height };
+    }
+    resize();
+    window.addEventListener('resize', resize);
 
     function loop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -52,7 +64,7 @@ export default function BattleScreen({ onWin }) {
       for (const p of particlesRef.current) {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.15; // 중력
+        p.vy += 0.15;
         p.life -= 1;
         ctx.globalAlpha = Math.max(p.life / p.maxLife, 0);
         ctx.fillStyle = p.color;
@@ -64,16 +76,21 @@ export default function BattleScreen({ onWin }) {
       rafRef.current = requestAnimationFrame(loop);
     }
     rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('resize', resize);
+    };
   }, []);
 
-  const spawnParticles = useCallback((x, y, color, count = 18) => {
+  const spawnParticles = useCallback((xr, yr, color, count = 18) => {
+    const { w, h } = dimsRef.current;
+    const x = w * xr;
+    const y = h * yr;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 4;
       particlesRef.current.push({
-        x,
-        y,
+        x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 2,
         size: 2 + Math.random() * 3,
@@ -89,20 +106,22 @@ export default function BattleScreen({ onWin }) {
     setTimeout(() => setShake(false), 200);
   }, []);
 
-  const dealDamage = useCallback(
-    (target, amount, side) => {
-      const setTarget = side === 'enemy' ? setEnemy : setPlayer;
-      setTarget((prev) => {
-        const nextHp = Math.max(prev.hp - amount, 0);
-        return { ...prev, hp: nextHp };
-      });
-
-      const x = side === 'enemy' ? 480 : 120;
-      const y = 100;
-      spawnParticles(x, y, ELEMENT_COLORS[target.element] || '#ffffff');
+  const damageEnemy = useCallback(
+    (amount) => {
+      setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
+      spawnParticles(0.8, 0.35, ELEMENT_COLORS.fire);
       triggerShake();
     },
     [spawnParticles, triggerShake]
+  );
+
+  const damagePlayer = useCallback(
+    (amount) => {
+      setPlayer((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
+      spawnParticles(0.2, 0.7, ELEMENT_COLORS[player.element]);
+      triggerShake();
+    },
+    [spawnParticles, triggerShake, player.element]
   );
 
   // 전투 종료 체크
@@ -110,120 +129,100 @@ export default function BattleScreen({ onWin }) {
     if (result) return;
     if (enemy.hp <= 0) {
       setResult('win');
-      const expReward = Math.round(enemy.maxHp * 0.5);
+      const expReward = Math.round(enemy.maxHp * 0.9);
       const grown = applyExpGain(player, expReward);
       setPlayer(grown);
       const growthLog = grown.events.length ? ' ' + grown.events.join(' ') : '';
-      setLog(`${enemy.name} 처치! 보스 획득! 경험치 +${expReward}${growthLog}`);
+      setLog(`${enemy.name} 처치! 경험치 +${expReward}${growthLog}`);
       onWin?.(grown);
     } else if (player.hp <= 0) {
       setResult('lose');
-      setLog(`${player.name}가 쓰러졌다...`);
+      setLog(`${player.name}가 쓰러졌다... 다시 도전해보세요!`);
     }
   }, [enemy.hp, player.hp, result]);
 
-  // 적 AI 자동 공격
+  // 적 자동 공격
   useEffect(() => {
     if (result) return;
     const timer = setInterval(() => {
       setLog(`${enemy.name}의 공격!`);
-      dealDamage(player, enemy.atk, 'player');
+      damagePlayer(enemy.atk);
     }, ENEMY_ATTACK_INTERVAL);
     return () => clearInterval(timer);
-  }, [enemy.atk, enemy.name, player, result, dealDamage]);
+  }, [enemy.atk, enemy.name, result, damagePlayer]);
 
-  function handleAttack() {
-    if (!attackReady || result) return;
-    setAttackReady(false);
-    setLog(`${player.name}의 공격!`);
-    dealDamage(enemy, player.atk, 'enemy');
-    setTimeout(() => setAttackReady(true), ATTACK_COOLDOWN);
-  }
+  function useSkill(skill) {
+    if (result || cooldowns[skill.id]) return;
 
-  function handleSkill() {
-    if (!skillReady || result) return;
-    setSkillReady(false);
-    const skillDamage = player.atk * 2.2;
-    setLog(`${player.name}의 스킬 작렬!`);
-    dealDamage(enemy, skillDamage, 'enemy');
-    setTimeout(() => setSkillReady(true), SKILL_COOLDOWN);
+    if (skill.type === 'damage') {
+      const dmg = Math.round(player.atk * skill.multiplier);
+      setLog(`${player.name}의 ${skill.name}!`);
+      damageEnemy(dmg);
+    } else if (skill.type === 'heal') {
+      const healAmount = Math.round(player.maxHp * skill.multiplier);
+      setPlayer((prev) => ({ ...prev, hp: Math.min(prev.hp + healAmount, prev.maxHp) }));
+      setLog(`${player.name}의 ${skill.name}! 체력 +${healAmount}`);
+      spawnParticles(0.2, 0.7, '#8fffb0');
+    }
+
+    setCooldowns((prev) => ({ ...prev, [skill.id]: true }));
+    setTimeout(() => {
+      setCooldowns((prev) => ({ ...prev, [skill.id]: false }));
+    }, skill.cooldown);
   }
 
   function handleRestart() {
-    setPlayer(createMonster('fire_1', player.level));
-    setEnemy(makeBossFighter());
+    setEnemy(makeBoss());
     setResult(null);
-    setLog('전투 시작!');
+    setCooldowns({});
+    setLog('다음 상대 등장!');
+    setPlayer((prev) => ({ ...prev, hp: prev.maxHp }));
   }
 
   return (
-    <div
-      style={{
-        position: 'relative',
-        maxWidth: 600,
-        margin: '0 auto',
-        fontFamily: 'sans-serif',
-        transform: shake ? 'translate(3px, -2px)' : 'none',
-        transition: 'transform 0.05s',
-      }}
-    >
-      <div style={{ position: 'relative', height: 220, background: '#1a1a2e', borderRadius: 12, overflow: 'hidden' }}>
-        <canvas
-          ref={canvasRef}
-          width={600}
-          height={220}
-          style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-        />
-
-        <FighterBadge fighter={player} x={40} y={140} />
-        <FighterBadge fighter={enemy} x={400} y={40} flip />
+    <div className={`battle-screen ${shake ? 'shake' : ''}`}>
+      <div className="arena">
+        <canvas ref={canvasRef} className="arena-fx" />
+        <div className="fighter-slot fighter-slot--player">
+          <MonsterSprite speciesKey={player.speciesId} size={110} alt={player.name} />
+        </div>
+        <div className="fighter-slot fighter-slot--enemy">
+          <MonsterSprite speciesKey={enemy.spriteKey} size={110} alt={enemy.name} />
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 12, margin: '16px 0' }}>
-        <HpBar label={player.name} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
+      <div className="hud-row">
+        <HpBar label={`${player.name} Lv.${player.level}`} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
         <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color={ELEMENT_COLORS[enemy.element]} />
       </div>
 
       <ExpBar level={player.level} exp={player.exp} />
 
-      <p style={{ minHeight: 24, color: '#333' }}>{log}</p>
+      <p className="battle-log">{log}</p>
 
       {result ? (
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 18, fontWeight: 600 }}>
-            {result === 'win' ? '승리!' : '패배...'}
-          </p>
-          <button onClick={handleRestart} style={buttonStyle('#555')}>
-            다시 도전
+        <div className="result-panel">
+          <p className="result-text">{result === 'win' ? '승리!' : '패배...'}</p>
+          <button onClick={handleRestart} className="btn btn-neutral">
+            {result === 'win' ? '다음 상대 도전' : '다시 도전'}
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={handleAttack} disabled={!attackReady} style={buttonStyle(ELEMENT_COLORS.fire, !attackReady)}>
-            공격 {attackReady ? '' : '(쿨타임)'}
-          </button>
-          <button onClick={handleSkill} disabled={!skillReady} style={buttonStyle('#c04ec2', !skillReady)}>
-            스킬 {skillReady ? '' : '(쿨타임)'}
-          </button>
+        <div className="skills-row">
+          {SKILLS.map((skill) => (
+            <button
+              key={skill.id}
+              className={`skill-btn ${cooldowns[skill.id] ? 'on-cooldown' : ''} ${skill.type === 'heal' ? 'skill-heal' : ''}`}
+              onClick={() => useSkill(skill)}
+              disabled={!!cooldowns[skill.id]}
+              title={skill.description}
+            >
+              <span className="skill-icon">{skill.icon}</span>
+              <span className="skill-name">{skill.name}</span>
+            </button>
+          ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function FighterBadge({ fighter, x, y, flip }) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: x,
-        top: y,
-        width: 90,
-        height: 90,
-        transform: flip ? 'scaleX(-1)' : 'none',
-      }}
-    >
-      <MonsterSprite speciesKey={fighter.spriteKey || fighter.speciesId} size={90} alt={fighter.name} />
     </div>
   );
 }
@@ -232,19 +231,10 @@ function ExpBar({ level, exp }) {
   const need = expToNextLevel(level);
   const pct = Math.min((exp / need) * 100, 100);
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>
-        Lv.{level} 경험치 ({exp}/{need})
-      </div>
-      <div style={{ height: 6, background: '#eee', borderRadius: 4, overflow: 'hidden' }}>
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: '#f2b705',
-            transition: 'width 0.3s ease-out',
-          }}
-        />
+    <div className="exp-bar-wrap">
+      <div className="exp-label">Lv.{level} 경험치 ({exp}/{need})</div>
+      <div className="bar-track exp-track">
+        <div className="bar-fill exp-fill" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -253,34 +243,11 @@ function ExpBar({ level, exp }) {
 function HpBar({ label, hp, maxHp, color }) {
   const pct = Math.max((hp / maxHp) * 100, 0);
   return (
-    <div style={{ flex: 1 }}>
-      <div style={{ fontSize: 12, marginBottom: 4 }}>
-        {label} ({Math.ceil(hp)}/{maxHp})
-      </div>
-      <div style={{ height: 10, background: '#eee', borderRadius: 6, overflow: 'hidden' }}>
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: color,
-            transition: 'width 0.2s ease-out',
-          }}
-        />
+    <div className="hp-bar">
+      <div className="hp-label">{label} ({Math.ceil(hp)}/{maxHp})</div>
+      <div className="bar-track">
+        <div className="bar-fill" style={{ width: `${pct}%`, background: color }} />
       </div>
     </div>
   );
-}
-
-function buttonStyle(color, disabled) {
-  return {
-    flex: 1,
-    padding: '12px 0',
-    border: 'none',
-    borderRadius: 8,
-    background: disabled ? '#ccc' : color,
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: 15,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-  };
 }
