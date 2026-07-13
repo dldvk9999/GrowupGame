@@ -3,11 +3,12 @@ import MonsterSprite from './MonsterSprite';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { SKILLS } from '../lib/skills';
 import { getAvailableSkills } from '../lib/jobAdvancement';
-import { getStageEnemy, getChapterName } from '../lib/stages';
+import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 2400; // ms
+const ENEMY_ATTACK_INTERVAL = 2400; // ms, 스테이지 도전 중 적 공격 텀
+const IDLE_KILL_INTERVAL = 3000; // ms, 자동 사냥 처치 텀
 
 function withEquipment(monster, bonus) {
   const b = bonus ?? { atk: 0, def: 0, hp: 0 };
@@ -20,23 +21,47 @@ function withEquipment(monster, bonus) {
   };
 }
 
+/** 장비 보너스가 낀 상태에서 경험치를 적용하고, base(순수)/effective(장비포함) 둘 다 반환 */
+function growPlayer(effectivePlayer, exp, equipmentBonus) {
+  const b = equipmentBonus ?? { atk: 0, def: 0, hp: 0 };
+  const base = {
+    ...effectivePlayer,
+    atk: effectivePlayer.atk - b.atk,
+    def: effectivePlayer.def - b.def,
+    maxHp: effectivePlayer.maxHp - b.hp,
+  };
+  const grownBase = applyExpGain(base, exp);
+  const grownEffective = withEquipment(grownBase, equipmentBonus);
+  return { grownBase, grownEffective };
+}
+
 /**
  * props
  * - initialMonster: growth.js 형태 몬스터 (장비 보너스 미포함 base 스탯)
- * - chapter, stage: 현재 도전 중인 스테이지 좌표
- * - equipmentBonus: { atk, def, hp } 장착 아이템 합산 보너스
- * - onClear(grownBaseMonster, goldReward): 클리어 시 (DB 저장은 상위에서)
+ * - chapter, stage: 현재 스테이지 좌표
+ * - equipmentBonus: { atk, def, hp }
+ * - onClear(grownBaseMonster, goldReward): 스테이지 클리어 시 (DB 저장은 상위에서)
+ * - onIdleGain(grownBaseMonster, goldReward): 자동 사냥으로 몬스터 처치 시
+ * - onAdvance(): "다음 스테이지로" 버튼
+ * - onGoStageList(): "스테이지 목록" 버튼
  */
-export default function BattleScreen({ initialMonster, chapter, stage, equipmentBonus, onClear }) {
-  const stageEnemy = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
+export default function BattleScreen({
+  initialMonster, chapter, stage, equipmentBonus,
+  onClear, onIdleGain, onAdvance, onGoStageList,
+}) {
+  const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
   const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
   const availableSkills = useMemo(
     () => getAvailableSkills(SKILLS, initialMonster.element, initialMonster.level),
     [initialMonster.element, initialMonster.level]
   );
 
+  const [mode, setMode] = useState('idle'); // 'idle' | 'challenge'
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
-  const [enemy, setEnemy] = useState(() => ({ ...stageEnemy }));
+  const [idleEnemy, setIdleEnemy] = useState(() => getIdleMonster(chapter, initialMonster.level));
+  const [idleLog, setIdleLog] = useState('자동 사냥 중...');
+
+  const [enemy, setEnemy] = useState(() => ({ ...stageEnemyTemplate }));
   const [cooldowns, setCooldowns] = useState({});
   const [log, setLog] = useState(flavor);
   const [shake, setShake] = useState(false);
@@ -47,10 +72,11 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
   const rafRef = useRef(null);
   const dimsRef = useRef({ w: 600, h: 220 });
 
-  // 스테이지가 바뀌면 완전히 새 전투로 초기화
+  // 스테이지가 바뀌면 완전 초기화하고 자동 사냥부터 다시 시작
   useEffect(() => {
     setPlayer(withEquipment(initialMonster, equipmentBonus));
-    setEnemy({ ...stageEnemy });
+    setIdleEnemy(getIdleMonster(chapter, initialMonster.level));
+    setMode('idle');
     setResult(null);
     setCooldowns({});
     setLog(flavor);
@@ -106,6 +132,21 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
     setTimeout(() => setShake(false), 200);
   }, []);
 
+  // ---------- 자동 사냥 루프 (챌린지 중이 아닐 때만) ----------
+  useEffect(() => {
+    if (mode !== 'idle') return;
+    const timer = setInterval(() => {
+      spawnParticles(0.75, 0.4, ELEMENT_COLORS[idleEnemy.element]);
+      const { grownBase, grownEffective } = growPlayer(player, idleEnemy.expReward, equipmentBonus);
+      setPlayer(grownEffective);
+      const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
+      setIdleLog(`${idleEnemy.name} 처치! 경험치 +${idleEnemy.expReward}, 골드 +${idleEnemy.goldReward}${growthLog}`);
+      onIdleGain?.(grownBase, idleEnemy.goldReward);
+      setIdleEnemy(getIdleMonster(chapter, grownBase.level));
+    }, IDLE_KILL_INTERVAL);
+    return () => clearInterval(timer);
+  }, [mode, player, idleEnemy, chapter, equipmentBonus]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const damageEnemy = useCallback((amount) => {
     setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
     spawnParticles(0.8, 0.35, ELEMENT_COLORS.fire);
@@ -118,19 +159,27 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
     triggerShake();
   }, [spawnParticles, triggerShake, player.element]);
 
-  // 전투 종료 체크
+  function startChallenge() {
+    setEnemy({ ...stageEnemyTemplate });
+    setPlayer((prev) => ({ ...prev, hp: prev.maxHp })); // 도전 시작 시 풀피로
+    setResult(null);
+    setCooldowns({});
+    setLog(flavor);
+    setMode('challenge');
+  }
+
+  function backToIdle() {
+    setMode('idle');
+    setResult(null);
+    setPlayer((prev) => ({ ...prev, hp: prev.maxHp }));
+  }
+
+  // 챌린지 전투 종료 체크
   useEffect(() => {
-    if (result) return;
+    if (mode !== 'challenge' || result) return;
     if (enemy.hp <= 0) {
       setResult('win');
-      const baseForPersist = {
-        ...player,
-        atk: player.atk - (equipmentBonus?.atk ?? 0),
-        def: player.def - (equipmentBonus?.def ?? 0),
-        maxHp: player.maxHp - (equipmentBonus?.hp ?? 0),
-      };
-      const grownBase = applyExpGain(baseForPersist, enemy.expReward);
-      const grownEffective = withEquipment(grownBase, equipmentBonus);
+      const { grownBase, grownEffective } = growPlayer(player, enemy.expReward, equipmentBonus);
       setPlayer(grownEffective);
       const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
       setLog(`${enemy.name} 처치! 경험치 +${enemy.expReward}, 골드 +${enemy.goldReward}${growthLog}`);
@@ -139,19 +188,19 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
       setResult('lose');
       setLog(`${player.name}가 쓰러졌다... 다시 도전해보세요!`);
     }
-  }, [enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode, enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (result) return;
+    if (mode !== 'challenge' || result) return;
     const timer = setInterval(() => {
       setLog(`${enemy.name}의 공격!`);
       damagePlayer(enemy.atk);
     }, ENEMY_ATTACK_INTERVAL);
     return () => clearInterval(timer);
-  }, [enemy.atk, enemy.name, result, damagePlayer]);
+  }, [mode, enemy.atk, enemy.name, result, damagePlayer]);
 
   function useSkill(skill) {
-    if (result || cooldowns[skill.id]) return;
+    if (mode !== 'challenge' || result || cooldowns[skill.id]) return;
     if (skill.type === 'damage') {
       const dmg = Math.round(player.atk * skill.multiplier);
       setLog(`${player.name}의 ${skill.name}!`);
@@ -166,17 +215,15 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
     setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), skill.cooldown);
   }
 
-  function handleRetry() {
-    setPlayer(withEquipment({ ...initialMonster }, equipmentBonus));
-    setEnemy({ ...stageEnemy });
-    setResult(null);
-    setCooldowns({});
-    setLog('다시 도전!');
-  }
+  const displayEnemy = mode === 'challenge' ? enemy : idleEnemy;
+  const displayLog = mode === 'challenge' ? log : idleLog;
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
-      <div className="stage-badge">{chapter}-{stage} · {getChapterName(chapter)}{enemy.isBoss ? ' (보스)' : ''}</div>
+      <div className="stage-badge">
+        {chapter}-{stage} · {getChapterName(chapter)}{stageEnemyTemplate.isBoss ? ' (보스)' : ''}
+        {mode === 'idle' && <span className="idle-tag">자동 사냥 중</span>}
+      </div>
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
@@ -184,7 +231,7 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
           <MonsterSprite speciesKey={player.speciesId} size={110} alt={player.name} />
         </div>
         <div className="fighter-slot fighter-slot--enemy">
-          <MonsterSprite speciesKey={enemy.spriteKey} size={110} alt={enemy.name} />
+          <MonsterSprite speciesKey={displayEnemy.spriteKey} size={mode === 'challenge' ? 110 : 80} alt={displayEnemy.name} />
         </div>
       </div>
 
@@ -193,24 +240,23 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
           label={`${player.name}${player.jobTitle ? ' · ' + player.jobTitle : ''} Lv.${player.level}`}
           hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]}
         />
-        <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color={ELEMENT_COLORS[enemy.element]} />
+        <HpBar label={displayEnemy.name} hp={displayEnemy.hp} maxHp={displayEnemy.maxHp} color={ELEMENT_COLORS[displayEnemy.element]} />
       </div>
 
       <ExpBar level={player.level} exp={player.exp} />
 
-      <p className="battle-log">{log}</p>
+      <p className="battle-log">{displayLog}</p>
 
-      {result ? (
-        <div className="result-panel">
-          <p className="result-text">{result === 'win' ? '승리!' : '패배...'}</p>
-          {result === 'lose' && (
-            <button onClick={handleRetry} className="btn btn-neutral">다시 도전</button>
-          )}
-          {result === 'win' && (
-            <p className="result-hint">스테이지 목록에서 다음 스테이지를 선택하세요.</p>
-          )}
+      {mode === 'idle' && (
+        <div className="idle-panel">
+          <p className="idle-hint">약한 필드 몬스터를 자동으로 잡으며 경험치를 조금씩 얻고 있어요.</p>
+          <button className="btn btn-challenge" onClick={startChallenge}>
+            ⚔️ {chapter}-{stage} 스테이지 도전하기
+          </button>
         </div>
-      ) : (
+      )}
+
+      {mode === 'challenge' && !result && (
         <div className="skills-row">
           {availableSkills.map((skill) => (
             <button
@@ -224,6 +270,27 @@ export default function BattleScreen({ initialMonster, chapter, stage, equipment
               <span className="skill-name">{skill.name}</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {mode === 'challenge' && result === 'win' && (
+        <div className="result-panel">
+          <p className="result-text">승리!</p>
+          <div className="result-actions">
+            <button className="btn btn-challenge" onClick={onAdvance}>다음 스테이지로</button>
+            <button className="btn btn-neutral" onClick={onGoStageList}>스테이지 목록</button>
+            <button className="btn btn-ghost" onClick={backToIdle}>사냥터로</button>
+          </div>
+        </div>
+      )}
+
+      {mode === 'challenge' && result === 'lose' && (
+        <div className="result-panel">
+          <p className="result-text">패배...</p>
+          <div className="result-actions">
+            <button className="btn btn-challenge" onClick={startChallenge}>다시 도전</button>
+            <button className="btn btn-ghost" onClick={backToIdle}>사냥터로</button>
+          </div>
         </div>
       )}
     </div>

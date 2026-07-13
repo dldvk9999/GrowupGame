@@ -144,6 +144,26 @@ export default function App() {
     }
   }
 
+  async function handleIdleGain(grownBase, goldReward) {
+    setActiveMonster(grownBase);
+    const userId = session.user.id;
+    try {
+      await Promise.all([
+        persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
+        addGold(userId, goldReward),
+      ]);
+      setProfile((p) => ({ ...p, gold: p.gold + goldReward }));
+    } catch (err) {
+      console.error('자동 사냥 저장 실패', err);
+    }
+  }
+
+  function handleAdvance() {
+    const nextIndex = Math.min(currentStageIndex + 1, TOTAL_STAGES);
+    const { chapter: nextChapter, stage: nextStage } = fromStageIndex(nextIndex);
+    handleSelectStage(nextChapter, nextStage);
+  }
+
   async function handleLogout() {
     await signOut();
   }
@@ -204,6 +224,9 @@ export default function App() {
                 stage={stageNum}
                 equipmentBonus={equipmentBonus}
                 onClear={handleClear}
+                onIdleGain={handleIdleGain}
+                onAdvance={handleAdvance}
+                onGoStageList={() => setActiveTab('stage')}
               />
             )}
             {activeTab === 'stage' && (

@@ -409,17 +409,66 @@ button {
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-.chapter-item.locked { opacity: 0.45; }
+.chapter-item.unlocked { border-color: var(--border-soft); }
+.chapter-item.locked { opacity: 0.5; }
+.chapter-item.is-current { border-color: var(--accent-gold); box-shadow: 0 0 0 1px rgba(242, 183, 5, 0.4); }
 .chapter-header {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 14px;
   background: transparent;
   border: none;
   color: var(--text-primary);
   text-align: left;
+}
+.chapter-item.unlocked .chapter-header { cursor: pointer; }
+.chapter-item.unlocked .chapter-header:hover { background: var(--bg-panel-2); }
+.chapter-item.locked .chapter-header { cursor: not-allowed; }
+.chapter-current-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  background: var(--accent-gold);
+  color: #10121c;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.chapter-chevron { font-size: 11px; color: var(--text-muted); width: 14px; text-align: center; }
+.substage-btn.locked { cursor: not-allowed; }
+.substage-btn:not(.locked):not(:disabled) { cursor: pointer; }
+.substage-btn:not(.locked):not(:disabled):hover { background: var(--accent-fire); color: #fff; }
+.substage-btn.here { box-shadow: 0 0 0 2px var(--accent-gold) inset; }
+
+/* ---------- 자동사냥 / 도전 버튼 ---------- */
+.idle-tag {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--accent-heal);
+  border: 1px solid var(--accent-heal);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+.idle-panel {
+  text-align: center;
+  padding: 12px 0 4px;
+}
+.idle-hint { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+.btn-challenge {
+  background: linear-gradient(90deg, var(--accent-fire), var(--accent-gold));
+  color: #10121c;
+  font-weight: 700;
+  padding: 14px 24px;
+  width: 100%;
+  max-width: 360px;
+}
+.result-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 .chapter-tag {
   width: 22px; height: 22px;

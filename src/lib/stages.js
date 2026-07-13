@@ -34,6 +34,24 @@ export function getChapterElement(chapter) {
   return cycle[(chapter - 1) % cycle.length];
 }
 
+/** 자동 사냥용 필드 몬스터 - 항상 안전(공격력 0), 보상도 적음 */
+export function getIdleMonster(chapter, playerLevel = 1) {
+  const element = getChapterElement(chapter);
+  const names = ENEMY_BASE_NAME[element];
+  const name = '들판의 ' + names[(chapter + playerLevel) % names.length];
+  const hp = Math.max(10, Math.round(8 + chapter * 0.6 + playerLevel * 0.8));
+  return {
+    name,
+    element,
+    spriteKey: `${element}_1`,
+    maxHp: hp,
+    hp,
+    atk: 0,
+    expReward: Math.max(2, Math.round(hp * 0.25)),
+    goldReward: Math.max(1, Math.round(hp * 0.15)),
+  };
+}
+
 /** 특정 스테이지의 적 데이터 생성 (절차적 스케일링) */
 export function getStageEnemy(chapter, stage) {
   const index = toStageIndex(chapter, stage);
