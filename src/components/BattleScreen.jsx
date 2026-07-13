@@ -1,37 +1,44 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import MonsterSprite from './MonsterSprite';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { SKILLS } from '../lib/skills';
+import { getAvailableSkills } from '../lib/jobAdvancement';
+import { getStageEnemy, getChapterName } from '../lib/stages';
+import { getStageFlavor } from '../lib/stageStory';
 
-const ELEMENT_COLORS = {
-  fire: '#ff5a1f',
-  water: '#3aa8e0',
-  grass: '#5cb83c',
-};
+const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
+const ENEMY_ATTACK_INTERVAL = 2400; // ms
 
-// 난이도 하향: 보스 체력/공격력 낮추고 공격 텀도 늘림 (초반 진입장벽 완화)
-function makeBoss() {
+function withEquipment(monster, bonus) {
+  const b = bonus ?? { atk: 0, def: 0, hp: 0 };
   return {
-    name: '꼬마 파이어킹',
-    element: 'fire',
-    spriteKey: 'fire_1',
-    maxHp: 70,
-    hp: 70,
-    atk: 5,
+    ...monster,
+    atk: monster.atk + b.atk,
+    def: monster.def + b.def,
+    maxHp: monster.maxHp + b.hp,
+    hp: monster.maxHp + b.hp,
   };
 }
-const ENEMY_ATTACK_INTERVAL = 2400; // ms, 여유 있게 반격 텀 확보
 
 /**
  * props
- * - initialMonster: growth.js 형태의 몬스터 객체 (필수)
- * - onWin(grownMonster): 승리 시 최종 성장 결과 전달 (DB 저장 지점)
+ * - initialMonster: growth.js 형태 몬스터 (장비 보너스 미포함 base 스탯)
+ * - chapter, stage: 현재 도전 중인 스테이지 좌표
+ * - equipmentBonus: { atk, def, hp } 장착 아이템 합산 보너스
+ * - onClear(grownBaseMonster, goldReward): 클리어 시 (DB 저장은 상위에서)
  */
-export default function BattleScreen({ initialMonster, onWin }) {
-  const [player, setPlayer] = useState(initialMonster);
-  const [enemy, setEnemy] = useState(() => makeBoss());
+export default function BattleScreen({ initialMonster, chapter, stage, equipmentBonus, onClear }) {
+  const stageEnemy = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
+  const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
+  const availableSkills = useMemo(
+    () => getAvailableSkills(SKILLS, initialMonster.element, initialMonster.level),
+    [initialMonster.element, initialMonster.level]
+  );
+
+  const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
+  const [enemy, setEnemy] = useState(() => ({ ...stageEnemy }));
   const [cooldowns, setCooldowns] = useState({});
-  const [log, setLog] = useState(`${initialMonster.name}(와)과 함께 모험을 시작합니다!`);
+  const [log, setLog] = useState(flavor);
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -40,15 +47,18 @@ export default function BattleScreen({ initialMonster, onWin }) {
   const rafRef = useRef(null);
   const dimsRef = useRef({ w: 600, h: 220 });
 
+  // 스테이지가 바뀌면 완전히 새 전투로 초기화
   useEffect(() => {
-    setPlayer(initialMonster);
-  }, [initialMonster]);
+    setPlayer(withEquipment(initialMonster, equipmentBonus));
+    setEnemy({ ...stageEnemy });
+    setResult(null);
+    setCooldowns({});
+    setLog(flavor);
+  }, [chapter, stage]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 캔버스 파티클 애니메이션 루프 (반응형 크기 대응)
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-
     function resize() {
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width;
@@ -57,15 +67,11 @@ export default function BattleScreen({ initialMonster, onWin }) {
     }
     resize();
     window.addEventListener('resize', resize);
-
     function loop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
       for (const p of particlesRef.current) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.15;
-        p.life -= 1;
+        p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 1;
         ctx.globalAlpha = Math.max(p.life / p.maxLife, 0);
         ctx.fillStyle = p.color;
         ctx.beginPath();
@@ -84,19 +90,13 @@ export default function BattleScreen({ initialMonster, onWin }) {
 
   const spawnParticles = useCallback((xr, yr, color, count = 18) => {
     const { w, h } = dimsRef.current;
-    const x = w * xr;
-    const y = h * yr;
+    const x = w * xr, y = h * yr;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 2 + Math.random() * 4;
       particlesRef.current.push({
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
-        size: 2 + Math.random() * 3,
-        color,
-        life: 30 + Math.random() * 20,
-        maxLife: 50,
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
+        size: 2 + Math.random() * 3, color, life: 30 + Math.random() * 20, maxLife: 50,
       });
     }
   }, []);
@@ -106,42 +106,41 @@ export default function BattleScreen({ initialMonster, onWin }) {
     setTimeout(() => setShake(false), 200);
   }, []);
 
-  const damageEnemy = useCallback(
-    (amount) => {
-      setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
-      spawnParticles(0.8, 0.35, ELEMENT_COLORS.fire);
-      triggerShake();
-    },
-    [spawnParticles, triggerShake]
-  );
+  const damageEnemy = useCallback((amount) => {
+    setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
+    spawnParticles(0.8, 0.35, ELEMENT_COLORS.fire);
+    triggerShake();
+  }, [spawnParticles, triggerShake]);
 
-  const damagePlayer = useCallback(
-    (amount) => {
-      setPlayer((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
-      spawnParticles(0.2, 0.7, ELEMENT_COLORS[player.element]);
-      triggerShake();
-    },
-    [spawnParticles, triggerShake, player.element]
-  );
+  const damagePlayer = useCallback((amount) => {
+    setPlayer((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
+    spawnParticles(0.2, 0.7, ELEMENT_COLORS[player.element]);
+    triggerShake();
+  }, [spawnParticles, triggerShake, player.element]);
 
   // 전투 종료 체크
   useEffect(() => {
     if (result) return;
     if (enemy.hp <= 0) {
       setResult('win');
-      const expReward = Math.round(enemy.maxHp * 0.9);
-      const grown = applyExpGain(player, expReward);
-      setPlayer(grown);
-      const growthLog = grown.events.length ? ' ' + grown.events.join(' ') : '';
-      setLog(`${enemy.name} 처치! 경험치 +${expReward}${growthLog}`);
-      onWin?.(grown);
+      const baseForPersist = {
+        ...player,
+        atk: player.atk - (equipmentBonus?.atk ?? 0),
+        def: player.def - (equipmentBonus?.def ?? 0),
+        maxHp: player.maxHp - (equipmentBonus?.hp ?? 0),
+      };
+      const grownBase = applyExpGain(baseForPersist, enemy.expReward);
+      const grownEffective = withEquipment(grownBase, equipmentBonus);
+      setPlayer(grownEffective);
+      const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
+      setLog(`${enemy.name} 처치! 경험치 +${enemy.expReward}, 골드 +${enemy.goldReward}${growthLog}`);
+      onClear?.(grownBase, enemy.goldReward);
     } else if (player.hp <= 0) {
       setResult('lose');
       setLog(`${player.name}가 쓰러졌다... 다시 도전해보세요!`);
     }
-  }, [enemy.hp, player.hp, result]);
+  }, [enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 적 자동 공격
   useEffect(() => {
     if (result) return;
     const timer = setInterval(() => {
@@ -153,7 +152,6 @@ export default function BattleScreen({ initialMonster, onWin }) {
 
   function useSkill(skill) {
     if (result || cooldowns[skill.id]) return;
-
     if (skill.type === 'damage') {
       const dmg = Math.round(player.atk * skill.multiplier);
       setLog(`${player.name}의 ${skill.name}!`);
@@ -164,23 +162,22 @@ export default function BattleScreen({ initialMonster, onWin }) {
       setLog(`${player.name}의 ${skill.name}! 체력 +${healAmount}`);
       spawnParticles(0.2, 0.7, '#8fffb0');
     }
-
     setCooldowns((prev) => ({ ...prev, [skill.id]: true }));
-    setTimeout(() => {
-      setCooldowns((prev) => ({ ...prev, [skill.id]: false }));
-    }, skill.cooldown);
+    setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), skill.cooldown);
   }
 
-  function handleRestart() {
-    setEnemy(makeBoss());
+  function handleRetry() {
+    setPlayer(withEquipment({ ...initialMonster }, equipmentBonus));
+    setEnemy({ ...stageEnemy });
     setResult(null);
     setCooldowns({});
-    setLog('다음 상대 등장!');
-    setPlayer((prev) => ({ ...prev, hp: prev.maxHp }));
+    setLog('다시 도전!');
   }
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
+      <div className="stage-badge">{chapter}-{stage} · {getChapterName(chapter)}{enemy.isBoss ? ' (보스)' : ''}</div>
+
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
@@ -192,7 +189,10 @@ export default function BattleScreen({ initialMonster, onWin }) {
       </div>
 
       <div className="hud-row">
-        <HpBar label={`${player.name} Lv.${player.level}`} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
+        <HpBar
+          label={`${player.name}${player.jobTitle ? ' · ' + player.jobTitle : ''} Lv.${player.level}`}
+          hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]}
+        />
         <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color={ELEMENT_COLORS[enemy.element]} />
       </div>
 
@@ -203,16 +203,19 @@ export default function BattleScreen({ initialMonster, onWin }) {
       {result ? (
         <div className="result-panel">
           <p className="result-text">{result === 'win' ? '승리!' : '패배...'}</p>
-          <button onClick={handleRestart} className="btn btn-neutral">
-            {result === 'win' ? '다음 상대 도전' : '다시 도전'}
-          </button>
+          {result === 'lose' && (
+            <button onClick={handleRetry} className="btn btn-neutral">다시 도전</button>
+          )}
+          {result === 'win' && (
+            <p className="result-hint">스테이지 목록에서 다음 스테이지를 선택하세요.</p>
+          )}
         </div>
       ) : (
         <div className="skills-row">
-          {SKILLS.map((skill) => (
+          {availableSkills.map((skill) => (
             <button
               key={skill.id}
-              className={`skill-btn ${cooldowns[skill.id] ? 'on-cooldown' : ''} ${skill.type === 'heal' ? 'skill-heal' : ''}`}
+              className={`skill-btn ${cooldowns[skill.id] ? 'on-cooldown' : ''} ${skill.type === 'heal' ? 'skill-heal' : ''} ${skill.id.includes('job') ? 'skill-job' : ''}`}
               onClick={() => useSkill(skill)}
               disabled={!!cooldowns[skill.id]}
               title={skill.description}
@@ -233,9 +236,7 @@ function ExpBar({ level, exp }) {
   return (
     <div className="exp-bar-wrap">
       <div className="exp-label">Lv.{level} 경험치 ({exp}/{need})</div>
-      <div className="bar-track exp-track">
-        <div className="bar-fill exp-fill" style={{ width: `${pct}%` }} />
-      </div>
+      <div className="bar-track exp-track"><div className="bar-fill exp-fill" style={{ width: `${pct}%` }} /></div>
     </div>
   );
 }
@@ -245,9 +246,7 @@ function HpBar({ label, hp, maxHp, color }) {
   return (
     <div className="hp-bar">
       <div className="hp-label">{label} ({Math.ceil(hp)}/{maxHp})</div>
-      <div className="bar-track">
-        <div className="bar-fill" style={{ width: `${pct}%`, background: color }} />
-      </div>
+      <div className="bar-track"><div className="bar-fill" style={{ width: `${pct}%`, background: color }} /></div>
     </div>
   );
 }

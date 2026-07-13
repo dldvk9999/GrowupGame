@@ -1,17 +1,20 @@
 import { speciesById } from './speciesData';
+import { getCurrentJobTier } from './jobAdvancement';
 
 /** 레벨 n에서 다음 레벨까지 필요한 경험치 */
 export function expToNextLevel(level) {
   return Math.round(20 * Math.pow(level, 1.5));
 }
 
-/** 종 base 스탯 + 레벨에 따른 성장 보정 */
-function scaleStats(species, level) {
+/** 종 base 스탯 + 레벨 성장 + 전직 배율 반영 (다른 모듈에서도 재사용) */
+export function scaleStats(species, level) {
   const growth = 1 + (level - 1) * 0.12;
+  const tier = getCurrentJobTier(species.element, level);
+  const jobMultiplier = tier?.statMultiplier ?? 1;
   return {
-    maxHp: Math.round(species.baseHp * growth),
-    atk: Math.round(species.baseAtk * growth),
-    def: Math.round(species.baseDef * growth),
+    maxHp: Math.round(species.baseHp * growth * jobMultiplier),
+    atk: Math.round(species.baseAtk * growth * jobMultiplier),
+    def: Math.round(species.baseDef * growth * jobMultiplier),
   };
 }
 
@@ -39,11 +42,17 @@ export function applyExpGain(monster, gainedExp) {
       const next = speciesById[speciesId];
       events.push(`${next.name}(으)로 진화했다!`);
     }
+
+    const tier = getCurrentJobTier(speciesById[speciesId].element, level);
+    if (tier && tier.level === level) {
+      events.push(`${tier.title}(으)로 전직했다! 전용 스킬 [${tier.skill.name}] 습득!`);
+    }
   }
 
   const species = speciesById[speciesId];
   const stats = scaleStats(species, level);
   const hpRatio = monster.maxHp ? monster.hp / monster.maxHp : 1;
+  const jobTier = getCurrentJobTier(species.element, level);
 
   return {
     ...monster,
@@ -53,6 +62,7 @@ export function applyExpGain(monster, gainedExp) {
     speciesDbId: species.dbId,
     name: species.name,
     element: species.element,
+    jobTitle: jobTier?.title ?? null,
     maxHp: stats.maxHp,
     hp: Math.round(stats.maxHp * hpRatio),
     atk: stats.atk,
@@ -65,11 +75,13 @@ export function applyExpGain(monster, gainedExp) {
 export function createMonster(speciesId, level = 1) {
   const species = speciesById[speciesId];
   const stats = scaleStats(species, level);
+  const jobTier = getCurrentJobTier(species.element, level);
   return {
     speciesId,
     speciesDbId: species.dbId,
     name: species.name,
     element: species.element,
+    jobTitle: jobTier?.title ?? null,
     level,
     exp: 0,
     maxHp: stats.maxHp,

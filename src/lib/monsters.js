@@ -1,6 +1,8 @@
 import { supabase } from './supabaseClient';
 import { speciesKeyToDbId, dbIdToSpeciesKey } from './speciesDbIds';
-import { createMonster } from './growth';
+import { createMonster, scaleStats } from './growth';
+import { speciesById } from './speciesData';
+import { getCurrentJobTier } from './jobAdvancement';
 
 /** 로그인 유저의 사육장 몬스터 목록 조회 */
 export async function fetchOwnedMonsters(userId) {
@@ -16,17 +18,22 @@ export async function fetchOwnedMonsters(userId) {
 /** DB row(owned_monsters) → 전투/성장 로직에서 쓰는 몬스터 객체로 변환 */
 export function hydrateMonster(row) {
   const speciesId = dbIdToSpeciesKey[row.species_id];
+  const species = speciesById[speciesId];
+  const stats = scaleStats(species, row.level);
+  const jobTier = getCurrentJobTier(species.element, row.level);
   return {
     ownedMonsterId: row.id,
     speciesId,
-    name: row.monster_species?.name ?? row.nickname ?? speciesId,
-    element: row.monster_species?.element,
+    speciesDbId: species.dbId,
+    name: species.name,
+    element: species.element,
+    jobTitle: jobTier?.title ?? null,
     level: row.level,
     exp: row.exp,
-    hp: row.hp,
-    maxHp: row.hp, // 재접속 시 만피 상태로 시작
-    atk: row.atk,
-    def: row.def,
+    hp: stats.maxHp, // 재접속 시 만피 상태로 시작
+    maxHp: stats.maxHp,
+    atk: stats.atk,
+    def: stats.def,
   };
 }
 
