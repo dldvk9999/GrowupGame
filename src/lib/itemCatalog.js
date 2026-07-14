@@ -37,3 +37,20 @@ export const ITEM_CATALOG = Object.entries(SLOTS).flatMap(([slotKey, slot]) =>
 export function getItem(itemKey) {
   return ITEM_CATALOG.find((i) => i.itemKey === itemKey);
 }
+
+export const MAX_ENHANCE_LEVEL = 15;
+
+const BASE_RATE_BY_RARITY_ORDER = { 1: 0.9, 2: 0.8, 3: 0.65, 4: 0.45, 5: 0.25 };
+
+/** 강화 성공률/비용 미리보기 (실제 판정은 서버 RPC에서 함, 이건 UI 표시용) */
+export function estimateEnhance(item, currentLevel) {
+  const base = BASE_RATE_BY_RARITY_ORDER[item.rarityOrder] ?? 0.5;
+  const rate = Math.max(base * Math.pow(0.92, currentLevel), 0.05);
+  const cost = Math.round(item.price * 0.1 * (1 + currentLevel * 0.5));
+  return { rate, cost };
+}
+
+/** 강화 수치가 반영된 실제 스탯 보너스 (강화 1당 +8%) */
+export function getEnhancedStatBonus(item, enhanceLevel) {
+  return Math.round(item.statBonus * (1 + enhanceLevel * 0.08));
+}

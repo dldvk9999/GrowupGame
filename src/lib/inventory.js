@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { getItem } from './itemCatalog';
+import { getItem, getEnhancedStatBonus } from './itemCatalog';
 
 /** 내 인벤토리 조회 */
 export async function fetchInventory(userId) {
@@ -44,14 +44,14 @@ export async function unequipItem(inventoryId) {
   if (error) throw error;
 }
 
-/** 장착 중인 아이템들의 스탯 보너스 합산 { atk, def, hp } */
+/** 장착 중인 아이템들의 스탯 보너스 합산 { atk, def, hp } - 강화 수치 반영됨 */
 export function sumEquippedBonus(inventoryRows) {
   const bonus = { atk: 0, def: 0, hp: 0 };
   for (const row of inventoryRows) {
     if (!row.equipped) continue;
     const item = getItem(row.item_key);
     if (!item) continue;
-    bonus[item.statKey] += item.statBonus;
+    bonus[item.statKey] += getEnhancedStatBonus(item, row.enhance_level ?? 0);
   }
   return bonus;
 }
