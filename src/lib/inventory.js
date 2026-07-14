@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 import { getItem } from './itemCatalog';
-import { spendGold } from './economy';
 
 /** 내 인벤토리 조회 */
 export async function fetchInventory(userId) {
@@ -13,20 +12,10 @@ export async function fetchInventory(userId) {
   return data;
 }
 
-/** 아이템 구매: 골드 차감 성공 시에만 인벤토리에 추가 */
+/** 아이템 구매 - 가격/슬롯은 서버 카탈로그 기준으로 검증되고, 골드 차감도 원자적으로 처리됨 */
 export async function buyItem(userId, itemKey) {
-  const item = getItem(itemKey);
-  if (!item) throw new Error('존재하지 않는 아이템입니다.');
-
-  const ok = await spendGold(userId, item.price);
-  if (!ok) throw new Error('골드가 부족합니다.');
-
-  const { data, error } = await supabase
-    .from('user_inventory')
-    .insert({ user_id: userId, item_key: itemKey, slot: item.slot, equipped: false })
-    .select()
-    .single();
-  if (error) throw error;
+  const { data, error } = await supabase.rpc('buy_item', { p_item_key: itemKey });
+  if (error) throw new Error(error.message.includes('골드') ? '골드가 부족합니다.' : error.message);
   return data;
 }
 

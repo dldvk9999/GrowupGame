@@ -11,13 +11,8 @@ export async function fetchClearedStageIds(userId) {
   return new Set(data.map((r) => r.stage_id));
 }
 
-/** 스테이지 클리어 기록 (이미 클리어했으면 그대로 유지) */
+/** 스테이지 클리어 기록 - 서버(RPC)에서 "정말 열려있는 스테이지인지" 재검증됨 */
 export async function markStageCleared(userId, stageId) {
-  const { error } = await supabase
-    .from('stage_progress')
-    .upsert(
-      { user_id: userId, stage_id: stageId, cleared: true, cleared_at: new Date().toISOString() },
-      { onConflict: 'user_id,stage_id' }
-    );
+  const { error } = await supabase.rpc('clear_stage', { p_stage_id: stageId });
   if (error) throw error;
 }

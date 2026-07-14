@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { speciesKeyToDbId, dbIdToSpeciesKey } from './speciesDbIds';
-import { createMonster, scaleStats } from './growth';
+import { scaleStats } from './growth';
 import { speciesById } from './speciesData';
 import { getCurrentJobTier } from './jobAdvancement';
 
@@ -37,39 +37,25 @@ export function hydrateMonster(row) {
   };
 }
 
-/** 성장 결과(레벨/경험치/스탯/진화)를 DB에 반영 */
+/** 성장 결과(레벨/경험치/스탯/진화)를 DB에 반영 - 서버(RPC)에서 상한선 재검증됨 */
 export async function persistMonsterGrowth(ownedMonsterId, monster) {
-  const { error } = await supabase
-    .from('owned_monsters')
-    .update({
-      level: monster.level,
-      exp: monster.exp,
-      hp: monster.maxHp, // 승리 후에는 만피로 저장 (다음 접속 시 풀피 시작)
-      atk: monster.atk,
-      def: monster.def,
-      species_id: speciesKeyToDbId[monster.speciesId],
-    })
-    .eq('id', ownedMonsterId);
+  const { error } = await supabase.rpc('save_monster_growth', {
+    p_owned_monster_id: ownedMonsterId,
+    p_level: monster.level,
+    p_exp: monster.exp,
+    p_hp: monster.maxHp, // 승리 후에는 만피로 저장 (다음 접속 시 풀피 시작)
+    p_atk: monster.atk,
+    p_def: monster.def,
+    p_species_id: speciesKeyToDbId[monster.speciesId],
+  });
   if (error) throw error;
 }
 
-/** 최초 로그인 시 스타터 1마리 생성 */
+/** 최초 로그인 시 스타터 1마리 생성 - 서버(RPC)에서 종류/스탯을 직접 결정함 */
 export async function createStarter(userId, speciesKey) {
-  const base = createMonster(speciesKey);
-  const { data, error } = await supabase
-    .from('owned_monsters')
-    .insert({
-      user_id: userId,
-      species_id: speciesKeyToDbId[speciesKey],
-      level: base.level,
-      exp: base.exp,
-      hp: base.maxHp,
-      atk: base.atk,
-      def: base.def,
-      is_active: true,
-    })
-    .select('*, monster_species(*)')
-    .single();
+  const { data, error } = await supabase.rpc('create_starter_monster', {
+    p_species_key: speciesKey,
+  });
   if (error) throw error;
   return hydrateMonster(data);
 }
