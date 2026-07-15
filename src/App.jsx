@@ -4,7 +4,7 @@ import { getMyProfile, signOut } from './lib/auth';
 import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/monsters';
 import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
-import { fetchInventory, sumEquippedBonus } from './lib/inventory';
+import { fetchInventory, getTotalEquipmentBonus } from './lib/inventory';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
@@ -272,7 +272,7 @@ export default function App() {
   }
 
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
-  const equipmentBonus = sumEquippedBonus(inventory);
+  const equipmentBonus = getTotalEquipmentBonus(inventory);
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
   const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];

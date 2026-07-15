@@ -2,9 +2,10 @@ const ELEMENTS = ['fire', 'water', 'grass'];
 
 function dungeonBoss(stage) {
   const element = ELEMENTS[stage % ELEMENTS.length];
-  // 난이도 재상향: 체력/공격력 계수를 올림
+  // 난이도 재상향: 체력/공격력/방어력 계수를 올림
   const hp = Math.round(220 + Math.pow(stage, 1.6) * 185);
   const atk = Math.round(20 + Math.pow(stage, 1.5) * 13);
+  const def = Math.round(15 + Math.pow(stage, 1.4) * 9);
   return {
     name: `던전 ${stage}층 보스`,
     element,
@@ -12,6 +13,7 @@ function dungeonBoss(stage) {
     maxHp: hp,
     hp,
     atk,
+    def,
     isBoss: true,
   };
 }

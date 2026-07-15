@@ -44,3 +44,12 @@ export const MAX_ENHANCE_LEVEL = 15;
 export function getEnhancedStatBonus(item, enhanceLevel) {
   return Math.round(item.statBonus * (1 + enhanceLevel * 0.08));
 }
+
+// 보유효과: 장착 여부와 상관없이 "갖고만 있어도" 적용되는 소량의 상시 보너스.
+// 장착 보너스보다 약하게(기본값의 15%) 잡되, 강화되면 이것도 같이 오름.
+const POSSESSION_RATIO = 0.15;
+
+/** 보유효과 스탯 보너스 (장착 안 해도 항상 적용, 강화 수치 반영됨) */
+export function getPossessionBonus(item, enhanceLevel) {
+  return Math.max(1, Math.round(item.statBonus * POSSESSION_RATIO * (1 + enhanceLevel * 0.08)));
+}

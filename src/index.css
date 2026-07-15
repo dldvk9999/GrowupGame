@@ -351,6 +351,7 @@ button {
   flex-wrap: wrap;
 }
 .skill-btn {
+  position: relative;
   flex: 1 1 100px;
   min-width: 90px;
   display: flex;
@@ -362,12 +363,26 @@ button {
   border-radius: var(--radius-md);
   background: var(--bg-panel-2);
   color: var(--text-primary);
+  overflow: visible;
 }
 .skill-btn:active { transform: scale(0.96); }
-.skill-btn.on-cooldown { opacity: 0.4; cursor: not-allowed; }
+.skill-btn.on-cooldown { opacity: 0.55; cursor: not-allowed; }
 .skill-btn.skill-heal { border-color: rgba(79, 214, 122, 0.5); }
 .skill-icon { font-size: 22px; }
 .skill-name { font-size: 12px; font-weight: 600; text-align: center; }
+
+/* 스킬 쿨타임 링 - 시계방향으로 채워지는 border */
+.skill-cooldown-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--radius-md) + 3px);
+  padding: 3px;
+  pointer-events: none;
+  background: conic-gradient(from 0deg, var(--accent-gold) var(--cooldown-angle, 0deg), transparent var(--cooldown-angle, 0deg) 360deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
 
 /* ---------- 게임 셸 / 탭 네비 ---------- */
 .game-shell {
@@ -633,6 +648,22 @@ button {
 .inventory-icon { font-size: 18px; }
 .inventory-name { flex: 1; font-size: 13px; }
 .inventory-stat { font-size: 12px; color: var(--text-secondary); }
+
+.inventory-section { margin-bottom: 24px; }
+.inventory-section-title {
+  font-size: 14px;
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 6px;
+}
+.inventory-stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+.inventory-stat--possession { color: var(--accent-gold); }
 
 /* ---------- 아이템 강화 ---------- */
 .inventory-row--enhance {

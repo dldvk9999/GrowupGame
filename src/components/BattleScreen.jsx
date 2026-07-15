@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import MonsterSprite from './MonsterSprite';
+import SkillButton from './SkillButton';
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
+import { mitigateDamage } from '../lib/combat';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
@@ -64,6 +66,7 @@ export default function BattleScreen({
 
   const [enemy, setEnemy] = useState(() => ({ ...stageEnemyTemplate }));
   const [cooldowns, setCooldowns] = useState({});
+  const [cooldownStarts, setCooldownStarts] = useState({});
   const [log, setLog] = useState(flavor);
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
@@ -195,15 +198,15 @@ export default function BattleScreen({
     if (mode !== 'challenge' || result) return;
     const timer = setInterval(() => {
       setLog(`${enemy.name}의 공격!`);
-      damagePlayer(enemy.atk);
+      damagePlayer(mitigateDamage(enemy.atk, player.def));
     }, ENEMY_ATTACK_INTERVAL);
     return () => clearInterval(timer);
-  }, [mode, enemy.atk, enemy.name, result, damagePlayer]);
+  }, [mode, enemy.atk, enemy.name, result, damagePlayer, player.def]);
 
   function useSkill(skill) {
     if (mode !== 'challenge' || result || cooldowns[skill.id]) return;
     if (skill.type === 'damage') {
-      const dmg = Math.round(player.atk * skill.multiplier);
+      const dmg = mitigateDamage(player.atk * skill.multiplier, enemy.def);
       setLog(`${player.name}의 ${skill.name}!`);
       damageEnemy(dmg);
     } else if (skill.type === 'heal') {
@@ -213,6 +216,7 @@ export default function BattleScreen({
       spawnParticles(0.2, 0.7, '#8fffb0');
     }
     setCooldowns((prev) => ({ ...prev, [skill.id]: true }));
+    setCooldownStarts((prev) => ({ ...prev, [skill.id]: Date.now() }));
     setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), skill.cooldown);
   }
 
@@ -260,16 +264,13 @@ export default function BattleScreen({
       {mode === 'challenge' && !result && (
         <div className="skills-row">
           {availableSkills.map((skill) => (
-            <button
+            <SkillButton
               key={skill.id}
-              className={`skill-btn ${cooldowns[skill.id] ? 'on-cooldown' : ''} ${skill.type === 'heal' ? 'skill-heal' : ''} ${skill.id.includes('job') ? 'skill-job' : ''}`}
-              onClick={() => useSkill(skill)}
+              skill={skill}
               disabled={!!cooldowns[skill.id]}
-              title={skill.description}
-            >
-              <span className="skill-icon">{skill.icon}</span>
-              <span className="skill-name">{skill.name}</span>
-            </button>
+              startedAt={cooldownStarts[skill.id]}
+              onUse={useSkill}
+            />
           ))}
         </div>
       )}

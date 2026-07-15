@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
+import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
+import { mitigateDamage } from '../lib/combat';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1600;
@@ -29,6 +31,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({ ...jobBoss }));
   const [cooldowns, setCooldowns] = useState({});
+  const [cooldownStarts, setCooldownStarts] = useState({});
   const [log, setLog] = useState(`${jobBoss.name} 등장! 신중하게 스킬을 사용하세요.`);
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
@@ -124,15 +127,15 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
     if (result) return;
     const timer = setInterval(() => {
       setLog(`${enemy.name}의 강력한 공격!`);
-      damagePlayer(enemy.atk);
+      damagePlayer(mitigateDamage(enemy.atk, player.def));
     }, ENEMY_ATTACK_INTERVAL);
     return () => clearInterval(timer);
-  }, [enemy.atk, enemy.name, result, damagePlayer]);
+  }, [enemy.atk, enemy.name, result, damagePlayer, player.def]);
 
   function useSkill(skill) {
     if (result || cooldowns[skill.id]) return;
     if (skill.type === 'damage') {
-      const dmg = Math.round(player.atk * skill.multiplier);
+      const dmg = mitigateDamage(player.atk * skill.multiplier, enemy.def);
       setLog(`${player.name}의 ${skill.name}!`);
       damageEnemy(dmg);
     } else if (skill.type === 'heal') {
@@ -142,6 +145,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       spawnParticles(0.2, 0.7, '#8fffb0');
     }
     setCooldowns((prev) => ({ ...prev, [skill.id]: true }));
+    setCooldownStarts((prev) => ({ ...prev, [skill.id]: Date.now() }));
     setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), skill.cooldown);
   }
 
@@ -180,16 +184,13 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       ) : (
         <div className="skills-row">
           {availableSkills.map((skill) => (
-            <button
+            <SkillButton
               key={skill.id}
-              className={`skill-btn ${cooldowns[skill.id] ? 'on-cooldown' : ''} ${skill.type === 'heal' ? 'skill-heal' : ''}`}
-              onClick={() => useSkill(skill)}
+              skill={skill}
               disabled={!!cooldowns[skill.id]}
-              title={skill.description}
-            >
-              <span className="skill-icon">{skill.icon}</span>
-              <span className="skill-name">{skill.name}</span>
-            </button>
+              startedAt={cooldownStarts[skill.id]}
+              onUse={useSkill}
+            />
           ))}
         </div>
       )}
