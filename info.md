@@ -218,15 +218,41 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `mails` 테이블 + `sync_daily_mails()`(정기 골드우편 지연생성) + `claim_mail()` RPC
 - `coupons`, `coupon_redemptions` 테이블 + `redeem_coupon()` RPC, 테스트용 예시 쿠폰 `WELCOME2026` 시드
 
-### 클라이언트 쓰기 권한 요약 (보안 패치 이후 기준)
+**009_security_audit_patch.sql** ⚠️ **가장 중요, 필수 적용 (골드 무한증식 취약점 패치)**
+- `add_gold`/`spend_gold` EXECUTE 권한을 `authenticated`에서 회수 (client 직접 호출 완전 차단)
+- `calc_stage_gold`, `calc_idle_gold`, `calc_dungeon_gold` SQL 함수 신설 (stages.js/dungeonStages.js 공식 그대로 이식)
+- `clear_stage`가 골드 지급까지 함께 처리하도록 변경 (반환값 = 지급액)
+- `grant_idle_reward` RPC 신설 (자동사냥 전용, 유저당 최소 2.5초 간격 제한 포함)
+- `dungeon_sessions` 테이블 신설, `use_dungeon_attempt`가 세션 생성 + `claim_dungeon_reward`가 세션당 1회만 보상 지급
+- `use_dungeon_attempt`, `update_nickname`의 레이스컨디션(동시요청으로 제한 우회) 수정
+- `mails`/`dungeon_attempts`/`dungeon_sessions`/`coupons`/`coupon_redemptions`/`skill_catalog`/`item_catalog`/`monster_species`에 명시적 client 쓰기권한 회수 추가
 
-| 테이블 | client 직접 write 가능? | 실제 변경 경로 |
+### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
+
+| 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
 |---|---|---|
-| `profiles` | nickname만 | gold는 `add_gold`/`spend_gold`/`buy_item`/`enhance_item` RPC |
+| `profiles.gold` | ❌ | 각 액션 전용 RPC가 내부적으로만 `add_gold` 호출 (client는 `add_gold`/`spend_gold`를 직접 호출 불가, EXECUTE 권한 회수됨) |
+| `profiles.nickname` | ❌ | `update_nickname` RPC (1회 제한, 레이스컨디션 수정됨) |
 | `owned_monsters` | ❌ | `create_starter_monster`, `save_monster_growth` RPC |
-| `stage_progress` | ❌ | `clear_stage` RPC |
+| `stage_progress` | ❌ | `clear_stage` RPC (스테이지 클리어 + 골드 지급을 함께 원자적으로 처리) |
 | `user_inventory` | equipped 컬럼만 | 생성은 `buy_item`, 강화는 `enhance_item` RPC |
-| `chat_messages` | insert 가능(닉네임은 트리거가 덮어씀) | - |
+| `user_skills` | ❌ | `draw_skill`/`draw_skill_batch` RPC |
+| `dungeon_attempts` | ❌ | `use_dungeon_attempt` RPC (원자적 증가로 레이스컨디션 수정됨) |
+| `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
+| `mails` | ❌ | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송) |
+| `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
+
+### 009 보안 감사에서 발견/수정한 것
+
+1. **[치명] `add_gold` 직접 호출 가능 → 무제한 골드 획득** — `add_gold(target_user, amount)`가 신원 확인(`auth.uid()=target_user`)과 1회 상한만 검사하고, "이게 실제로 정당한 보상인지"는 전혀 검증하지 않았음. 브라우저 콘솔에서 `supabase.rpc('add_gold', {target_user: 내id, amount: 100000})`을 반복 호출하면 사실상 무한 골드 획득이 가능했음.
+   → **수정**: `add_gold`/`spend_gold`의 EXECUTE 권한을 `authenticated`에서 회수해서 client가 직접 호출 자체를 못 하게 잠금. 대신 스테이지클리어/자동사냥/던전 각각의 골드 보상 공식(`calc_stage_gold`, `calc_idle_gold`, `calc_dungeon_gold`)을 SQL로 그대로 옮겨서, 각 전용 RPC가 "무슨 행동을 했는지"에 맞는 금액을 서버가 직접 계산해서 지급하도록 변경. client가 보내는 골드 숫자는 이제 어디서도 신뢰하지 않음.
+2. **[중] 자동사냥 골드에 요청 속도 제한 없음** — 자동사냥은 3초마다 반복 호출되는 구조라, 스크립트로 그 텀보다 빠르게 반복 호출하면 실질적으로 무제한 파밍이 가능했음.
+   → **수정**: `grant_idle_reward`에 유저별 최소 2.5초 간격 제한을 서버에 추가.
+3. **[중] 던전 보상이 "입장했다는 사실"과 분리되어 있었음** — 던전은 입장만 하루 3회로 막혀있었을 뿐, 승리 보상(`addGold` 직접 호출)은 던전에 실제로 들어갔는지와 무관하게 호출 가능했음.
+   → **수정**: `dungeon_sessions` 테이블을 신설해서 "입장 → 그 세션 하나당 보상 1회만 수령" 구조로 변경. `claim_dungeon_reward`는 존재하는 세션, 내 것, 아직 안 받은 것일 때만 지급.
+4. **[경] 레이스컨디션 2건** — `use_dungeon_attempt`(하루 3회 체크)와 `update_nickname`(1회 수정 체크)가 "읽고 → 조건 확인 → 쓰기" 순서라서, 동시에 여러 번 요청을 날리면 그 사이 틈으로 제한을 넘길 수 있었음 (예: 던전 4회 이상 입장, 닉네임 2번 이상 변경).
+   → **수정**: 둘 다 조건을 WHERE절에 포함한 단일 원자적 UPDATE로 재작성해서 동시요청에도 제한이 정확히 지켜지도록 수정.
+5. **[경] 명시적 권한 회수 누락** — `mails`, `dungeon_attempts`, `coupons` 등 최근 추가한 테이블들에 RLS는 걸려있었지만, 이전 테이블들처럼 명시적 `revoke insert/update/delete`는 빠져있었음 (RLS만으로도 현재는 막혀있었지만, 이중 방어 차원에서 다른 테이블들과 동일하게 명시적으로 회수함).
 
 ### 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
@@ -259,7 +285,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 자정 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
 - 각 던전 10층 구성, 층마다 고정 보스(`dungeonStages.js`의 `dungeonBoss(stage)`) — `hp = round(200 + stage^1.6*150)`, `atk = round(18 + stage^1.5*10)`로 스테이지 진행 몬스터보다 훨씬 강하게 잡음
 - 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대(`hp*3.2` 골드 / `hp*0.6` EXP)
-- 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장/골드 저장 경로(`persistMonsterGrowth`, `addGold`) 사용
+- 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장 저장 경로(`persistMonsterGrowth`) 사용. 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회, 009 보안패치)
 - 입장은 전투 시작 "전에" 소모됨(패배해도 복구 안 됨) — 실제 게임에서 흔한 방식
 
 ### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)

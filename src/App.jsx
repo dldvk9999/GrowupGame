@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { getMyProfile, signOut } from './lib/auth';
 import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/monsters';
-import { addGold } from './lib/economy';
+import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, sumEquippedBonus } from './lib/inventory';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
-import { fetchDungeonAttemptsToday, useDungeonAttempt } from './lib/dungeon';
+import { fetchDungeonAttemptsToday, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
 import { getDungeonStage } from './lib/dungeonStages';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
@@ -163,31 +163,29 @@ export default function App() {
     setStage(STAGE.GAME);
   }
 
-  async function handleClear(grownBase, goldReward) {
+  async function handleClear(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
     const userId = session.user.id;
     try {
-      await Promise.all([
+      const [, grantedGold] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
-        addGold(userId, goldReward),
         markStageCleared(userId, currentStageIndex),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + goldReward }));
+      setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
       setClearedStageIds((prev) => new Set(prev).add(currentStageIndex));
     } catch (err) {
       console.error('클리어 저장 실패', err);
     }
   }
 
-  async function handleIdleGain(grownBase, goldReward) {
+  async function handleIdleGain(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
-    const userId = session.user.id;
     try {
-      await Promise.all([
+      const [, grantedGold] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
-        addGold(userId, goldReward),
+        grantIdleReward(chapter, grownBase.level),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + goldReward }));
+      setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
     } catch (err) {
       console.error('자동 사냥 저장 실패', err);
     }
@@ -203,9 +201,9 @@ export default function App() {
     setDungeonError('');
     setDungeonEntering(true);
     try {
-      const remaining = await useDungeonAttempt(type);
+      const { sessionId, remaining } = await useDungeonAttempt(type, stageNum);
       setDungeonAttempts((prev) => ({ ...prev, [type]: remaining }));
-      setDungeonBattle({ type, stage: stageNum });
+      setDungeonBattle({ type, stage: stageNum, sessionId });
     } catch (err) {
       setDungeonError(err.message ?? '입장에 실패했어요.');
     } finally {
@@ -213,15 +211,14 @@ export default function App() {
     }
   }
 
-  async function handleDungeonClear(grownBase, goldReward) {
+  async function handleDungeonClear(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
-    const userId = session.user.id;
     try {
-      await Promise.all([
+      const [, grantedGold] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
-        addGold(userId, goldReward),
+        claimDungeonReward(dungeonBattle.sessionId),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + goldReward }));
+      setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
     }
