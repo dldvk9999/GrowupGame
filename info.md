@@ -47,6 +47,7 @@ GrowupGame/
 │  │  └─ MonsterSprite.jsx         # 몬스터 이미지 렌더링 (벡터→외부이미지 자동 폴백)
 │  ├─ assets/sprites/
 │  │  ├─ FireStage1.jsx, WaterStage1.jsx, GrassStage1.jsx   # 스타터 1단계 SVG 벡터 일러스트
+  │  ├─ FireStage2/3.jsx, WaterStage2/3.jsx, GrassStage2/3.jsx  # 2·3단계 진화 SVG 벡터 일러스트
 │  │  └─ index.js                  # sprite_key → 벡터 컴포넌트 매핑 레지스트리
 │  └─ lib/
 │     ├─ supabaseClient.js         # Supabase 클라이언트 초기화
@@ -131,7 +132,9 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 챕터별 속성은 `fire→water→grass` 3개씩 순환 배정
 - 몬스터 스탯은 전체 진행도(index)에 비례해 절차적으로 스케일링 (`getStageEnemy`)
 - **스토리 진행**: 새 챕터 첫 진입 시 `ChapterStory` 배너 표시(`getChapterStory`), 서브스테이지 진입마다 전투 로그에 짧은 플레이버 텍스트(`getStageFlavor`) — "몬스터 잡을 때도 스토리가 계속되게" 요건 충족
-- **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능 (`StageSelect.jsx`)
+- **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능
+- **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
+- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`. 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
 
@@ -217,10 +220,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 ## 7. 알려진 미구현/TODO 후보
 
 - 로비 채팅 UI 미연결 (`useLobbyChat` 훅은 완성, 화면에 아직 안 붙임)
-- 2차/3차 진화 몬스터의 SVG 벡터 스프라이트 없음 (스타터 1단계만 있음, 진화 시 `MonsterSprite`가 자동으로 "?" 플레이스홀더로 폴백됨 — 깨지진 않지만 비주얼 없음)
 - 외부 이미지(실사/일러스트) 미적용 — `MonsterSprite`는 `VITE_SPRITE_CDN_URL` 세팅 시 자동으로 이미지 우선 사용하도록 이미 확장 가능 구조로 되어 있음
 - 사육장(보유 몬스터 목록/도감) 화면 없음 — 현재는 활성 몬스터 1마리만 운용
 - PvP, 몬스터 포획(교체) 기능 없음 (설계상 보스 처치=자동 성장 개념으로 대체됨, 애초 "포획" 요건은 스타터 선택으로 단순화됨)
+- ~~2·3단계 진화 스프라이트 없음~~ → 해결됨 (9종 벡터 스프라이트 전부 완성)
 
 ---
 
@@ -230,6 +233,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - Supabase 프로젝트에 `supabase/migrations/*.sql`을 **001부터 순서대로** SQL Editor에서 실행해야 함
 - `npm install && npm run dev`로 로컬 확인, `npm run build`로 빌드 검증 후 커밋하는 것이 원칙
 - GitHub push는 fine-grained PAT(레포 한정, Contents Read/write 권한) 사용 중
+
+### 참고: 과거에 있었던 CSS 스크롤 버그
+
+`html, body, #root`에 `height: 100%`(고정값)를 주면 콘텐츠가 뷰포트보다 길어질 때(예: 상점 화면) 하단이 스크롤되지 않고 잘리는 문제가 있었음. `min-height: 100%`로 바꿔서 해결함 — 비슷한 "화면 하단 짤림" 이슈 재발 시 이 부분부터 의심할 것.
 
 ---
 

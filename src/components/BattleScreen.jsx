@@ -7,7 +7,7 @@ import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 2400; // ms, 스테이지 도전 중 적 공격 텀
+const ENEMY_ATTACK_INTERVAL = 2100; // ms, 스테이지 도전 중 적 공격 텀 (난이도 상향)
 const IDLE_KILL_INTERVAL = 3000; // ms, 자동 사냥 처치 텀
 
 function withEquipment(monster, bonus) {

@@ -61,8 +61,9 @@ export function getStageEnemy(chapter, stage) {
   const baseName = names[(chapter + stage) % names.length];
 
   // 전체 진행도(index)에 비례해 서서히 강해짐 + 보스는 같은 챕터 잡몹보다 확실히 강하게
-  const hp = Math.round(28 + index * 3.4 * (isBoss ? 1.9 : 1));
-  const atk = Math.round(3 + index * 0.34 * (isBoss ? 1.5 : 1));
+  // (난이도 상향: 기존보다 체력/공격력 스케일링을 올리고, 그만큼 경험치 보상도 더 넉넉하게 줌)
+  const hp = Math.round(30 + index * 4.0 * (isBoss ? 2.1 : 1));
+  const atk = Math.round(4 + index * 0.44 * (isBoss ? 1.7 : 1));
 
   return {
     stageIndex: index,
@@ -75,7 +76,7 @@ export function getStageEnemy(chapter, stage) {
     maxHp: hp,
     hp,
     atk,
-    expReward: Math.round(hp * (isBoss ? 1.1 : 0.55)),
+    expReward: Math.round(hp * (isBoss ? 1.5 : 0.85)),
     goldReward: Math.round(hp * (isBoss ? 0.9 : 0.4)) + stage * 2,
   };
 }
