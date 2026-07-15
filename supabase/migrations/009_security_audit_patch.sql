@@ -54,7 +54,10 @@ $$ language plpgsql immutable;
 
 -- ============================================
 -- 3. clear_stage: 골드 지급까지 서버가 직접 계산해서 함께 처리 (반환값 = 지급된 골드)
+--    반환 타입이 void → integer로 바뀌므로 기존 함수를 먼저 삭제해야 함
 -- ============================================
+drop function if exists public.clear_stage(integer);
+
 create or replace function public.clear_stage(p_stage_id integer)
 returns integer as $$
 declare
@@ -132,6 +135,9 @@ create table public.dungeon_sessions (
 
 alter table public.dungeon_sessions enable row level security;
 create policy "dungeon_sessions는 본인만 조회" on public.dungeon_sessions for select using (auth.uid() = user_id);
+
+-- 기존 1-파라미터 버전이 오버로드로 남지 않도록 먼저 삭제
+drop function if exists public.use_dungeon_attempt(text);
 
 create or replace function public.use_dungeon_attempt(p_dungeon_type text, p_stage integer)
 returns table(session_id uuid, remaining integer) as $$
