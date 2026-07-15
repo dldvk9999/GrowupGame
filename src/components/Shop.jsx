@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ITEM_CATALOG, SLOTS, getItem, getEnhancedStatBonus, estimateEnhance, MAX_ENHANCE_LEVEL } from '../lib/itemCatalog';
 import { buyItem, equipItem, unequipItem } from '../lib/inventory';
 import { enhanceItem } from '../lib/enhance';
+import { showToast } from '../lib/toast';
 
 const SLOT_ORDER = Object.keys(SLOTS);
 
@@ -15,6 +16,11 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
 
   async function handleBuy(itemKey, price) {
     setError('');
+    if (gold < price) {
+      showToast('골드가 부족합니다.', 'error');
+      setError('골드가 부족합니다.');
+      return;
+    }
     setBusyKey(itemKey);
     try {
       await buyItem(userId, itemKey);
@@ -43,9 +49,14 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
     }
   }
 
-  async function handleEnhance(row) {
+  async function handleEnhance(row, cost) {
     setError('');
     setEnhanceResult(null);
+    if (gold < cost) {
+      showToast('골드가 부족합니다.', 'error');
+      setError('골드가 부족합니다.');
+      return;
+    }
     setBusyKey(row.id);
     try {
       const result = await enhanceItem(row.id);
@@ -96,8 +107,8 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
                 <span className="shop-card-owned">보유중</span>
               ) : (
                 <button
-                  className="btn btn-neutral"
-                  disabled={!canAfford || busyKey === item.itemKey}
+                  className={`btn btn-neutral ${!canAfford ? 'btn-unaffordable' : ''}`}
+                  disabled={busyKey === item.itemKey}
                   onClick={() => handleBuy(item.itemKey, item.price)}
                 >
                   구매
@@ -148,9 +159,9 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
                       성공률 {Math.round(rate * 100)}% · 💰 {cost.toLocaleString()}
                     </span>
                     <button
-                      className="btn btn-neutral btn-enhance"
-                      disabled={busyKey === row.id || !canAffordEnhance}
-                      onClick={() => handleEnhance(row)}
+                      className={`btn btn-neutral btn-enhance ${!canAffordEnhance ? 'btn-unaffordable' : ''}`}
+                      disabled={busyKey === row.id}
+                      onClick={() => handleEnhance(row, cost)}
                     >
                       강화
                     </button>

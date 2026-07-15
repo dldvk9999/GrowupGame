@@ -126,6 +126,10 @@ button {
   background: var(--bg-panel-2);
   border: 1px solid var(--border-soft);
 }
+.btn-unaffordable {
+  opacity: 0.55;
+  border-color: var(--danger) !important;
+}
 
 /* ---------- 인증 화면 ---------- */
 .auth-screen {

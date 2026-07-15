@@ -18,6 +18,11 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
 
   async function handleDraw(count) {
     setError('');
+    if (gold < cost) {
+      showToast('골드가 부족합니다.', 'error');
+      setError('골드가 부족합니다.');
+      return;
+    }
     setDrawing(true);
     try {
       const results = count === 1 ? [await drawSkill()] : await drawSkillBatch(count);
@@ -81,13 +86,13 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
         {error && <p className="shop-error">{error}</p>}
 
         <div className="gacha-draw-buttons">
-          <button className="btn btn-challenge" disabled={drawing || gold < cost} onClick={() => handleDraw(1)}>
+          <button className={`btn btn-challenge ${gold < cost ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(1)}>
             {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`}
           </button>
-          <button className="btn btn-neutral" disabled={drawing || gold < cost * 10} onClick={() => handleDraw(10)}>
+          <button className={`btn btn-neutral ${gold < cost * 10 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(10)}>
             10회 뽑기 (💰 약 {(cost * 10).toLocaleString()}+)
           </button>
-          <button className="btn btn-neutral" disabled={drawing || gold < cost * 100} onClick={() => handleDraw(100)}>
+          <button className={`btn btn-neutral ${gold < cost * 100 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(100)}>
             100회 뽑기 (💰 약 {(cost * 100).toLocaleString()}+)
           </button>
         </div>
