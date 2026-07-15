@@ -135,7 +135,9 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스토리 진행**: 새 챕터 첫 진입 시 `ChapterStory` 배너 표시(`getChapterStory`), 서브스테이지 진입마다 전투 로그에 짧은 플레이버 텍스트(`getStageFlavor`) — "몬스터 잡을 때도 스토리가 계속되게" 요건 충족
 - **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능
 - **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
-- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1)*chapterStep)`, `chapterStep = 1 + (chapter-1)*0.04` — **10스테이지(=챕터 1개) 단위로 소폭 계단식 상승**이 기존 연속 스케일링 위에 추가로 곱해짐. `atk`도 동일한 chapterStep 적용. 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**(서버 `calc_stage_gold`도 동일 chapterStep 반영, 011). 자동사냥(필드몹) 골드는 별도로 **8배 추가 상향**(기존 5배와 별개로 곱연산, 총 40배). 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
+- **난이도**: `hp = round(30 + index*5.0*(보스면 2.4)*chapterStep)`, `chapterStep = 1 + (chapter-1)*0.04` — **10스테이지(=챕터 1개) 단위로 소폭 계단식 상승**이 기존 연속 스케일링 위에 추가로 곱해짐(012에서 계수 재상향: 4.0→5.0, 보스 2.1→2.4). `atk`도 동일 구조(0.44→0.56, 보스 1.7→2.0). 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**(서버 `calc_stage_gold`도 동일 공식 반영, 012). 적 공격 텀은 1.9초로 단축(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`, 012에서 2.1→1.9초). 일반 던전 보스도 같은 맥락으로 난이도 상향(`dungeonStages.js`)
+- **자동사냥 보상**: `hp = max(10, round(8 + chapter*2.0 + playerLevel*3.0))` — 챕터/레벨 가중치를 대폭 올려서(기존 0.6/0.8 → 2.0/3.0) **레벨이 높거나 진행 챕터가 높을수록 자동사냥 보상이 눈에 띄게 커짐**. exp/gold 둘 다 이 hp에 비례하므로 자동으로 같이 상향됨. 서버 `calc_idle_gold`도 동일 공식 반영(012)
+- ⚠️ 난이도 상향으로 최후반 챕터(100) 보스 골드가 `add_gold` 기존 상한(100000)을 넘어설 수 있어서, 012에서 상한을 **400000**으로 재상향함
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
 
@@ -238,6 +240,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `save_monster_growth`의 스탯 상한선을 전직 최대배율 상향(1.9→6.0)에 맞춰 재조정
 - `calc_stage_gold`에 챕터(10스테이지) 단위 계단식 난이도(`chapterStep`) 반영
 
+**012_difficulty_and_idle_reward_sync.sql**
+- `calc_stage_gold`/`calc_idle_gold`/`calc_dungeon_gold`를 클라이언트의 난이도 재상향/자동사냥 보상강화 공식과 동기화
+- `add_gold` 1회 상한 100000 → 400000으로 재상향 (최후반 챕터 보스 골드가 기존 상한을 넘어서게 됨)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -321,6 +327,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `coupons` 테이블에 쿠폰코드/골드량/아이템/최대사용횟수/만료일을 직접 INSERT해서 발행 (관리용 UI는 없음, SQL로 직접 발행)
 - `redeem_coupon(code)` RPC — 만료/횟수소진/중복사용(유저당 1회, `coupon_redemptions` 유니크 제약) 검증 후, 보상을 **우편함으로** 지급(바로 지급 아님, 우편함에서 수령해야 함)
 - 테스트용 예시 쿠폰 `WELCOME2026`(골드 5000 + 레어 무기) 하나가 시드로 들어가 있음
+
+### 5-12. 토스트 알림 (`toast.js`, `ToastContainer.jsx`)
+
+- 간단한 pub-sub 이벤트버스(`showToast(message, type)`) + `App.jsx` 최상단에 마운트된 `ToastContainer`가 구독해서 화면 상단 중앙에 표시(3.2초 후 자동 소멸)
+- 골드 부족 에러가 발생하는 모든 지점(`inventory.js`의 `buyItem`, `enhance.js`의 `enhanceItem`, `skillGacha.js`의 `drawSkill`/`drawSkillBatch`)에서 공통으로 토스트를 띄우도록 처리됨 — 새로운 골드 소비 기능을 추가할 때도 동일 패턴(에러 메시지에 '골드' 포함되면 `showToast(..., 'error')` 호출) 유지할 것
 
 ## 7. 알려진 미구현/TODO 후보
 

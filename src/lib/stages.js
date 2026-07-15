@@ -34,12 +34,13 @@ export function getChapterElement(chapter) {
   return cycle[(chapter - 1) % cycle.length];
 }
 
-/** 자동 사냥용 필드 몬스터 - 항상 안전(공격력 0), 보상도 적음 */
+/** 자동 사냥용 필드 몬스터 - 항상 안전(공격력 0), 보상은 레벨/챕터가 높을수록 크게 늘어남 */
 export function getIdleMonster(chapter, playerLevel = 1) {
   const element = getChapterElement(chapter);
   const names = ENEMY_BASE_NAME[element];
   const name = '들판의 ' + names[(chapter + playerLevel) % names.length];
-  const hp = Math.max(10, Math.round(8 + chapter * 0.6 + playerLevel * 0.8));
+  // 챕터/레벨 가중치를 올려서 후반부로 갈수록 자동사냥 보상 체감이 뚜렷하게 커지도록 함
+  const hp = Math.max(10, Math.round(8 + chapter * 2.0 + playerLevel * 3.0));
   return {
     name,
     element,
@@ -62,9 +63,10 @@ export function getStageEnemy(chapter, stage) {
 
   // 전체 진행도(index)에 비례해 서서히 강해짐 + 보스는 같은 챕터 잡몹보다 확실히 강하게
   // + 챕터(10스테이지) 단위로 계단식 소폭 상승(챕터당 +4%)까지 곱해서, 10스테이지 넘어갈 때마다 체감되게 함
+  // (난이도 재상향: 기본 스케일링/보스 배율을 한 단계 더 올림)
   const chapterStep = 1 + (chapter - 1) * 0.04;
-  const hp = Math.round(30 + index * 4.0 * (isBoss ? 2.1 : 1) * chapterStep);
-  const atk = Math.round(4 + index * 0.44 * (isBoss ? 1.7 : 1) * chapterStep);
+  const hp = Math.round(30 + index * 5.0 * (isBoss ? 2.4 : 1) * chapterStep);
+  const atk = Math.round(4 + index * 0.56 * (isBoss ? 2.0 : 1) * chapterStep);
 
   return {
     stageIndex: index,

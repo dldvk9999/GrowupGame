@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch, setSkillLoadout } from '../lib/skillGacha';
+import { showToast } from '../lib/toast';
 
 export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, userSkills, equippedSkills, onGoldChange, onSkillsRefresh, onLoadoutChange }) {
   const [drawing, setDrawing] = useState(false);
@@ -22,6 +23,7 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
       const results = count === 1 ? [await drawSkill()] : await drawSkillBatch(count);
       if (results.length === 0) {
         setError('골드가 부족합니다.');
+        showToast('골드가 부족합니다.', 'error');
         return;
       }
       const totalSpent = results.reduce((sum, r) => sum + r.cost, 0);
@@ -30,6 +32,7 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
       onSkillsRefresh();
       if (results.length < count) {
         setError(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`);
+        showToast(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`, 'error');
       }
     } catch (err) {
       setError(err.message ?? '뽑기에 실패했어요.');

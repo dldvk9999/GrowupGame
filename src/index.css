@@ -895,6 +895,42 @@ button {
 .job-dungeon-req { font-size: 12px; color: var(--text-muted); }
 .job-dungeon-done-badge { color: var(--accent-heal); font-weight: 700; font-size: 13px; }
 
+/* ---------- 토스트 알림 ---------- */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: 100%;
+  padding: 0 16px;
+}
+.toast-item {
+  pointer-events: auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: toast-in 0.2s ease-out;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast-item.toast-error { border-color: var(--danger); color: var(--danger); }
+.toast-item.toast-success { border-color: var(--accent-heal); color: var(--accent-heal); }
+.toast-item.toast-info { border-color: var(--accent-gold); color: var(--accent-gold); }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ---------- 반응형 추가 ---------- */
 @media (max-width: 640px) {
   .substage-grid { grid-template-columns: repeat(5, 1fr); }

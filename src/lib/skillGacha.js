@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { showToast } from './toast';
 
 /** 내가 보유한 스킬 목록 */
 export async function fetchUserSkills(userId) {
@@ -14,14 +15,26 @@ export async function fetchUserSkills(userId) {
 /** 스킬 뽑기 1회 - 등급/중복합성 판정은 서버(RPC)에서 함 */
 export async function drawSkill() {
   const { data, error } = await supabase.rpc('draw_skill');
-  if (error) throw new Error(error.message.includes('골드') ? '골드가 부족합니다.' : error.message);
+  if (error) {
+    if (error.message.includes('골드')) {
+      showToast('골드가 부족합니다.', 'error');
+      throw new Error('골드가 부족합니다.');
+    }
+    throw new Error(error.message);
+  }
   return data?.[0]; // { skill_key, new_skill_level, was_duplicate, cost, draw_level }
 }
 
 /** 스킬 다회차 뽑기 (1/10/100) - 골드 부족하면 그 시점까지만 뽑고 부분 성공 반환 */
 export async function drawSkillBatch(count) {
   const { data, error } = await supabase.rpc('draw_skill_batch', { p_count: count });
-  if (error) throw new Error(error.message.includes('골드') ? '골드가 부족합니다.' : error.message);
+  if (error) {
+    if (error.message.includes('골드')) {
+      showToast('골드가 부족합니다.', 'error');
+      throw new Error('골드가 부족합니다.');
+    }
+    throw new Error(error.message);
+  }
   return data ?? []; // 배열, 각 항목이 drawSkill()과 동일한 형태
 }
 

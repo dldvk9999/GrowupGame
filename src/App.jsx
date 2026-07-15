@@ -18,6 +18,7 @@ import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from '
 import { getChapterStory } from './lib/stageStory';
 
 import AuthScreen from './components/AuthScreen';
+import ToastContainer from './components/ToastContainer';
 import StoryIntro from './components/StoryIntro';
 import ChapterStory from './components/ChapterStory';
 import StarterSelect from './components/StarterSelect';
@@ -280,6 +281,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <ToastContainer />
       {stage === STAGE.GAME && (
         <header className="app-header">
           <span className="app-title">GrowupGame</span>
