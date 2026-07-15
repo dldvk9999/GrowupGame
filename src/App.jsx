@@ -206,6 +206,7 @@ export default function App() {
           <div className="app-header-right">
             {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
             {profile && <span className="app-nickname">{profile.nickname}</span>}
+            <button className="btn btn-ghost" onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
             <button className="btn btn-ghost" onClick={handleLogout}>로그아웃</button>
           </div>
         </header>
@@ -216,7 +217,11 @@ export default function App() {
       <main className="app-main">
         {stage === STAGE.LOADING && <p className="app-loading">불러오는 중...</p>}
 
-        {stage === STAGE.AUTH && <AuthScreen onAuthed={() => {}} />}
+        {stage === STAGE.AUTH && (
+          <div className="center-viewport">
+            <AuthScreen onAuthed={() => {}} />
+          </div>
+        )}
 
         {stage === STAGE.STORY && (
           <StoryIntro
@@ -242,7 +247,6 @@ export default function App() {
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
               <button className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`} onClick={() => setActiveTab('skills')}>🎯 스킬</button>
-              <button className={`tab-btn ${activeTab === 'mypage' ? 'active' : ''}`} onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
             </nav>
 
             {activeTab === 'battle' && (

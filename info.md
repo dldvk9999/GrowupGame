@@ -134,7 +134,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스토리 진행**: 새 챕터 첫 진입 시 `ChapterStory` 배너 표시(`getChapterStory`), 서브스테이지 진입마다 전투 로그에 짧은 플레이버 텍스트(`getStageFlavor`) — "몬스터 잡을 때도 스토리가 계속되게" 요건 충족
 - **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능
 - **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
-- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`. 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
+- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**. 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
 
@@ -208,6 +208,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `draw_skill()`, `set_skill_loadout()` RPC 신설
 - `create_starter_monster()`가 기본 스킬(`basic_strike`) 자동 지급+장착하도록 갱신
 
+**007_fix_ambiguous_column_and_batch_draw.sql**
+- `draw_skill()`의 "column reference skill_key is ambiguous" 버그 수정 (RETURNS TABLE 출력 컬럼명과 테이블 컬럼명 충돌 → 테이블 별칭으로 해결)
+- `draw_skill_batch(p_count)` RPC 신설 (1/10/100연차 뽑기, 골드 부족 시 그 시점까지 부분 성공)
+- `add_gold` 1회 상한 20000 → 100000으로 상향 (골드 보상 5배 인상 반영)
+
 ### 클라이언트 쓰기 권한 요약 (보안 패치 이후 기준)
 
 | 테이블 | client 직접 write 가능? | 실제 변경 경로 |
@@ -227,6 +232,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ### 5-7. 마이페이지 (`MyPage.jsx`)
 
+- 헤더의 "👤 마이페이지" 버튼(로그아웃 왼쪽)으로 진입. 하단 게임 탭에는 없음.
 - 내 정보 확인: 닉네임, 이메일, 가입일, 보유 골드, 대표 몬스터 요약, 클리어 스테이지 수
 - **닉네임 변경은 평생 1회만** 허용 — `profiles.nickname_edited` 플래그로 서버(RPC `update_nickname`)가 강제. 중복확인은 기존 `is_nickname_taken` RPC 재사용.
 - 회원가입 시 선택한 닉네임은 `signUp()`이 `options.data.nickname`으로 넘기고, `handle_new_user` 트리거가 그 값을 그대로 반영 (이건 "1회 수정"에 포함되지 않는 최초 설정)
@@ -239,6 +245,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스킬레벨 성장식**: `실효값 = base × (1 + (level-1)×0.003)` — 레벨100 최대 성장폭이 약 ×1.3에 불과해서, 등급 간 base가 ×1.4씩 벌어진 설계상 **아무리 강화해도 다음 등급의 1레벨 기본값을 못 넘음** (요건 그대로 구현)
 - **스킬 편성**: 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점). `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증
 - 뽑기 비용은 골드 (`100 + (뽑기레벨-1)×30`), 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음 (`create_starter_monster` RPC)
+- **1/10/100연차 뽑기** 지원 (`draw_skill_batch` RPC) — 골드 부족하면 그 시점까지만 뽑고 부분 성공 반환
 - `BattleScreen`은 이제 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직(Lv.30/60/100) 스킬은 기존처럼 이 목록에 추가로 붙음(`jobAdvancement.js`의 `getAvailableSkills`)
 
 ## 7. 알려진 미구현/TODO 후보

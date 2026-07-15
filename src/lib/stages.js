@@ -48,7 +48,7 @@ export function getIdleMonster(chapter, playerLevel = 1) {
     hp,
     atk: 0,
     expReward: Math.max(2, Math.round(hp * 0.25)),
-    goldReward: Math.max(1, Math.round(hp * 0.15)),
+    goldReward: Math.max(5, Math.round(hp * 0.15) * 5),
   };
 }
 
@@ -77,6 +77,6 @@ export function getStageEnemy(chapter, stage) {
     hp,
     atk,
     expReward: Math.round(hp * (isBoss ? 1.5 : 0.85)),
-    goldReward: Math.round(hp * (isBoss ? 0.9 : 0.4)) + stage * 2,
+    goldReward: (Math.round(hp * (isBoss ? 0.9 : 0.4)) + stage * 2) * 5,
   };
 }

@@ -1,29 +1,36 @@
 import { useState } from 'react';
 import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
-import { drawSkill, setSkillLoadout } from '../lib/skillGacha';
+import { drawSkill, drawSkillBatch, setSkillLoadout } from '../lib/skillGacha';
 
 export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, userSkills, equippedSkills, onGoldChange, onSkillsRefresh, onLoadoutChange }) {
   const [drawing, setDrawing] = useState(false);
-  const [lastResult, setLastResult] = useState(null);
+  const [lastResults, setLastResults] = useState([]); // 항상 배열로 통일 (1회도 배열 1개)
   const [error, setError] = useState('');
   const [pendingLoadout, setPendingLoadout] = useState(equippedSkills ?? []);
   const [savingLoadout, setSavingLoadout] = useState(false);
 
   const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 5));
   const cost = 100 + (drawLevel - 1) * 30;
-  const canAfford = gold >= cost;
   const slotLimit = getSkillSlotCount(monsterLevel ?? 1);
 
   const ownedMap = new Map((userSkills ?? []).map((s) => [s.skill_key, s.skill_level]));
 
-  async function handleDraw() {
+  async function handleDraw(count) {
     setError('');
     setDrawing(true);
     try {
-      const result = await drawSkill();
-      setLastResult(result);
-      onGoldChange(gold - result.cost);
+      const results = count === 1 ? [await drawSkill()] : await drawSkillBatch(count);
+      if (results.length === 0) {
+        setError('골드가 부족합니다.');
+        return;
+      }
+      const totalSpent = results.reduce((sum, r) => sum + r.cost, 0);
+      setLastResults(results);
+      onGoldChange(gold - totalSpent);
       onSkillsRefresh();
+      if (results.length < count) {
+        setError(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`);
+      }
     } catch (err) {
       setError(err.message ?? '뽑기에 실패했어요.');
     } finally {
@@ -70,12 +77,23 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
 
         {error && <p className="shop-error">{error}</p>}
 
-        <button className="btn btn-challenge" disabled={drawing || !canAfford} onClick={handleDraw}>
-          {drawing ? '뽑는 중...' : `🎯 스킬 뽑기 (💰 ${cost.toLocaleString()})`}
-        </button>
+        <div className="gacha-draw-buttons">
+          <button className="btn btn-challenge" disabled={drawing || gold < cost} onClick={() => handleDraw(1)}>
+            {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`}
+          </button>
+          <button className="btn btn-neutral" disabled={drawing || gold < cost * 10} onClick={() => handleDraw(10)}>
+            10회 뽑기 (💰 약 {(cost * 10).toLocaleString()}+)
+          </button>
+          <button className="btn btn-neutral" disabled={drawing || gold < cost * 100} onClick={() => handleDraw(100)}>
+            100회 뽑기 (💰 약 {(cost * 100).toLocaleString()}+)
+          </button>
+        </div>
+        <p className="gacha-hint" style={{ marginTop: 6 }}>
+          여러 번 뽑을수록 뽑기 레벨이 올라가서 실제 비용은 조금씩 더 늘어나요.
+        </p>
 
-        {lastResult && (
-          <GachaReveal result={lastResult} />
+        {lastResults.length > 0 && (
+          <GachaResultList results={lastResults} />
         )}
       </div>
 
@@ -131,17 +149,33 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
   );
 }
 
-function GachaReveal({ result }) {
-  const def = getSkillDef(result.skill_key);
+function GachaResultList({ results }) {
+  const counts = { normal: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
+  for (const r of results) {
+    const def = getSkillDef(r.skill_key);
+    if (def) counts[def.rarity] += 1;
+  }
+
   return (
-    <div className="gacha-reveal" style={{ borderColor: RARITY_COLOR[def.rarity] }}>
-      <span className="gacha-reveal-icon">{def.icon}</span>
-      <div>
-        <strong style={{ color: RARITY_COLOR[def.rarity] }}>{def.name}</strong>
-        <span className="gacha-reveal-rarity"> · {RARITY_LABEL[def.rarity]}</span>
-        <p className="gacha-reveal-desc">
-          {result.was_duplicate ? `중복! 스킬 레벨 ${result.new_skill_level}로 합성됨` : '새로운 스킬 획득!'}
-        </p>
+    <div className="gacha-result-wrap">
+      <div className="gacha-result-summary">
+        {Object.entries(counts).filter(([, n]) => n > 0).map(([rarity, n]) => (
+          <span key={rarity} className="gacha-summary-chip" style={{ borderColor: RARITY_COLOR[rarity], color: RARITY_COLOR[rarity] }}>
+            {RARITY_LABEL[rarity]} ×{n}
+          </span>
+        ))}
+        <span className="gacha-summary-total">총 {results.length}회</span>
+      </div>
+      <div className="gacha-result-list">
+        {results.map((r, i) => {
+          const def = getSkillDef(r.skill_key);
+          return (
+            <div key={i} className="gacha-result-item" style={{ borderColor: RARITY_COLOR[def.rarity] }} title={def.name}>
+              <span>{def.icon}</span>
+              {r.was_duplicate && <span className="gacha-result-dup">+{r.new_skill_level}</span>}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
