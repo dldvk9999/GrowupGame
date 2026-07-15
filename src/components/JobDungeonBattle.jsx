@@ -4,7 +4,7 @@ import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 1900;
+const ENEMY_ATTACK_INTERVAL = 1600;
 
 function withEquipment(monster, bonus) {
   const b = bonus ?? { atk: 0, def: 0, hp: 0 };
@@ -19,17 +19,17 @@ function withEquipment(monster, bonus) {
 
 /**
  * props
- * - initialMonster, equipmentBonus, equippedSkills: BattleScreen과 동일
- * - dungeonEnemy: dungeonStages.js의 getDungeonStage() 결과
- * - onClear(grownBaseMonster, goldReward)
- * - onExit(): 던전 목록으로 돌아가기
+ * - initialMonster, equipmentBonus, equippedSkills
+ * - jobBoss: jobDungeon.js의 getJobDungeonBoss() 결과
+ * - onWin(grownBaseMonster): 승리 시 (전직 적용/세션 클레임은 상위에서 처리)
+ * - onExit()
  */
-export default function DungeonBattle({ initialMonster, equipmentBonus, equippedSkills, dungeonEnemy, onClear, onExit }) {
+export default function JobDungeonBattle({ initialMonster, equipmentBonus, equippedSkills, jobBoss, onWin, onExit }) {
   const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
-  const [enemy, setEnemy] = useState(() => ({ ...dungeonEnemy }));
+  const [enemy, setEnemy] = useState(() => ({ ...jobBoss }));
   const [cooldowns, setCooldowns] = useState({});
-  const [log, setLog] = useState(`${dungeonEnemy.name} 등장!`);
+  const [log, setLog] = useState(`${jobBoss.name} 등장! 신중하게 스킬을 사용하세요.`);
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
 
@@ -70,7 +70,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
     };
   }, []);
 
-  const spawnParticles = useCallback((xr, yr, color, count = 18) => {
+  const spawnParticles = useCallback((xr, yr, color, count = 20) => {
     const { w, h } = dimsRef.current;
     const x = w * xr, y = h * yr;
     for (let i = 0; i < count; i++) {
@@ -90,7 +90,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
 
   const damageEnemy = useCallback((amount) => {
     setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
-    spawnParticles(0.8, 0.35, ELEMENT_COLORS.fire);
+    spawnParticles(0.8, 0.35, '#f2b705');
     triggerShake();
   }, [spawnParticles, triggerShake]);
 
@@ -110,21 +110,20 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
         def: player.def - (equipmentBonus?.def ?? 0),
         maxHp: player.maxHp - (equipmentBonus?.hp ?? 0),
       };
-      const grownBase = applyExpGain(base, dungeonEnemy.expReward);
+      const grownBase = applyExpGain(base, jobBoss.expReward);
       setPlayer(withEquipment(grownBase, equipmentBonus));
-      const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
-      setLog(`${enemy.name} 처치! 경험치 +${dungeonEnemy.expReward}, 골드 +${dungeonEnemy.goldReward}${growthLog}`);
-      onClear?.(grownBase, dungeonEnemy.goldReward);
+      setLog(`${enemy.name} 처치! 전직 성공 처리 중...`);
+      onWin?.(grownBase);
     } else if (player.hp <= 0) {
       setResult('lose');
-      setLog(`${player.name}가 쓰러졌다... 오늘 입장 횟수가 차감됐어요.`);
+      setLog(`${player.name}가 쓰러졌다... 스킬 로테이션을 다시 점검해보세요.`);
     }
   }, [enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (result) return;
     const timer = setInterval(() => {
-      setLog(`${enemy.name}의 공격!`);
+      setLog(`${enemy.name}의 강력한 공격!`);
       damagePlayer(enemy.atk);
     }, ENEMY_ATTACK_INTERVAL);
     return () => clearInterval(timer);
@@ -148,7 +147,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
-      <div className="stage-badge">{dungeonEnemy.dungeonType === 'exp' ? '경험치 던전' : '골드 던전'} · {dungeonEnemy.stage}층</div>
+      <div className="stage-badge">전직 던전 · {jobBoss.tier}차</div>
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
@@ -162,7 +161,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
 
       <div className="hud-row">
         <HpBar label={`${player.name} Lv.${player.level}`} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
-        <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color={ELEMENT_COLORS[enemy.element]} />
+        <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color="#f2b705" />
       </div>
 
       <ExpBar level={player.level} exp={player.exp} />
@@ -171,9 +170,11 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
 
       {result ? (
         <div className="result-panel">
-          <p className="result-text">{result === 'win' ? '승리!' : '패배...'}</p>
+          <p className="result-text">{result === 'win' ? '전직 성공!' : '패배...'}</p>
           <div className="result-actions">
-            <button className="btn btn-neutral" onClick={onExit}>던전 목록으로</button>
+            <button className="btn btn-neutral" onClick={onExit}>
+              {result === 'win' ? '확인' : '던전 목록으로'}
+            </button>
           </div>
         </div>
       ) : (

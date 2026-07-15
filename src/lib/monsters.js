@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient';
 import { speciesKeyToDbId, dbIdToSpeciesKey } from './speciesDbIds';
 import { scaleStats } from './growth';
 import { speciesById } from './speciesData';
-import { getCurrentJobTier } from './jobAdvancement';
+import { getAppliedTier } from './jobAdvancement';
 
 /** 로그인 유저의 사육장 몬스터 목록 조회 */
 export async function fetchOwnedMonsters(userId) {
@@ -19,8 +19,9 @@ export async function fetchOwnedMonsters(userId) {
 export function hydrateMonster(row) {
   const speciesId = dbIdToSpeciesKey[row.species_id];
   const species = speciesById[speciesId];
-  const stats = scaleStats(species, row.level);
-  const jobTier = getCurrentJobTier(species.element, row.level);
+  const unlockedJobTier = row.unlocked_job_tier ?? 0;
+  const stats = scaleStats(species, row.level, unlockedJobTier);
+  const jobTier = getAppliedTier(species.element, unlockedJobTier);
   return {
     ownedMonsterId: row.id,
     speciesId,
@@ -28,6 +29,7 @@ export function hydrateMonster(row) {
     name: species.name,
     element: species.element,
     jobTitle: jobTier?.title ?? null,
+    unlockedJobTier,
     level: row.level,
     exp: row.exp,
     hp: stats.maxHp, // 재접속 시 만피 상태로 시작

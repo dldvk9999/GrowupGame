@@ -8,8 +8,11 @@ import { fetchInventory, sumEquippedBonus } from './lib/inventory';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
-import { fetchDungeonAttemptsToday, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
+import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
 import { getDungeonStage } from './lib/dungeonStages';
+import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
+import { getJobDungeonBoss } from './lib/jobDungeon';
+import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -24,6 +27,7 @@ import SkillGacha from './components/SkillGacha';
 import MyPage from './components/MyPage';
 import DungeonSelect from './components/DungeonSelect';
 import DungeonBattle from './components/DungeonBattle';
+import JobDungeonBattle from './components/JobDungeonBattle';
 import Settings from './components/Settings';
 
 const STAGE = {
@@ -49,9 +53,13 @@ export default function App() {
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
   const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
-  const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage } | null
+  const [dungeonProgress, setDungeonProgress] = useState({ exp: 0, gold: 0 });
+  const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage, sessionId } | null
   const [dungeonEntering, setDungeonEntering] = useState(false);
   const [dungeonError, setDungeonError] = useState('');
+  const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
+  const [jobEntering, setJobEntering] = useState(false);
+  const [jobError, setJobError] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -71,19 +79,21 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
         fetchInventory(userId),
         fetchUserSkills(userId),
         fetchDungeonAttemptsToday(userId),
+        fetchDungeonProgress(userId),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
+      setDungeonProgress(progress);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -197,13 +207,13 @@ export default function App() {
     handleSelectStage(nextChapter, nextStage);
   }
 
-  async function handleEnterDungeon(type, stageNum) {
+  async function handleEnterDungeon(type) {
     setDungeonError('');
     setDungeonEntering(true);
     try {
-      const { sessionId, remaining } = await useDungeonAttempt(type, stageNum);
+      const { sessionId, remaining, stage } = await useDungeonAttempt(type);
       setDungeonAttempts((prev) => ({ ...prev, [type]: remaining }));
-      setDungeonBattle({ type, stage: stageNum, sessionId });
+      setDungeonBattle({ type, stage, sessionId });
     } catch (err) {
       setDungeonError(err.message ?? '입장에 실패했어요.');
     } finally {
@@ -219,8 +229,37 @@ export default function App() {
         claimDungeonReward(dungeonBattle.sessionId),
       ]);
       setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
+      setDungeonProgress((prev) => ({
+        ...prev,
+        [dungeonBattle.type]: Math.max(prev[dungeonBattle.type] ?? 0, dungeonBattle.stage),
+      }));
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
+    }
+  }
+
+  async function handleEnterJobDungeon(tier) {
+    setJobError('');
+    setJobEntering(true);
+    try {
+      const sessionId = await startJobDungeon(tier);
+      setJobDungeonBattle({ tier, sessionId });
+    } catch (err) {
+      setJobError(err.message ?? '입장에 실패했어요.');
+    } finally {
+      setJobEntering(false);
+    }
+  }
+
+  async function handleJobDungeonWin(grownBase) {
+    setActiveMonster(grownBase);
+    try {
+      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
+      await claimJobDungeon(jobDungeonBattle.sessionId);
+      const refreshed = await getActiveMonster(session.user.id);
+      if (refreshed) setActiveMonster(refreshed);
+    } catch (err) {
+      console.error('전직 적용 실패', err);
     }
   }
 
@@ -233,6 +272,9 @@ export default function App() {
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
   const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];
+  const jobAdvancementPending = activeMonster
+    ? hasPendingJobAdvancement(activeMonster.element, activeMonster.level, activeMonster.unlockedJobTier ?? 0)
+    : false;
 
   return (
     <div className="app-shell">
@@ -279,6 +321,12 @@ export default function App() {
 
         {stage === STAGE.GAME && activeMonster && (
           <div className="game-shell">
+            {jobAdvancementPending && (
+              <button className="job-advancement-banner" onClick={() => setActiveTab('dungeon')}>
+                ✨ 전직 가능! 전직 던전에 도전해서 더 강해지고 외형도 바꿔보세요.
+              </button>
+            )}
+
             <nav className="tab-nav">
               <button className={`tab-btn ${activeTab === 'battle' ? 'active' : ''}`} onClick={() => setActiveTab('battle')}>⚔️ 전투</button>
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
@@ -331,9 +379,19 @@ export default function App() {
               />
             )}
             {activeTab === 'dungeon' && (
-              dungeonBattle ? (
+              jobDungeonBattle ? (
+                <JobDungeonBattle
+                  key={`job-${jobDungeonBattle.tier}-${jobDungeonBattle.sessionId}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  jobBoss={getJobDungeonBoss(jobDungeonBattle.tier, activeMonster.element)}
+                  onWin={handleJobDungeonWin}
+                  onExit={() => setJobDungeonBattle(null)}
+                />
+              ) : dungeonBattle ? (
                 <DungeonBattle
-                  key={`${dungeonBattle.type}-${dungeonBattle.stage}`}
+                  key={`${dungeonBattle.type}-${dungeonBattle.stage}-${dungeonBattle.sessionId}`}
                   initialMonster={activeMonster}
                   equipmentBonus={equipmentBonus}
                   equippedSkills={equippedSkills}
@@ -344,9 +402,14 @@ export default function App() {
               ) : (
                 <DungeonSelect
                   attemptsRemaining={dungeonAttempts}
+                  dungeonProgress={dungeonProgress}
                   onEnterDungeon={handleEnterDungeon}
                   entering={dungeonEntering}
                   error={dungeonError}
+                  activeMonster={activeMonster}
+                  onEnterJobDungeon={handleEnterJobDungeon}
+                  jobEntering={jobEntering}
+                  jobError={jobError}
                 />
               )
             )}

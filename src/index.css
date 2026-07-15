@@ -836,6 +836,65 @@ button {
 .mail-row-reward { display: flex; gap: 10px; font-size: 12px; color: var(--accent-gold); }
 .mail-row-done { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
 
+/* ---------- 전직 알림 배너 ---------- */
+.job-advancement-banner {
+  width: 100%;
+  border: 1px solid var(--accent-gold);
+  background: rgba(242, 183, 5, 0.12);
+  color: var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+/* ---------- 순차 진행형 던전 ---------- */
+.dungeon-current-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.dungeon-progress-track {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.dungeon-progress-dot {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  border: 1px solid var(--border-soft);
+  color: var(--text-muted);
+  background: var(--bg-panel-2);
+}
+.dungeon-progress-dot.done { background: rgba(79, 214, 122, 0.2); border-color: var(--accent-heal); color: var(--accent-heal); }
+.dungeon-progress-dot.current { border-color: var(--accent-gold); color: var(--accent-gold); font-weight: 700; }
+
+/* ---------- 전직 던전 ---------- */
+.job-dungeon-list { display: flex; flex-direction: column; gap: 12px; }
+.job-dungeon-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.job-dungeon-card.done { border-color: var(--accent-heal); opacity: 0.75; }
+.job-dungeon-tier { font-weight: 700; color: var(--accent-gold); min-width: 70px; }
+.job-dungeon-boss { flex: 1; min-width: 140px; font-size: 14px; }
+.job-dungeon-req { font-size: 12px; color: var(--text-muted); }
+.job-dungeon-done-badge { color: var(--accent-heal); font-weight: 700; font-size: 13px; }
+
 /* ---------- 반응형 추가 ---------- */
 @media (max-width: 640px) {
   .substage-grid { grid-template-columns: repeat(5, 1fr); }

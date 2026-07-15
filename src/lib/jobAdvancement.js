@@ -27,24 +27,40 @@ export const JOB_TIERS = {
   ],
 };
 
-/** 해당 레벨에서 해금된 전직 단계 중 가장 높은 것 (없으면 null) */
-export function getCurrentJobTier(element, level) {
+/** 해당 레벨에서 "전직 조건을 만족한" 가장 높은 단계 번호(0~3). 실제 적용과는 별개 - 전직 던전을 깨야 진짜 적용됨 */
+export function getEligibleTierNumber(element, level) {
   const tiers = JOB_TIERS[element] ?? [];
-  let current = null;
+  let n = 0;
   for (const t of tiers) {
-    if (level >= t.level) current = t;
+    if (level >= t.level) n = t.tier;
   }
-  return current;
+  return n;
 }
 
-/** 해당 레벨까지 해금된 모든 전직 단계 (낮은 단계부터) */
-export function getUnlockedJobTiers(element, level) {
-  const tiers = JOB_TIERS[element] ?? [];
-  return tiers.filter((t) => level >= t.level);
+/** 실제로 전직 던전을 깨서 적용된 단계 (owned_monsters.unlocked_job_tier 기준) */
+export function getAppliedTier(element, unlockedJobTier) {
+  if (!unlockedJobTier) return null;
+  return (JOB_TIERS[element] ?? [])[unlockedJobTier - 1] ?? null;
 }
 
-/** 전직 스킬까지 합친 사용 가능 스킬 목록 */
-export function getAvailableSkills(baseSkills, element, level) {
-  const unlocked = getUnlockedJobTiers(element, level);
+/** 실제 적용된(unlockedJobTier까지) 전직 단계들 (스킬 누적용) */
+export function getUnlockedJobTiers(element, unlockedJobTier) {
+  return (JOB_TIERS[element] ?? []).filter((t) => t.tier <= (unlockedJobTier ?? 0));
+}
+
+/** 전직 스킬까지 합친 사용 가능 스킬 목록 (실제 적용된 전직 기준) */
+export function getAvailableSkills(baseSkills, element, unlockedJobTier) {
+  const unlocked = getUnlockedJobTiers(element, unlockedJobTier);
   return [...baseSkills, ...unlocked.map((t) => t.skill)];
+}
+
+/** 전직 조건은 만족했지만(레벨업) 아직 전직 던전을 안 깬 상태인지 */
+export function hasPendingJobAdvancement(element, level, unlockedJobTier) {
+  return getEligibleTierNumber(element, level) > (unlockedJobTier ?? 0);
+}
+
+/** 화면에 표시할 스프라이트 키 - 전직했으면 진화단계 대신 전직 전용 외형을 우선 표시 */
+export function getDisplaySpriteKey(speciesId, element, unlockedJobTier) {
+  if (unlockedJobTier > 0) return `${element}_job${unlockedJobTier}`;
+  return speciesId;
 }

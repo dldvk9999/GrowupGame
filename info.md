@@ -104,9 +104,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 각 속성은 3단계 진화(1→2→3차)가 있음: 예) 이모탄→이모드릴→이모라돈 (Lv.15, Lv.30에서 자동 진화)
 - **레벨업**: `expToNextLevel(level) = round(20 * level^1.5)`
 - **스탯 성장**: `base스탯 × (1 + (level-1)*0.12) × 전직배율`
-- **3차 전직 시스템** (`jobAdvancement.js`): Lv.30/60/100에서 자동 전직
+- **3차 전직 시스템** (`jobAdvancement.js`): Lv.30/60/100에서 조건 충족(전직 가능 알림), **전직 던전(5-9-1 참고)을 클리어해야 실제 적용됨** — 레벨업만으로 자동 전직되지 않음
   - 전직배율: 1차 1.25배 / 2차 1.55배 / 3차 1.9배 (스탯에 곱연산 적용)
   - 전직할 때마다 **전용 스킬 1개씩 추가 습득** (전직 스킬 3개는 계속 누적, 기본 5스킬과 별개로 유지)
+  - 전직에 성공하면 **외형도 전용 그래픽으로 바뀜** (5-9-1 참고)
 - **진화**와 **전직**은 별개 시스템: 진화=외형/도감상 종족 변경, 전직=같은 종족 내 강함 단계
 
 ### 5-2. 스킬 (`skills.js` + `jobAdvancement.js`)
@@ -227,6 +228,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `use_dungeon_attempt`, `update_nickname`의 레이스컨디션(동시요청으로 제한 우회) 수정
 - `mails`/`dungeon_attempts`/`dungeon_sessions`/`coupons`/`coupon_redemptions`/`skill_catalog`/`item_catalog`/`monster_species`에 명시적 client 쓰기권한 회수 추가
 
+**010_sequential_dungeon_job_dungeon.sql**
+- `dungeon_progress` 테이블 신설 - 던전이 자유선택형에서 **순차 진행형**으로 변경(1층부터, 깨야 다음층). `use_dungeon_attempt`가 파라미터에서 층 선택을 없애고 서버가 진행도로 직접 결정
+- `owned_monsters.unlocked_job_tier` 컬럼 추가 - 전직이 레벨 자동적용에서 **전직 던전 클리어 필요**로 변경
+- `job_dungeon_sessions` 테이블 + `start_job_dungeon()`/`claim_job_dungeon()` RPC (레벨조건 + 순차진행 서버검증)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -283,10 +289,20 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 ### 5-9. 일일 던전 (`DungeonSelect.jsx`, `DungeonBattle.jsx`, `dungeonStages.js`, `dungeon.js`)
 
 - **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 자정 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
+- **순차 진행형**: 1층부터 시작, 깨야 다음 층으로 이동. 실패하면 그 층에 그대로 머무름(계속 재도전 가능, 하루 3회 한도 내에서). `dungeon_progress` 테이블(유저별 `cleared_stage`)로 진행도 추적, `use_dungeon_attempt`가 진행도 기준으로 **몇 층인지 서버가 직접 결정**(클라이언트가 층을 선택하지 않음). 10층까지 다 깨면 10층을 반복 도전 가능
 - 각 던전 10층 구성, 층마다 고정 보스(`dungeonStages.js`의 `dungeonBoss(stage)`) — `hp = round(200 + stage^1.6*150)`, `atk = round(18 + stage^1.5*10)`로 스테이지 진행 몬스터보다 훨씬 강하게 잡음
 - 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대(`hp*3.2` 골드 / `hp*0.6` EXP)
-- 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장 저장 경로(`persistMonsterGrowth`) 사용. 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회, 009 보안패치)
+- 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장 저장 경로(`persistMonsterGrowth`) 사용. 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회, 009 보안패치). 클리어 시 `dungeon_progress.cleared_stage`도 같은 RPC가 함께 갱신
 - 입장은 전투 시작 "전에" 소모됨(패배해도 복구 안 됨) — 실제 게임에서 흔한 방식
+
+### 5-9-1. 전직 던전 (`JobDungeonBattle.jsx`, `jobDungeon.js`, `jobDungeonApi.js`)
+
+- 전직(Lv.30/60/100)은 이제 **레벨업만으로 자동 적용되지 않음**. 레벨 조건을 채우면 상단에 "✨ 전직 가능!" 배너가 뜨고(`hasPendingJobAdvancement`), **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨
+- `owned_monsters.unlocked_job_tier`(0~3)가 "실제 적용된" 전직 단계의 단일 진실 공급원. `jobAdvancement.js`가 "조건 충족(레벨 기준, `getEligibleTierNumber`)"과 "실제 적용(unlocked_job_tier 기준, `getAppliedTier`)"을 분리해서 관리함
+- 전직 던전은 순차적으로만 진행 가능(1차 안 깨면 2차 도전 불가, `start_job_dungeon` RPC가 레벨+이전단계 완료 여부 검증), 하루 횟수 제한은 없음
+- **난이도**: 같은 레벨대 일반 던전보다 훨씬 강하게 잡음 (예: 1차 Lv.30 기준 보스 체력 2600/공격력 130, 공격 텀 1.6초로 빠름) — 기본공격만 연타해서는 못 이기고 스킬 로테이션(특히 회복기)이 필요하도록 설계
+- 승리하면 경험치는 얻지만, **전직 자체(외형/스탯/스킬 적용)는 별도로 `claim_job_dungeon` RPC를 호출**해야 반영됨(`job_dungeon_sessions`로 "진짜 입장→클리어"를 서버가 검증, 세션 위조 불가)
+- **외형 변경**: 전직에 성공하면 `MonsterSprite`가 진화단계 그림 대신 전직 전용 그림으로 바뀜. `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier>0`이면 `${element}_job${tier}` 키를 반환하고, `JobTierSprite.jsx`(공용 렌더러, 오라/날개/왕관이 단계별로 화려해짐)가 9개 조합(3속성×3단계)을 전부 커버함
 
 ### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)
 

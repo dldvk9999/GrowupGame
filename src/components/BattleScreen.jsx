@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import MonsterSprite from './MonsterSprite';
+import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
@@ -52,8 +53,8 @@ export default function BattleScreen({
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
   const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
   const availableSkills = useMemo(
-    () => getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.level),
-    [equippedSkills, initialMonster.element, initialMonster.level]
+    () => getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0),
+    [equippedSkills, initialMonster.element, initialMonster.unlockedJobTier]
   );
 
   const [mode, setMode] = useState('idle'); // 'idle' | 'challenge'
@@ -228,7 +229,7 @@ export default function BattleScreen({
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={player.speciesId} size={110} alt={player.name} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
         </div>
         <div className="fighter-slot fighter-slot--enemy">
           <MonsterSprite speciesKey={displayEnemy.spriteKey} size={mode === 'challenge' ? 110 : 80} alt={displayEnemy.name} />
