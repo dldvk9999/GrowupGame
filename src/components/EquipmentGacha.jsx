@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { getItem, SLOTS, RARITIES } from '../lib/itemCatalog';
+import { SLOTS, RARITIES, getItem } from '../lib/itemCatalog';
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 
-export default function EquipmentGacha({ gold, totalDraws, onGoldChange, onInventoryChange }) {
+export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, onInventoryChange }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
 
   const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
+  const slotMeta = SLOTS[slot];
 
   async function handleDraw(count) {
     setError('');
@@ -20,7 +21,7 @@ export default function EquipmentGacha({ gold, totalDraws, onGoldChange, onInven
     }
     setDrawing(true);
     try {
-      const results = count === 1 ? [await drawEquipment()] : await drawEquipmentBatch(count);
+      const results = count === 1 ? [await drawEquipment(slot)] : await drawEquipmentBatch(slot, count);
       if (results.length === 0) {
         setError('골드가 부족합니다.');
         return;
@@ -54,7 +55,8 @@ export default function EquipmentGacha({ gold, totalDraws, onGoldChange, onInven
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
         <p className="gacha-hint">
-          무기/보호구/장갑/신발 중 랜덤 슬롯 + 등급이 나와요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요. (최대 Lv.20)
+          {slotMeta.icon} {slotMeta.label} 전용 뽑기예요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요.
+          이미 보유한 등급이 또 나오면 <strong>자동으로 강화(+1, 최대 +15)</strong>돼요.
         </p>
 
         {error && <p className="shop-error">{error}</p>}
@@ -86,7 +88,8 @@ export default function EquipmentGacha({ gold, totalDraws, onGoldChange, onInven
                 const item = getItem(r.item_key);
                 return (
                   <div key={i} className="gacha-result-item" style={{ borderColor: RARITIES[r.rarity].color }} title={item?.name}>
-                    <span>{SLOTS[r.slot].icon}</span>
+                    <span>{slotMeta.icon}</span>
+                    {r.was_duplicate && <span className="gacha-result-dup">+{r.new_enhance_level}</span>}
                   </div>
                 );
               })}

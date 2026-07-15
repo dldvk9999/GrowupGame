@@ -823,7 +823,7 @@ button {
 .dungeon-stage-reward { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
 
 /* ---------- 설정 / 우편함 / 쿠폰 ---------- */
-.settings-screen, .mailbox-screen, .coupon-screen { width: 100%; }
+.settings-screen, .mailbox-screen, .coupon-screen, .inventory-screen { width: 100%; }
 .mail-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .mail-row {
   display: flex;

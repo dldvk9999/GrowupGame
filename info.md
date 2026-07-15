@@ -86,7 +86,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
                 ↓
               STARTER (스타터 3종 중 택1)
                 ↓
-              GAME (메인 화면, 탭 3개: 전투/스테이지/상점)
+              GAME (메인 화면, 하단 탭: 전투/스테이지/상점/인벤토리/던전, 헤더: 마이페이지/설정)
                 ↑↓
          CHAPTER_STORY (새 챕터 처음 진입 시에만 잠깐 표시)
 ```
@@ -150,23 +150,21 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 전투 이펙트: `<canvas>` 기반 파티클(타격 시 튀는 입자) + 화면 스크린쉐이크
 - 장비 보너스(`equipmentBonus`)는 전투 중에만 스탯에 더해지고, DB에 저장되는 성장치(`grownBase`)에는 포함되지 않음 (장비를 빼도 순수 캐릭터 성장은 그대로 유지되는 구조)
 
-### 5-5. 재화/상점/장비 (`itemCatalog.js`, `inventory.js`, `Shop.jsx`)
+### 5-5. 재화/상점/장비 (`itemCatalog.js`, `inventory.js`, `Shop.jsx`, `Inventory.jsx`, `EquipmentGacha.jsx`)
 
-- 몬스터 처치(자동사냥/스테이지 클리어 모두) 시 **골드 획득**
+- **상점(`Shop.jsx`)은 이제 뽑기 전용**임 — 직접 구매(`buy_item`)는 완전히 폐지되고 서버에서 RPC EXECUTE 권한 자체를 회수함(014). 탭 5개: 🗡️ 무기뽑기 / 🛡️ 방어구뽑기 / 🧤 장갑뽑기 / 👢 신발뽑기 / 🎯 스킬뽑기 — 스킬뽑기(`SkillGacha.jsx`)도 이제 상점 안에 통합돼있고, 하단 게임 탭에는 더 이상 별도로 없음
+- 몬스터 처치(자동사냥/스테이지 클리어 모두) 시 **골드 획득** → 이 골드로 뽑기(스킬/장비 5종 공통)
 - 4개 슬롯: 무기(`weapon`, atk) / 보호구(`armor`, def) / 장갑(`gloves`, atk 보조) / 신발(`shoes`, hp)
-- 5개 등급: 노멀 < 레어 < 에픽 < 전설 < 신화 (등급 오를수록 스탯 보너스 ↑, 가격 ↑)
-- 슬롯당 1개만 장착 가능 (DB 유니크 제약으로 강제)
-- 장비 보너스는 전투 시작 시 `withEquipment()`로 합산되어 임시 적용됨
+- 5개 등급: 노멀 < 레어 < 에픽 < 전설 < 신화 (등급 오를수록 스탯 보너스 ↑) — `item_catalog`(서버)/`itemCatalog.js`(client)의 값은 그대로 유지, 가격(`price`)은 더 이상 안 쓰임(직접구매가 없으니)
+- **장비 뽑기(`EquipmentGacha.jsx`, 014)**: 슬롯별로 완전히 분리된 뽑기 4개. 스킬뽑기와 동일 구조(뽑기레벨 1~20, 1000회당 1레벨, 등급 확률표 동일, 1/10/100연차). 지정한 슬롯 안에서만 등급이 뽑힘(슬롯은 더 이상 랜덤 아님 — 013의 랜덤슬롯 방식에서 변경됨)
+- **뽑기 중복 시 자동 강화**: 이미 보유한 등급을 또 뽑으면 새 행이 안 생기고 `enhance_level`이 **+1씩** 오름(최대 +15) — `user_inventory`에 `unique(user_id, item_key)` 제약을 걸어서 원천적으로 중복 행이 생길 수 없게 함(014). **유료(골드 소모) 강화 시스템은 완전히 삭제됨** — `enhance_item` RPC도 EXECUTE 권한 회수로 차단
+- 슬롯당 1개만 장착 가능 (DB 유니크 제약으로 강제, 기존 그대로)
+- **인벤토리(`Inventory.jsx`)는 상점과 분리된 별도 탭** — 보유 장비 목록 확인, 장착/해제만 함. 강화 버튼은 없음(뽑기로만 오르므로)
+- 장비 보너스는 전투 시작 시 `withEquipment()`로 합산되어 임시 적용됨 (기존 로직 그대로)
 
-### 5-6. 아이템 강화 (`itemCatalog.js`의 `estimateEnhance`, `enhance.js`, migration 005)
+### 5-6. 아이템 강화 (~~폐지됨, 014~~)
 
-- +0 ~ +15까지 강화 가능
-- **등급별 기본 성공률**: 노멀 90% / 레어 80% / 에픽 65% / 전설 45% / 신화 25%
-- 강화할 때마다 성공률에 `×0.92`씩 곱해서 계속 낮아짐 (최저 5% 보장)
-- 강화 비용도 강화수치 오를수록 같이 상승
-- 강화 1당 스탯 **+8% 누적** 보너스
-- **실패해도 아이템은 유지됨** (파괴/하락 없음), 시도 비용만 소모
-- 성공/실패 판정은 **서버(RPC `enhance_item`, `random()`)에서 처리** — 클라이언트 조작 불가
+- ~~골드 소모 + 확률 기반 강화(`enhance_item`)~~ 시스템은 **완전히 삭제됨**(014). 지금은 **뽑기 중복 시 자동으로 +1씩 강화**되는 방식만 존재함 (5-5 참고, `enhance_level` 0~15, 스탯 +8%/레벨 누적은 그대로 유지)
 
 ### 5-7. 로비 채팅 (`useLobbyChat.js`)
 
@@ -248,6 +246,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `profiles.total_equipment_draws` 컬럼 추가
 - `draw_equipment()`/`draw_equipment_batch()` RPC 신설 - 스킬뽑기와 동일한 뽑기레벨/확률 구조로 슬롯+등급을 서버가 결정해서 지급 (item_key/slot을 client가 지정할 수 없어 조작 불가)
 
+**014_shop_gacha_only.sql**
+- `user_inventory` 중복 행 정리 후 `unique(user_id, item_key)` 제약 추가 (뽑기 중복 = 새 행이 아니라 자동 강화로 병합되는 구조로 전환)
+- `buy_item`/`enhance_item` EXECUTE 권한 회수 (직접구매/유료강화 완전 폐지)
+- `draw_equipment`/`draw_equipment_batch`를 슬롯 고정(`p_slot`) 방식으로 재작성 - 랜덤슬롯 대신 무기/방어구/장갑/신발 각각 독립된 뽑기, 중복 시 `enhance_level` +1(최대 15)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -256,7 +259,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 | `profiles.nickname` | ❌ | `update_nickname` RPC (1회 제한, 레이스컨디션 수정됨) |
 | `owned_monsters` | ❌ | `create_starter_monster`, `save_monster_growth` RPC |
 | `stage_progress` | ❌ | `clear_stage` RPC (스테이지 클리어 + 골드 지급을 함께 원자적으로 처리) |
-| `user_inventory` | equipped 컬럼만 | 생성은 `buy_item`, 강화는 `enhance_item` RPC |
+| `user_inventory` | equipped 컬럼만 | 생성 및 중복시 강화는 `draw_equipment`/`draw_equipment_batch` RPC (`buy_item`/`enhance_item`은 014에서 EXECUTE 권한 회수로 폐지) |
 | `user_skills` | ❌ | `draw_skill`/`draw_skill_batch` RPC |
 | `dungeon_attempts` | ❌ | `use_dungeon_attempt` RPC (원자적 증가로 레이스컨디션 수정됨) |
 | `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
@@ -309,6 +312,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대(`hp*3.2` 골드 / `hp*0.6` EXP)
 - 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장 저장 경로(`persistMonsterGrowth`) 사용. 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회, 009 보안패치). 클리어 시 `dungeon_progress.cleared_stage`도 같은 RPC가 함께 갱신
 - 입장은 전투 시작 "전에" 소모됨(패배해도 복구 안 됨) — 실제 게임에서 흔한 방식
+- 던전 탭 안의 서브탭(경험치/골드/전직) 선택 상태는 `App.jsx`의 `dungeonActiveType`으로 끌어올려져 있음 — 전투 후 목록으로 돌아와도 마지막에 보던 서브탭이 유지됨(예전엔 `DungeonSelect` 내부 state라 전투 화면으로 전환될 때마다 컴포넌트가 새로 마운트되면서 초기화되던 버그가 있었음)
 
 ### 5-9-1. 전직 던전 (`JobDungeonBattle.jsx`, `jobDungeon.js`, `jobDungeonApi.js`)
 
@@ -338,15 +342,6 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 간단한 pub-sub 이벤트버스(`showToast(message, type)`) + `App.jsx` 최상단에 마운트된 `ToastContainer`가 구독해서 화면 상단 중앙에 표시(3.2초 후 자동 소멸)
 - 골드 부족 에러가 발생하는 모든 지점(`inventory.js`의 `buyItem`, `enhance.js`의 `enhanceItem`, `skillGacha.js`의 `drawSkill`/`drawSkillBatch`)에서 공통으로 토스트를 띄우도록 처리됨 — 새로운 골드 소비 기능을 추가할 때도 동일 패턴(에러 메시지에 '골드' 포함되면 `showToast(..., 'error')` 호출) 유지할 것
 - ⚠️ **버튼 disabled 함정 주의**: 구매/강화/뽑기 버튼을 "골드 부족 시 `disabled`"로 막아버리면 클릭 자체가 안 돼서 에러가 발생할 기회가 없어지고, 결과적으로 토스트도 못 뜸(실제로 이 버그가 있었음, 수정됨). 골드 소비 버튼은 **클릭은 항상 가능하게 두고**, 핸들러 진입 시점에 `gold < cost` 체크해서 `showToast`를 직접 호출 + 조기 return하는 패턴을 씀. 버튼의 시각적 "비활성처럼 보이게"는 `disabled` 대신 `.btn-unaffordable` CSS 클래스(투명도+빨간 테두리)로만 처리
-
-### 5-13. 장비 뽑기 (`EquipmentGacha.jsx`, `equipmentGacha.js`)
-
-- 상점 화면에 "🛒 직접 구매" / "🎁 장비 뽑기" 모드 토글 추가. 기존 고정가 구매(`buy_item`)는 그대로 유지되고, 뽑기가 추가 획득 경로로 붙음
-- 등급/능력치는 기존 `item_catalog`(4슬롯×5등급, 003/005) 값 그대로 사용 — 새 데이터 추가 없음
-- 스킬 뽑기와 **완전히 동일한 구조**: 뽑기레벨 1~20(1000회당 1레벨), 레벨 구간별 등급 확률 테이블도 동일, 1/10/100연차 지원
-- 차이점: 뽑으면 **슬롯도 서버가 랜덤으로 결정**(무기/보호구/장갑/신발 중 균등 확률), 그 슬롯의 뽑힌 등급 아이템이 인벤토리에 그대로 들어감(중복 병합 없음 — 장비는 원래도 여러 개 보유 가능한 구조라 자연스러움)
-- `profiles.total_equipment_draws`로 누적 횟수 추적(스킬 뽑기의 `total_skill_draws`와 별도 카운터), `draw_equipment()`/`draw_equipment_batch()` RPC가 처리 (013)
-- 골드 차감/아이템 지급 전부 서버(RPC)에서 원자적으로 처리, client는 결과(슬롯/등급)만 표시 — 아이템 종류를 클라이언트가 지정할 방법이 없어서 조작 불가능한 구조 (009 보안패치와 동일한 설계 원칙 적용)
 
 ## 7. 알려진 미구현/TODO 후보
 

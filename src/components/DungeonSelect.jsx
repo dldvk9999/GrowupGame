@@ -1,25 +1,23 @@
-import { useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
   activeMonster, onEnterJobDungeon, jobEntering, jobError,
+  activeType, onActiveTypeChange,
 }) {
-  const [activeType, setActiveType] = useState('exp');
-
   return (
     <div className="dungeon-select">
       <h2>던전</h2>
 
       <div className="shop-tabs">
-        <button className={`shop-tab ${activeType === 'exp' ? 'active' : ''}`} onClick={() => setActiveType('exp')}>
+        <button className={`shop-tab ${activeType === 'exp' ? 'active' : ''}`} onClick={() => onActiveTypeChange('exp')}>
           📘 경험치 던전
         </button>
-        <button className={`shop-tab ${activeType === 'gold' ? 'active' : ''}`} onClick={() => setActiveType('gold')}>
+        <button className={`shop-tab ${activeType === 'gold' ? 'active' : ''}`} onClick={() => onActiveTypeChange('gold')}>
           💰 골드 던전
         </button>
-        <button className={`shop-tab ${activeType === 'job' ? 'active' : ''}`} onClick={() => setActiveType('job')}>
+        <button className={`shop-tab ${activeType === 'job' ? 'active' : ''}`} onClick={() => onActiveTypeChange('job')}>
           ⚔️ 전직 던전
         </button>
       </div>

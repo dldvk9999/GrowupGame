@@ -25,7 +25,7 @@ import StarterSelect from './components/StarterSelect';
 import BattleScreen from './components/BattleScreen';
 import StageSelect from './components/StageSelect';
 import Shop from './components/Shop';
-import SkillGacha from './components/SkillGacha';
+import Inventory from './components/Inventory';
 import MyPage from './components/MyPage';
 import DungeonSelect from './components/DungeonSelect';
 import DungeonBattle from './components/DungeonBattle';
@@ -63,6 +63,7 @@ export default function App() {
   const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
+  const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -340,7 +341,7 @@ export default function App() {
               <button className={`tab-btn ${activeTab === 'battle' ? 'active' : ''}`} onClick={() => setActiveTab('battle')}>⚔️ 전투</button>
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
-              <button className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`} onClick={() => setActiveTab('skills')}>🎯 스킬</button>
+              <button className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>🎒 인벤토리</button>
               <button className={`tab-btn ${activeTab === 'dungeon' ? 'active' : ''}`} onClick={() => setActiveTab('dungeon')}>🏰 던전</button>
             </nav>
 
@@ -369,23 +370,22 @@ export default function App() {
               <Shop
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
-                inventory={inventory}
                 totalEquipmentDraws={profile?.total_equipment_draws ?? 0}
-                onInventoryChange={refreshInventory}
-                onGoldChange={handleGoldChange}
-              />
-            )}
-            {activeTab === 'skills' && (
-              <SkillGacha
-                userId={session.user.id}
-                gold={profile?.gold ?? 0}
-                totalDraws={profile?.total_skill_draws ?? 0}
+                totalSkillDraws={profile?.total_skill_draws ?? 0}
                 monsterLevel={activeMonster.level}
                 userSkills={userSkills}
                 equippedSkills={profile?.equipped_skills ?? []}
+                onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}
                 onLoadoutChange={handleLoadoutChange}
+              />
+            )}
+            {activeTab === 'inventory' && (
+              <Inventory
+                userId={session.user.id}
+                inventory={inventory}
+                onInventoryChange={refreshInventory}
               />
             )}
             {activeTab === 'dungeon' && (
@@ -420,6 +420,8 @@ export default function App() {
                   onEnterJobDungeon={handleEnterJobDungeon}
                   jobEntering={jobEntering}
                   jobError={jobError}
+                  activeType={dungeonActiveType}
+                  onActiveTypeChange={setDungeonActiveType}
                 />
               )
             )}

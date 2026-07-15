@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 import { getItem, getEnhancedStatBonus } from './itemCatalog';
-import { showToast } from './toast';
 
 /** 내 인벤토리 조회 */
 export async function fetchInventory(userId) {
@@ -10,19 +9,6 @@ export async function fetchInventory(userId) {
     .eq('user_id', userId)
     .order('acquired_at', { ascending: true });
   if (error) throw error;
-  return data;
-}
-
-/** 아이템 구매 - 가격/슬롯은 서버 카탈로그 기준으로 검증되고, 골드 차감도 원자적으로 처리됨 */
-export async function buyItem(userId, itemKey) {
-  const { data, error } = await supabase.rpc('buy_item', { p_item_key: itemKey });
-  if (error) {
-    if (error.message.includes('골드')) {
-      showToast('골드가 부족합니다.', 'error');
-      throw new Error('골드가 부족합니다.');
-    }
-    throw new Error(error.message);
-  }
   return data;
 }
 
