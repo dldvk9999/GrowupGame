@@ -13,6 +13,7 @@ import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
+import { usePwaInstall } from './lib/usePwaInstall';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -40,6 +41,7 @@ const STAGE = {
 };
 
 export default function App() {
+  const { canInstall, promptInstall } = usePwaInstall();
   const [stage, setStage] = useState(STAGE.LOADING);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -282,6 +284,9 @@ export default function App() {
         <header className="app-header">
           <span className="app-title">GrowupGame</span>
           <div className="app-header-right">
+            {canInstall && (
+              <button className="btn btn-neutral" onClick={promptInstall}>⬇️ 앱 다운로드</button>
+            )}
             {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
             {profile && <span className="app-nickname">{profile.nickname}</span>}
             <button className="btn btn-ghost" onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>

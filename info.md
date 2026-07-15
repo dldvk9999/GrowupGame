@@ -19,7 +19,7 @@
 
 ## 2. 기술 스택
 
-- **프론트엔드**: Vite + React 18, 순수 CSS(`src/index.css`, 다크 판타지 테마, CSS 변수 기반, 반응형)
+- **프론트엔드**: Vite + React 18, 순수 CSS(`src/index.css`, 다크 판타지 테마, CSS 변수 기반, 반응형), **PWA**(`vite-plugin-pwa`, `manifest.webmanifest` + 서비스워커 자동생성, 헤더의 "⬇️ 앱 다운로드" 버튼이 `beforeinstallprompt` 이벤트를 잡아서 설치 유도 - `src/lib/usePwaInstall.js`)
 - **백엔드**: Supabase (Auth + Postgres + Realtime), `@supabase/supabase-js`
 - **레포**: https://github.com/dldvk9999/GrowupGame (브랜치: `master`)
 - **로컬 실행**: `npm install && npm run dev` (루트에 `.env` 필요, 아래 6번 참고)
@@ -105,7 +105,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **레벨업**: `expToNextLevel(level) = round(20 * level^1.5)`
 - **스탯 성장**: `base스탯 × (1 + (level-1)*0.12) × 전직배율`
 - **3차 전직 시스템** (`jobAdvancement.js`): Lv.30/60/100에서 조건 충족(전직 가능 알림), **전직 던전(5-9-1 참고)을 클리어해야 실제 적용됨** — 레벨업만으로 자동 전직되지 않음
-  - 전직배율: 1차 1.25배 / 2차 1.55배 / 3차 1.9배 (스탯에 곱연산 적용)
+  - 전직배율: **1차 2.0배 / 2차 3.5배 / 3차 6.0배** (스탯에 곱연산 적용, 대폭 강화됨 — 서버 `save_monster_growth`의 스탯 상한선도 6.0배 기준으로 011에서 함께 상향)
   - 전직할 때마다 **전용 스킬 1개씩 추가 습득** (전직 스킬 3개는 계속 누적, 기본 5스킬과 별개로 유지)
   - 전직에 성공하면 **외형도 전용 그래픽으로 바뀜** (5-9-1 참고)
 - **진화**와 **전직**은 별개 시스템: 진화=외형/도감상 종족 변경, 전직=같은 종족 내 강함 단계
@@ -135,7 +135,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스토리 진행**: 새 챕터 첫 진입 시 `ChapterStory` 배너 표시(`getChapterStory`), 서브스테이지 진입마다 전투 로그에 짧은 플레이버 텍스트(`getStageFlavor`) — "몬스터 잡을 때도 스토리가 계속되게" 요건 충족
 - **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능
 - **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
-- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**. 자동사냥(필드몹) 골드는 별도로 **8배 추가 상향**(기존 5배와 별개로 곱연산, 총 40배). 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
+- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1)*chapterStep)`, `chapterStep = 1 + (chapter-1)*0.04` — **10스테이지(=챕터 1개) 단위로 소폭 계단식 상승**이 기존 연속 스케일링 위에 추가로 곱해짐. `atk`도 동일한 chapterStep 적용. 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**(서버 `calc_stage_gold`도 동일 chapterStep 반영, 011). 자동사냥(필드몹) 골드는 별도로 **8배 추가 상향**(기존 5배와 별개로 곱연산, 총 40배). 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
 
@@ -233,6 +233,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `owned_monsters.unlocked_job_tier` 컬럼 추가 - 전직이 레벨 자동적용에서 **전직 던전 클리어 필요**로 변경
 - `job_dungeon_sessions` 테이블 + `start_job_dungeon()`/`claim_job_dungeon()` RPC (레벨조건 + 순차진행 서버검증)
 
+**011_gacha_level_job_boost_chapter_difficulty.sql**
+- `draw_skill`/`draw_skill_batch`의 뽑기레벨 산정 기준을 5회→1000회당 1레벨로 변경
+- `save_monster_growth`의 스탯 상한선을 전직 최대배율 상향(1.9→6.0)에 맞춰 재조정
+- `calc_stage_gold`에 챕터(10스테이지) 단위 계단식 난이도(`chapterStep`) 반영
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -278,7 +283,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 ### 5-8. 스킬 뽑기 시스템 (`SkillGacha.jsx`, `skillCatalog.js`, `skillGacha.js`)
 
 - 15개 스킬(5등급 × 3개, 노멀\<레어\<에픽\<전설\<신화), 등급별 배율/회복비율은 `skillCatalog.js`의 `SKILL_CATALOG` (서버 `skill_catalog` 테이블과 값 동일하게 유지해야 함)
-- **뽑기 레벨**: `1 + floor(누적뽑기횟수/5)`, 최대 20. 레벨 구간별로 고등급 확률이 계단식으로 상승 (RPC `draw_skill` 내부 CASE문 참고)
+- **뽑기 레벨**: `1 + floor(누적뽑기횟수/1000)`, 최대 20 (1000회당 1레벨, 011에서 5회→1000회로 변경). 레벨 구간별로 고등급 확률이 계단식으로 상승 (RPC `draw_skill` 내부 CASE문 참고)
 - **중복 뽑기 시 새 스킬 대신 기존 스킬의 `skill_level`이 +3 상승** (최대 100) — `user_skills` 테이블은 `unique(user_id, skill_key)` 제약으로 중복 row 자체가 안 생김
 - **스킬레벨 성장식**: `실효값 = base × (1 + (level-1)×0.003)` — 레벨100 최대 성장폭이 약 ×1.3에 불과해서, 등급 간 base가 ×1.4씩 벌어진 설계상 **아무리 강화해도 다음 등급의 1레벨 기본값을 못 넘음** (요건 그대로 구현)
 - **스킬 편성**: 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점). `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증

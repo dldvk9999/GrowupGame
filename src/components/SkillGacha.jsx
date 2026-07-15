@@ -9,7 +9,7 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
   const [pendingLoadout, setPendingLoadout] = useState(equippedSkills ?? []);
   const [savingLoadout, setSavingLoadout] = useState(false);
 
-  const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 5));
+  const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
   const slotLimit = getSkillSlotCount(monsterLevel ?? 1);
 
@@ -71,9 +71,9 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
           <span className="gold-display">💰 {gold.toLocaleString()}</span>
         </div>
         <div className="bar-track exp-track">
-          <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 5) / 5) * 100}%` }} />
+          <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
-        <p className="gacha-hint">뽑기 5회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.20)</p>
+        <p className="gacha-hint">뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.20)</p>
 
         {error && <p className="shop-error">{error}</p>}
 

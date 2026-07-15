@@ -61,9 +61,10 @@ export function getStageEnemy(chapter, stage) {
   const baseName = names[(chapter + stage) % names.length];
 
   // 전체 진행도(index)에 비례해 서서히 강해짐 + 보스는 같은 챕터 잡몹보다 확실히 강하게
-  // (난이도 상향: 기존보다 체력/공격력 스케일링을 올리고, 그만큼 경험치 보상도 더 넉넉하게 줌)
-  const hp = Math.round(30 + index * 4.0 * (isBoss ? 2.1 : 1));
-  const atk = Math.round(4 + index * 0.44 * (isBoss ? 1.7 : 1));
+  // + 챕터(10스테이지) 단위로 계단식 소폭 상승(챕터당 +4%)까지 곱해서, 10스테이지 넘어갈 때마다 체감되게 함
+  const chapterStep = 1 + (chapter - 1) * 0.04;
+  const hp = Math.round(30 + index * 4.0 * (isBoss ? 2.1 : 1) * chapterStep);
+  const atk = Math.round(4 + index * 0.44 * (isBoss ? 1.7 : 1) * chapterStep);
 
   return {
     stageIndex: index,
