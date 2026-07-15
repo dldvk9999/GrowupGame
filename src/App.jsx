@@ -8,6 +8,8 @@ import { fetchInventory, sumEquippedBonus } from './lib/inventory';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
+import { fetchDungeonAttemptsToday, useDungeonAttempt } from './lib/dungeon';
+import { getDungeonStage } from './lib/dungeonStages';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -20,6 +22,9 @@ import StageSelect from './components/StageSelect';
 import Shop from './components/Shop';
 import SkillGacha from './components/SkillGacha';
 import MyPage from './components/MyPage';
+import DungeonSelect from './components/DungeonSelect';
+import DungeonBattle from './components/DungeonBattle';
+import Settings from './components/Settings';
 
 const STAGE = {
   LOADING: 'loading',
@@ -43,6 +48,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
+  const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage } | null
+  const [dungeonEntering, setDungeonEntering] = useState(false);
+  const [dungeonError, setDungeonError] = useState('');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -62,17 +71,19 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
         fetchInventory(userId),
         fetchUserSkills(userId),
+        fetchDungeonAttemptsToday(userId),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
       setUserSkills(skills);
+      setDungeonAttempts(dungeon);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -188,6 +199,34 @@ export default function App() {
     handleSelectStage(nextChapter, nextStage);
   }
 
+  async function handleEnterDungeon(type, stageNum) {
+    setDungeonError('');
+    setDungeonEntering(true);
+    try {
+      const remaining = await useDungeonAttempt(type);
+      setDungeonAttempts((prev) => ({ ...prev, [type]: remaining }));
+      setDungeonBattle({ type, stage: stageNum });
+    } catch (err) {
+      setDungeonError(err.message ?? '입장에 실패했어요.');
+    } finally {
+      setDungeonEntering(false);
+    }
+  }
+
+  async function handleDungeonClear(grownBase, goldReward) {
+    setActiveMonster(grownBase);
+    const userId = session.user.id;
+    try {
+      await Promise.all([
+        persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
+        addGold(userId, goldReward),
+      ]);
+      setProfile((p) => ({ ...p, gold: p.gold + goldReward }));
+    } catch (err) {
+      console.error('던전 보상 저장 실패', err);
+    }
+  }
+
   async function handleLogout() {
     await signOut();
   }
@@ -207,6 +246,7 @@ export default function App() {
             {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
             {profile && <span className="app-nickname">{profile.nickname}</span>}
             <button className="btn btn-ghost" onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
+            <button className="btn btn-ghost" onClick={() => setActiveTab('settings')}>⚙️ 설정</button>
             <button className="btn btn-ghost" onClick={handleLogout}>로그아웃</button>
           </div>
         </header>
@@ -247,6 +287,7 @@ export default function App() {
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
               <button className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`} onClick={() => setActiveTab('skills')}>🎯 스킬</button>
+              <button className={`tab-btn ${activeTab === 'dungeon' ? 'active' : ''}`} onClick={() => setActiveTab('dungeon')}>🏰 던전</button>
             </nav>
 
             {activeTab === 'battle' && (
@@ -292,6 +333,26 @@ export default function App() {
                 onLoadoutChange={handleLoadoutChange}
               />
             )}
+            {activeTab === 'dungeon' && (
+              dungeonBattle ? (
+                <DungeonBattle
+                  key={`${dungeonBattle.type}-${dungeonBattle.stage}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  dungeonEnemy={getDungeonStage(dungeonBattle.type, dungeonBattle.stage)}
+                  onClear={handleDungeonClear}
+                  onExit={() => setDungeonBattle(null)}
+                />
+              ) : (
+                <DungeonSelect
+                  attemptsRemaining={dungeonAttempts}
+                  onEnterDungeon={handleEnterDungeon}
+                  entering={dungeonEntering}
+                  error={dungeonError}
+                />
+              )
+            )}
             {activeTab === 'mypage' && (
               <MyPage
                 session={session}
@@ -300,6 +361,13 @@ export default function App() {
                 clearedCount={clearedStageIds.size}
                 totalStages={TOTAL_STAGES}
                 onProfileUpdate={setProfile}
+              />
+            )}
+            {activeTab === 'settings' && (
+              <Settings
+                userId={session.user.id}
+                gold={profile?.gold ?? 0}
+                onGoldChange={handleGoldChange}
               />
             )}
           </div>

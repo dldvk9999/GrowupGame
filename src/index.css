@@ -62,6 +62,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
   padding: 14px 24px;
   border-bottom: 1px solid var(--border-soft);
   background: rgba(15, 18, 32, 0.7);
@@ -84,7 +86,9 @@ button {
 .app-header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .app-nickname {
@@ -790,6 +794,47 @@ button {
 .owned-skill-rarity { font-size: 10px; color: var(--text-muted); }
 .owned-skill-level { font-size: 11px; color: var(--text-secondary); }
 .owned-skill-locked { font-size: 11px; color: var(--text-muted); }
+
+/* ---------- 던전 ---------- */
+.dungeon-select { width: 100%; }
+.dungeon-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.dungeon-stage-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+.dungeon-stage-num { font-size: 13px; font-weight: 700; color: var(--accent-gold); }
+.dungeon-stage-boss { font-size: 13px; }
+.dungeon-stage-reward { font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+
+/* ---------- 설정 / 우편함 / 쿠폰 ---------- */
+.settings-screen, .mailbox-screen, .coupon-screen { width: 100%; }
+.mail-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.mail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.mail-row.claimed { opacity: 0.55; }
+.mail-row-main strong { font-size: 14px; }
+.mail-row-body { font-size: 12px; color: var(--text-muted); margin: 4px 0; }
+.mail-row-reward { display: flex; gap: 10px; font-size: 12px; color: var(--accent-gold); }
+.mail-row-done { font-size: 12px; color: var(--text-muted); flex-shrink: 0; }
 
 /* ---------- 반응형 추가 ---------- */
 @media (max-width: 640px) {

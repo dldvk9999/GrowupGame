@@ -134,7 +134,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스토리 진행**: 새 챕터 첫 진입 시 `ChapterStory` 배너 표시(`getChapterStory`), 서브스테이지 진입마다 전투 로그에 짧은 플레이버 텍스트(`getStageFlavor`) — "몬스터 잡을 때도 스토리가 계속되게" 요건 충족
 - **스테이지 잠금 해제 로직**: `stage_id===1` 이거나 이전 스테이지가 클리어됨 → 오픈. 클리어한 스테이지는 언제든 자유 재도전 가능
 - **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
-- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**. 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
+- **난이도**: `hp = round(30 + index*4.0*(보스면 2.1))`, `atk = round(4 + index*0.44*(보스면 1.7))` — 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**. 자동사냥(필드몹) 골드는 별도로 **8배 추가 상향**(기존 5배와 별개로 곱연산, 총 40배). 적 공격 텀은 2.1초(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`).
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
 
@@ -213,6 +213,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `draw_skill_batch(p_count)` RPC 신설 (1/10/100연차 뽑기, 골드 부족 시 그 시점까지 부분 성공)
 - `add_gold` 1회 상한 20000 → 100000으로 상향 (골드 보상 5배 인상 반영)
 
+**008_dungeon_mail_coupon.sql**
+- `dungeon_attempts` 테이블 + `use_dungeon_attempt()` RPC (일일 던전 하루 3회 제한, 서울시간 기준)
+- `mails` 테이블 + `sync_daily_mails()`(정기 골드우편 지연생성) + `claim_mail()` RPC
+- `coupons`, `coupon_redemptions` 테이블 + `redeem_coupon()` RPC, 테스트용 예시 쿠폰 `WELCOME2026` 시드
+
 ### 클라이언트 쓰기 권한 요약 (보안 패치 이후 기준)
 
 | 테이블 | client 직접 write 가능? | 실제 변경 경로 |
@@ -227,6 +232,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 - 전투 데미지 계산/스킬 배율/장비 보너스 적용은 **클라이언트(브라우저)에서 계산**됨. 서버는 "최종 결과값(레벨/스탯/골드)"이 물리적으로 가능한 범위 안에 있는지만 사후 검증함 (상한선 방식). 즉 "있을 수 없는 큰 값"은 막지만, 그럴듯한 범위 내의 정교한 조작까지 100% 차단하진 못함.
 - 완전한 서버 권위 구조로 가려면 전투 판정 자체를 서버(Edge Function 등)에서 수행해야 함 — 현재는 프로토타입 단계로 판단해 이 정도 수준에서 타협함.
+- **정기 우편은 실제 cron이 아니라 "지연 생성" 방식**임 — 08/12/19시가 지난 뒤 유저가 우편함에 들어와야(`sync_daily_mails` 호출) 그 시점에 우편이 생성됨. 정각에 알림이 오거나 하는 건 아니고, 다음에 접속했을 때 이미 도착해 있는 형태. pg_cron으로 실제 예약 발송을 구현할 수도 있으나(Supabase 플랜에 따라 지원 여부 다름) 지금은 더 안정적인 지연생성 방식으로 구현함.
 
 ---
 
@@ -247,6 +253,27 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 뽑기 비용은 골드 (`100 + (뽑기레벨-1)×30`), 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음 (`create_starter_monster` RPC)
 - **1/10/100연차 뽑기** 지원 (`draw_skill_batch` RPC) — 골드 부족하면 그 시점까지만 뽑고 부분 성공 반환
 - `BattleScreen`은 이제 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직(Lv.30/60/100) 스킬은 기존처럼 이 목록에 추가로 붙음(`jobAdvancement.js`의 `getAvailableSkills`)
+
+### 5-9. 일일 던전 (`DungeonSelect.jsx`, `DungeonBattle.jsx`, `dungeonStages.js`, `dungeon.js`)
+
+- **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 자정 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
+- 각 던전 10층 구성, 층마다 고정 보스(`dungeonStages.js`의 `dungeonBoss(stage)`) — `hp = round(200 + stage^1.6*150)`, `atk = round(18 + stage^1.5*10)`로 스테이지 진행 몬스터보다 훨씬 강하게 잡음
+- 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대(`hp*3.2` 골드 / `hp*0.6` EXP)
+- 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장/골드 저장 경로(`persistMonsterGrowth`, `addGold`) 사용
+- 입장은 전투 시작 "전에" 소모됨(패배해도 복구 안 됨) — 실제 게임에서 흔한 방식
+
+### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)
+
+- 헤더의 "⚙️ 설정" 버튼으로 진입, 내부에 우편함/쿠폰입력 서브탭
+- **정기 골드우편**: 매일 08:00 / 12:00 / 19:00 (서울시간) 기준으로 각 10만 골드
+- cron 없이 **지연 생성(lazy) 방식**으로 구현함 — `sync_daily_mails()` RPC를 우편함 진입 시 호출하면, "이미 그 시각이 지났는데 아직 안 만들어진" 우편만 그때 생성됨. `source_key`(예: `daily_gold_2026-07-15_08`)에 유니크 제약을 걸어 중복 생성을 원천 차단
+- 우편 수령은 `claim_mail` RPC가 골드 지급 + (있다면) 아이템을 `user_inventory`에 원자적으로 넣어줌
+
+### 5-11. 설정 > 쿠폰 입력 (`CouponRedeem.jsx`, `coupon.js`)
+
+- `coupons` 테이블에 쿠폰코드/골드량/아이템/최대사용횟수/만료일을 직접 INSERT해서 발행 (관리용 UI는 없음, SQL로 직접 발행)
+- `redeem_coupon(code)` RPC — 만료/횟수소진/중복사용(유저당 1회, `coupon_redemptions` 유니크 제약) 검증 후, 보상을 **우편함으로** 지급(바로 지급 아님, 우편함에서 수령해야 함)
+- 테스트용 예시 쿠폰 `WELCOME2026`(골드 5000 + 레어 무기) 하나가 시드로 들어가 있음
 
 ## 7. 알려진 미구현/TODO 후보
 

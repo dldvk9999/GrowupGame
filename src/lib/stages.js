@@ -48,7 +48,7 @@ export function getIdleMonster(chapter, playerLevel = 1) {
     hp,
     atk: 0,
     expReward: Math.max(2, Math.round(hp * 0.25)),
-    goldReward: Math.max(5, Math.round(hp * 0.15) * 5),
+    goldReward: Math.max(5, Math.round(hp * 0.15) * 5 * 8),
   };
 }
 
