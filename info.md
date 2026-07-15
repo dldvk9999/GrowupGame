@@ -244,6 +244,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `calc_stage_gold`/`calc_idle_gold`/`calc_dungeon_gold`를 클라이언트의 난이도 재상향/자동사냥 보상강화 공식과 동기화
 - `add_gold` 1회 상한 100000 → 400000으로 재상향 (최후반 챕터 보스 골드가 기존 상한을 넘어서게 됨)
 
+**013_equipment_gacha.sql**
+- `profiles.total_equipment_draws` 컬럼 추가
+- `draw_equipment()`/`draw_equipment_batch()` RPC 신설 - 스킬뽑기와 동일한 뽑기레벨/확률 구조로 슬롯+등급을 서버가 결정해서 지급 (item_key/slot을 client가 지정할 수 없어 조작 불가)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -318,6 +322,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 ### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)
 
 - 헤더의 "⚙️ 설정" 버튼으로 진입, 내부에 우편함/쿠폰입력 서브탭
+- 스토리 관련 팝업(`StoryIntro`, `ChapterStory`)은 `.center-viewport` 래퍼로 화면 중앙에 표시됨(로그인 화면과 동일한 유틸 클래스)
 - **정기 골드우편**: 매일 08:00 / 12:00 / 19:00 (서울시간) 기준으로 각 10만 골드
 - cron 없이 **지연 생성(lazy) 방식**으로 구현함 — `sync_daily_mails()` RPC를 우편함 진입 시 호출하면, "이미 그 시각이 지났는데 아직 안 만들어진" 우편만 그때 생성됨. `source_key`(예: `daily_gold_2026-07-15_08`)에 유니크 제약을 걸어 중복 생성을 원천 차단
 - 우편 수령은 `claim_mail` RPC가 골드 지급 + (있다면) 아이템을 `user_inventory`에 원자적으로 넣어줌
@@ -333,6 +338,15 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 간단한 pub-sub 이벤트버스(`showToast(message, type)`) + `App.jsx` 최상단에 마운트된 `ToastContainer`가 구독해서 화면 상단 중앙에 표시(3.2초 후 자동 소멸)
 - 골드 부족 에러가 발생하는 모든 지점(`inventory.js`의 `buyItem`, `enhance.js`의 `enhanceItem`, `skillGacha.js`의 `drawSkill`/`drawSkillBatch`)에서 공통으로 토스트를 띄우도록 처리됨 — 새로운 골드 소비 기능을 추가할 때도 동일 패턴(에러 메시지에 '골드' 포함되면 `showToast(..., 'error')` 호출) 유지할 것
 - ⚠️ **버튼 disabled 함정 주의**: 구매/강화/뽑기 버튼을 "골드 부족 시 `disabled`"로 막아버리면 클릭 자체가 안 돼서 에러가 발생할 기회가 없어지고, 결과적으로 토스트도 못 뜸(실제로 이 버그가 있었음, 수정됨). 골드 소비 버튼은 **클릭은 항상 가능하게 두고**, 핸들러 진입 시점에 `gold < cost` 체크해서 `showToast`를 직접 호출 + 조기 return하는 패턴을 씀. 버튼의 시각적 "비활성처럼 보이게"는 `disabled` 대신 `.btn-unaffordable` CSS 클래스(투명도+빨간 테두리)로만 처리
+
+### 5-13. 장비 뽑기 (`EquipmentGacha.jsx`, `equipmentGacha.js`)
+
+- 상점 화면에 "🛒 직접 구매" / "🎁 장비 뽑기" 모드 토글 추가. 기존 고정가 구매(`buy_item`)는 그대로 유지되고, 뽑기가 추가 획득 경로로 붙음
+- 등급/능력치는 기존 `item_catalog`(4슬롯×5등급, 003/005) 값 그대로 사용 — 새 데이터 추가 없음
+- 스킬 뽑기와 **완전히 동일한 구조**: 뽑기레벨 1~20(1000회당 1레벨), 레벨 구간별 등급 확률 테이블도 동일, 1/10/100연차 지원
+- 차이점: 뽑으면 **슬롯도 서버가 랜덤으로 결정**(무기/보호구/장갑/신발 중 균등 확률), 그 슬롯의 뽑힌 등급 아이템이 인벤토리에 그대로 들어감(중복 병합 없음 — 장비는 원래도 여러 개 보유 가능한 구조라 자연스러움)
+- `profiles.total_equipment_draws`로 누적 횟수 추적(스킬 뽑기의 `total_skill_draws`와 별도 카운터), `draw_equipment()`/`draw_equipment_batch()` RPC가 처리 (013)
+- 골드 차감/아이템 지급 전부 서버(RPC)에서 원자적으로 처리, client는 결과(슬롯/등급)만 표시 — 아이템 종류를 클라이언트가 지정할 방법이 없어서 조작 불가능한 구조 (009 보안패치와 동일한 설계 원칙 적용)
 
 ## 7. 알려진 미구현/TODO 후보
 

@@ -310,9 +310,9 @@ export default function App() {
         )}
 
         {stage === STAGE.STORY && (
-          <StoryIntro
-            onContinue={() => setStage(STAGE.STARTER)}
-          />
+          <div className="center-viewport">
+            <StoryIntro onContinue={() => setStage(STAGE.STARTER)} />
+          </div>
         )}
 
         {stage === STAGE.STARTER && (
@@ -320,10 +320,12 @@ export default function App() {
         )}
 
         {stage === STAGE.CHAPTER_STORY && pendingStage && (
-          <ChapterStory
-            {...getChapterStory(pendingStage.chapter)}
-            onContinue={handleContinueFromChapterStory}
-          />
+          <div className="center-viewport">
+            <ChapterStory
+              {...getChapterStory(pendingStage.chapter)}
+              onContinue={handleContinueFromChapterStory}
+            />
+          </div>
         )}
 
         {stage === STAGE.GAME && activeMonster && (
@@ -368,6 +370,7 @@ export default function App() {
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
                 inventory={inventory}
+                totalEquipmentDraws={profile?.total_equipment_draws ?? 0}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
               />

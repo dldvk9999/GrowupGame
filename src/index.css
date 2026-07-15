@@ -584,6 +584,7 @@ button {
 .shop-screen { width: 100%; }
 .shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .shop-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.shop-mode-toggle { display: flex; gap: 6px; margin-bottom: 18px; }
 .shop-tab {
   border: 1px solid var(--border-soft);
   background: var(--bg-panel-2);

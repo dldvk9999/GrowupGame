@@ -3,10 +3,12 @@ import { ITEM_CATALOG, SLOTS, getItem, getEnhancedStatBonus, estimateEnhance, MA
 import { buyItem, equipItem, unequipItem } from '../lib/inventory';
 import { enhanceItem } from '../lib/enhance';
 import { showToast } from '../lib/toast';
+import EquipmentGacha from './EquipmentGacha';
 
 const SLOT_ORDER = Object.keys(SLOTS);
 
-export default function Shop({ userId, gold, inventory, onInventoryChange, onGoldChange }) {
+export default function Shop({ userId, gold, inventory, totalEquipmentDraws, onInventoryChange, onGoldChange }) {
+  const [mode, setMode] = useState('buy'); // 'buy' | 'gacha'
   const [activeSlot, setActiveSlot] = useState('weapon');
   const [busyKey, setBusyKey] = useState(null);
   const [error, setError] = useState('');
@@ -79,6 +81,20 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
         <span className="gold-display">💰 {gold.toLocaleString()}</span>
       </div>
 
+      <div className="shop-mode-toggle">
+        <button className={`shop-tab ${mode === 'buy' ? 'active' : ''}`} onClick={() => setMode('buy')}>🛒 직접 구매</button>
+        <button className={`shop-tab ${mode === 'gacha' ? 'active' : ''}`} onClick={() => setMode('gacha')}>🎁 장비 뽑기</button>
+      </div>
+
+      {mode === 'gacha' ? (
+        <EquipmentGacha
+          gold={gold}
+          totalDraws={totalEquipmentDraws ?? 0}
+          onGoldChange={onGoldChange}
+          onInventoryChange={onInventoryChange}
+        />
+      ) : (
+      <>
       <div className="shop-tabs">
         {SLOT_ORDER.map((slot) => (
           <button
@@ -118,6 +134,8 @@ export default function Shop({ userId, gold, inventory, onInventoryChange, onGol
           );
         })}
       </div>
+      </>
+      )}
 
       <h3 className="inventory-title">내 인벤토리</h3>
       <div className="inventory-list">
