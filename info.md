@@ -332,6 +332,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 - 간단한 pub-sub 이벤트버스(`showToast(message, type)`) + `App.jsx` 최상단에 마운트된 `ToastContainer`가 구독해서 화면 상단 중앙에 표시(3.2초 후 자동 소멸)
 - 골드 부족 에러가 발생하는 모든 지점(`inventory.js`의 `buyItem`, `enhance.js`의 `enhanceItem`, `skillGacha.js`의 `drawSkill`/`drawSkillBatch`)에서 공통으로 토스트를 띄우도록 처리됨 — 새로운 골드 소비 기능을 추가할 때도 동일 패턴(에러 메시지에 '골드' 포함되면 `showToast(..., 'error')` 호출) 유지할 것
+- ⚠️ **버튼 disabled 함정 주의**: 구매/강화/뽑기 버튼을 "골드 부족 시 `disabled`"로 막아버리면 클릭 자체가 안 돼서 에러가 발생할 기회가 없어지고, 결과적으로 토스트도 못 뜸(실제로 이 버그가 있었음, 수정됨). 골드 소비 버튼은 **클릭은 항상 가능하게 두고**, 핸들러 진입 시점에 `gold < cost` 체크해서 `showToast`를 직접 호출 + 조기 return하는 패턴을 씀. 버튼의 시각적 "비활성처럼 보이게"는 `disabled` 대신 `.btn-unaffordable` CSS 클래스(투명도+빨간 테두리)로만 처리
 
 ## 7. 알려진 미구현/TODO 후보
 
