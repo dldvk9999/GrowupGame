@@ -3,7 +3,7 @@ import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
-import { mitigateDamage } from '../lib/combat';
+import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1600;
@@ -151,7 +151,10 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
-      <div className="stage-badge">전직 던전 · {jobBoss.tier}차</div>
+      <div className="stage-badge">
+        전직 던전 · {jobBoss.tier}차
+        <span className="combat-power-badge">⚔️ 전투력 {calculateCombatPower(player).toLocaleString()}</span>
+      </div>
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />

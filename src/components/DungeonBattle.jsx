@@ -3,7 +3,7 @@ import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
-import { mitigateDamage } from '../lib/combat';
+import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900;
@@ -152,7 +152,10 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
-      <div className="stage-badge">{dungeonEnemy.dungeonType === 'exp' ? '경험치 던전' : '골드 던전'} · {dungeonEnemy.stage}층</div>
+      <div className="stage-badge">
+        {dungeonEnemy.dungeonType === 'exp' ? '경험치 던전' : '골드 던전'} · {dungeonEnemy.stage}층
+        <span className="combat-power-badge">⚔️ 전투력 {calculateCombatPower(player).toLocaleString()}</span>
+      </div>
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />

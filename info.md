@@ -128,6 +128,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 2차(Lv.60): 배율 4.6배, 쿨타임 8초
 - 3차(Lv.100): 배율 6.2배, 쿨타임 10초
 
+**전투력 표시**: `calculateCombatPower(monster)`(`combat.js`) = `atk*4.5 + def*3.2 + maxHp*0.6`(반올림). 세 전투 화면(스테이지/일반던전/전직던전) 상단 배지에 항상 표시됨 — 장비 보유효과/장착 보너스까지 다 반영된 `player` 객체 기준이라 실제 체감 강함과 대략 비례함
+
 **스킬 쿨타임 UI(`SkillButton.jsx`)**: 스킬 사용 시 버튼 테두리에 시계방향으로 채워지는 원형 링이 뜸 (`conic-gradient` + mask로 도넛 형태 구현, `requestAnimationFrame`으로 매 프레임 각도 갱신). 실제 쿨타임 종료 판정은 기존처럼 부모의 `setTimeout` 기반 `cooldowns` state가 담당하고, 링은 순수 시각효과(`cooldownStarts`에 사용 시각 기록해서 계산)라 로직에 영향 없음. `BattleScreen`/`DungeonBattle`/`JobDungeonBattle` 세 전투 화면 전부 이 컴포넌트를 공유함
 
 ### 5-3. 스테이지 시스템 (`stages.js`, `stageStory.js`)
@@ -163,7 +165,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **장비 뽑기(`EquipmentGacha.jsx`, 014)**: 슬롯별로 완전히 분리된 뽑기 4개. 스킬뽑기와 동일 구조(뽑기레벨 1~20, 1000회당 1레벨, 등급 확률표 동일, 1/10/100연차). 지정한 슬롯 안에서만 등급이 뽑힘(슬롯은 더 이상 랜덤 아님 — 013의 랜덤슬롯 방식에서 변경됨)
 - **뽑기 중복 시 자동 강화**: 이미 보유한 등급을 또 뽑으면 새 행이 안 생기고 `enhance_level`이 **+1씩** 오름(최대 +15) — `user_inventory`에 `unique(user_id, item_key)` 제약을 걸어서 원천적으로 중복 행이 생길 수 없게 함(014). **유료(골드 소모) 강화 시스템은 완전히 삭제됨** — `enhance_item` RPC도 EXECUTE 권한 회수로 차단
 - 슬롯당 1개만 장착 가능 (DB 유니크 제약으로 강제, 기존 그대로)
-- **인벤토리(`Inventory.jsx`)는 상점과 분리된 별도 탭** — 슬롯별(무기/보호구/장갑/신발)로 영역이 나뉘어 표시됨. 각 아이템마다 "장착 시" 보너스와 "보유효과" 보너스를 함께 보여줌. 강화 버튼은 없음(뽑기로만 오르므로)
+- **인벤토리(`Inventory.jsx`)는 상점과 분리된 별도 탭** — 슬롯별(무기/보호구/장갑/신발)로 영역이 나뉘어 표시됨, 각 구역 내에서는 **등급 높은 순으로 정렬**됨(`rarityOrder` 내림차순). 각 아이템마다 "장착 시" 보너스와 "보유효과" 보너스를 함께 보여줌. 강화 버튼은 없음(뽑기로만 오르므로)
 - **보유효과**: 장착 여부와 상관없이 보유만 하고 있어도 항상 적용되는 상시 보너스. 장착 보너스의 15%(`POSSESSION_RATIO`)로 계산되고, 강화 수치가 오르면 이것도 같이 커짐(`getPossessionBonus`, `itemCatalog.js`). 전투 시 실제 적용 보너스 = 장착 보너스 + 보유한 전체 아이템의 보유효과 합산(`getTotalEquipmentBonus`, `inventory.js`) — `App.jsx`가 이걸로 `equipmentBonus`를 계산해서 각 전투 화면에 넘김
 - 장비 보너스는 전투 시작 시 `withEquipment()`로 합산되어 임시 적용됨 (기존 로직 그대로)
 
@@ -256,6 +258,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `buy_item`/`enhance_item` EXECUTE 권한 회수 (직접구매/유료강화 완전 폐지)
 - `draw_equipment`/`draw_equipment_batch`를 슬롯 고정(`p_slot`) 방식으로 재작성 - 랜덤슬롯 대신 무기/방어구/장갑/신발 각각 독립된 뽑기, 중복 시 `enhance_level` +1(최대 15)
 
+**015_dungeon_reset_time_and_skill_cost.sql**
+- `use_dungeon_attempt`의 "하루" 기준을 자정→오전 8시(서울)로 변경 (`(서울시간 - 8시간)::date`로 일자 산정)
+- `draw_skill`/`draw_skill_batch`의 비용을 뽑기레벨 연동 공식에서 **1회당 정가 300골드 고정**으로 변경
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -305,13 +311,13 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **중복 뽑기 시 새 스킬 대신 기존 스킬의 `skill_level`이 +3 상승** (최대 100) — `user_skills` 테이블은 `unique(user_id, skill_key)` 제약으로 중복 row 자체가 안 생김
 - **스킬레벨 성장식**: `실효값 = base × (1 + (level-1)×0.003)` — 레벨100 최대 성장폭이 약 ×1.3에 불과해서, 등급 간 base가 ×1.4씩 벌어진 설계상 **아무리 강화해도 다음 등급의 1레벨 기본값을 못 넘음** (요건 그대로 구현)
 - **스킬 편성**: 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점). `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증
-- 뽑기 비용은 골드 (`100 + (뽑기레벨-1)×30`), 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음 (`create_starter_monster` RPC)
+- 뽑기 비용은 **1회당 정가 💰300** (015에서 레벨연동 공식→고정가로 변경, 뽑기레벨은 등급 확률에만 영향), 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음 (`create_starter_monster` RPC)
 - **1/10/100연차 뽑기** 지원 (`draw_skill_batch` RPC) — 골드 부족하면 그 시점까지만 뽑고 부분 성공 반환
 - `BattleScreen`은 이제 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직(Lv.30/60/100) 스킬은 기존처럼 이 목록에 추가로 붙음(`jobAdvancement.js`의 `getAvailableSkills`)
 
 ### 5-9. 일일 던전 (`DungeonSelect.jsx`, `DungeonBattle.jsx`, `dungeonStages.js`, `dungeon.js`)
 
-- **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 자정 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
+- **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 **오전 8시** 기준 초기화 - 015에서 자정→8시로 변경, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
 - **순차 진행형**: 1층부터 시작, 깨야 다음 층으로 이동. 실패하면 그 층에 그대로 머무름(계속 재도전 가능, 하루 3회 한도 내에서). `dungeon_progress` 테이블(유저별 `cleared_stage`)로 진행도 추적, `use_dungeon_attempt`가 진행도 기준으로 **몇 층인지 서버가 직접 결정**(클라이언트가 층을 선택하지 않음). 10층까지 다 깨면 10층을 반복 도전 가능
 - 각 던전 10층 구성, 층마다 고정 보스(`dungeonStages.js`의 `dungeonBoss(stage)`) — `hp = round(200 + stage^1.6*150)`, `atk = round(18 + stage^1.5*10)`로 스테이지 진행 몬스터보다 훨씬 강하게 잡음
 - 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대(`hp*3.2` 골드 / `hp*0.6` EXP)

@@ -38,7 +38,13 @@ export default function Inventory({ userId, inventory, onInventoryChange }) {
       {inventory.length === 0 && <p className="inventory-empty">보유한 장비가 없어요. 상점에서 뽑아보세요.</p>}
 
       {SLOT_ORDER.map((slot) => {
-        const rows = inventory.filter((r) => r.slot === slot);
+        const rows = inventory
+          .filter((r) => r.slot === slot)
+          .sort((a, b) => {
+            const itemA = getItem(a.item_key);
+            const itemB = getItem(b.item_key);
+            return (itemB?.rarityOrder ?? 0) - (itemA?.rarityOrder ?? 0);
+          });
         if (rows.length === 0) return null;
         return (
           <div key={slot} className="inventory-section">

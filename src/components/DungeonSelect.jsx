@@ -51,7 +51,7 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
   return (
     <div>
       <p className="stage-select-hint">
-        1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 하루 3번까지 입장 가능(오늘 {remaining}/3회 남음).
+        1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 하루 3번까지 입장 가능(오늘 {remaining}/3회 남음, 매일 오전 8시 초기화).
         {allCleared && ' 최고층까지 전부 클리어했어요! 10층을 반복 도전할 수 있어요.'}
       </p>
       {error && <p className="shop-error">{error}</p>}

@@ -6,7 +6,7 @@ import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
-import { mitigateDamage } from '../lib/combat';
+import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
@@ -228,6 +228,7 @@ export default function BattleScreen({
       <div className="stage-badge">
         {chapter}-{stage} · {getChapterName(chapter)}{stageEnemyTemplate.isBoss ? ' (보스)' : ''}
         {mode === 'idle' && <span className="idle-tag">자동 사냥 중</span>}
+        <span className="combat-power-badge">⚔️ 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
 
       <div className="arena">

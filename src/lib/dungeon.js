@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-/** 오늘(서울시간 기준) 던전 타입별 남은 입장 횟수 { exp: n, gold: n } */
+/** 오늘(서울시간 오전 8시 기준) 던전 타입별 남은 입장 횟수 { exp: n, gold: n } */
 export async function fetchDungeonAttemptsToday(userId) {
   const { data, error } = await supabase
     .from('dungeon_attempts')
@@ -8,13 +8,15 @@ export async function fetchDungeonAttemptsToday(userId) {
     .eq('user_id', userId);
   if (error) throw error;
 
-  const todaySeoul = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }))
-    .toISOString()
-    .slice(0, 10);
+  // 서울시간(UTC+9)으로 맞춘 뒤 리셋 기준(오전 8시)만큼 앞당겨서 날짜만 취함
+  // → 08:00~다음날 07:59는 같은 "던전 일자"로 취급됨 (서버 RPC와 동일 로직)
+  const seoulOffsetMs = 9 * 60 * 60 * 1000;
+  const resetOffsetMs = 8 * 60 * 60 * 1000;
+  const periodDate = new Date(Date.now() + seoulOffsetMs - resetOffsetMs).toISOString().slice(0, 10);
 
   const used = { exp: 0, gold: 0 };
   for (const row of data) {
-    if (row.attempt_date === todaySeoul) used[row.dungeon_type] = row.count;
+    if (row.attempt_date === periodDate) used[row.dungeon_type] = row.count;
   }
   return { exp: Math.max(0, 3 - used.exp), gold: Math.max(0, 3 - used.gold) };
 }

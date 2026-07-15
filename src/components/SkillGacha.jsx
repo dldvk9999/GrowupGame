@@ -11,7 +11,7 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
   const [savingLoadout, setSavingLoadout] = useState(false);
 
   const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 1000));
-  const cost = 100 + (drawLevel - 1) * 30;
+  const cost = 300; // 뽑기레벨과 무관하게 1회당 정가 300골드
   const slotLimit = getSkillSlotCount(monsterLevel ?? 1);
 
   const ownedMap = new Map((userSkills ?? []).map((s) => [s.skill_key, s.skill_level]));
@@ -90,14 +90,14 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
             {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`}
           </button>
           <button className={`btn btn-neutral ${gold < cost * 10 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(10)}>
-            10회 뽑기 (💰 약 {(cost * 10).toLocaleString()}+)
+            10회 뽑기 (💰 {(cost * 10).toLocaleString()})
           </button>
           <button className={`btn btn-neutral ${gold < cost * 100 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(100)}>
-            100회 뽑기 (💰 약 {(cost * 100).toLocaleString()}+)
+            100회 뽑기 (💰 {(cost * 100).toLocaleString()})
           </button>
         </div>
         <p className="gacha-hint" style={{ marginTop: 6 }}>
-          여러 번 뽑을수록 뽑기 레벨이 올라가서 실제 비용은 조금씩 더 늘어나요.
+          1회당 정가 💰{cost.toLocaleString()}로 고정이에요. 뽑기 레벨은 등급 확률에만 영향을 줘요.
         </p>
 
         {lastResults.length > 0 && (
