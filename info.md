@@ -200,6 +200,14 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `item_catalog.rarity_order` 컬럼 추가
 - `enhance_item()` RPC (서버에서 확률 판정, 골드 차감)
 
+**006_mypage_and_skill_gacha.sql**
+- `profiles`에 `nickname_edited`(닉네임 1회수정 플래그), `equipped_skills`(text[]), `total_skill_draws` 컬럼 추가
+- `profiles.nickname` 직접 UPDATE 권한 완전 회수 → `update_nickname()` RPC로만 변경 가능(평생 1회)
+- `handle_new_user` 트리거가 `raw_user_meta_data.nickname`(회원가입 시 전달)을 읽어 최초 닉네임으로 반영
+- `skill_catalog` 테이블 신설(15개 스킬 시드) + `user_skills` 테이블 신설(중복 시 skill_level만 상승)
+- `draw_skill()`, `set_skill_loadout()` RPC 신설
+- `create_starter_monster()`가 기본 스킬(`basic_strike`) 자동 지급+장착하도록 갱신
+
 ### 클라이언트 쓰기 권한 요약 (보안 패치 이후 기준)
 
 | 테이블 | client 직접 write 가능? | 실제 변경 경로 |
@@ -217,6 +225,22 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ---
 
+### 5-7. 마이페이지 (`MyPage.jsx`)
+
+- 내 정보 확인: 닉네임, 이메일, 가입일, 보유 골드, 대표 몬스터 요약, 클리어 스테이지 수
+- **닉네임 변경은 평생 1회만** 허용 — `profiles.nickname_edited` 플래그로 서버(RPC `update_nickname`)가 강제. 중복확인은 기존 `is_nickname_taken` RPC 재사용.
+- 회원가입 시 선택한 닉네임은 `signUp()`이 `options.data.nickname`으로 넘기고, `handle_new_user` 트리거가 그 값을 그대로 반영 (이건 "1회 수정"에 포함되지 않는 최초 설정)
+
+### 5-8. 스킬 뽑기 시스템 (`SkillGacha.jsx`, `skillCatalog.js`, `skillGacha.js`)
+
+- 15개 스킬(5등급 × 3개, 노멀\<레어\<에픽\<전설\<신화), 등급별 배율/회복비율은 `skillCatalog.js`의 `SKILL_CATALOG` (서버 `skill_catalog` 테이블과 값 동일하게 유지해야 함)
+- **뽑기 레벨**: `1 + floor(누적뽑기횟수/5)`, 최대 20. 레벨 구간별로 고등급 확률이 계단식으로 상승 (RPC `draw_skill` 내부 CASE문 참고)
+- **중복 뽑기 시 새 스킬 대신 기존 스킬의 `skill_level`이 +3 상승** (최대 100) — `user_skills` 테이블은 `unique(user_id, skill_key)` 제약으로 중복 row 자체가 안 생김
+- **스킬레벨 성장식**: `실효값 = base × (1 + (level-1)×0.003)` — 레벨100 최대 성장폭이 약 ×1.3에 불과해서, 등급 간 base가 ×1.4씩 벌어진 설계상 **아무리 강화해도 다음 등급의 1레벨 기본값을 못 넘음** (요건 그대로 구현)
+- **스킬 편성**: 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점). `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증
+- 뽑기 비용은 골드 (`100 + (뽑기레벨-1)×30`), 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음 (`create_starter_monster` RPC)
+- `BattleScreen`은 이제 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직(Lv.30/60/100) 스킬은 기존처럼 이 목록에 추가로 붙음(`jobAdvancement.js`의 `getAvailableSkills`)
+
 ## 7. 알려진 미구현/TODO 후보
 
 - 로비 채팅 UI 미연결 (`useLobbyChat` 훅은 완성, 화면에 아직 안 붙임)
@@ -224,6 +248,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 사육장(보유 몬스터 목록/도감) 화면 없음 — 현재는 활성 몬스터 1마리만 운용
 - PvP, 몬스터 포획(교체) 기능 없음 (설계상 보스 처치=자동 성장 개념으로 대체됨, 애초 "포획" 요건은 스타터 선택으로 단순화됨)
 - ~~2·3단계 진화 스프라이트 없음~~ → 해결됨 (9종 벡터 스프라이트 전부 완성)
+- ~~마이페이지/닉네임 수정~~ → 해결됨 (닉네임 1회 수정)
+- ~~스킬 커스터마이징~~ → 해결됨 (뽑기/합성/편성 시스템)
 
 ---
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import MonsterSprite from './MonsterSprite';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
-import { SKILLS } from '../lib/skills';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
@@ -40,20 +39,21 @@ function growPlayer(effectivePlayer, exp, equipmentBonus) {
  * - initialMonster: growth.js 형태 몬스터 (장비 보너스 미포함 base 스탯)
  * - chapter, stage: 현재 스테이지 좌표
  * - equipmentBonus: { atk, def, hp }
+ * - equippedSkills: 뽑기로 획득해 편성한 스킬 객체 배열 (skillCatalog.js의 resolveLoadout 결과)
  * - onClear(grownBaseMonster, goldReward): 스테이지 클리어 시 (DB 저장은 상위에서)
  * - onIdleGain(grownBaseMonster, goldReward): 자동 사냥으로 몬스터 처치 시
  * - onAdvance(): "다음 스테이지로" 버튼
  * - onGoStageList(): "스테이지 목록" 버튼
  */
 export default function BattleScreen({
-  initialMonster, chapter, stage, equipmentBonus,
+  initialMonster, chapter, stage, equipmentBonus, equippedSkills,
   onClear, onIdleGain, onAdvance, onGoStageList,
 }) {
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
   const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
   const availableSkills = useMemo(
-    () => getAvailableSkills(SKILLS, initialMonster.element, initialMonster.level),
-    [initialMonster.element, initialMonster.level]
+    () => getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.level),
+    [equippedSkills, initialMonster.element, initialMonster.level]
   );
 
   const [mode, setMode] = useState('idle'); // 'idle' | 'challenge'

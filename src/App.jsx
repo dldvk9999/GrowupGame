@@ -5,6 +5,9 @@ import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/mon
 import { addGold } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, sumEquippedBonus } from './lib/inventory';
+import { fetchUserSkills } from './lib/skillGacha';
+import { resolveLoadout } from './lib/skillCatalog';
+import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -15,6 +18,8 @@ import StarterSelect from './components/StarterSelect';
 import BattleScreen from './components/BattleScreen';
 import StageSelect from './components/StageSelect';
 import Shop from './components/Shop';
+import SkillGacha from './components/SkillGacha';
+import MyPage from './components/MyPage';
 
 const STAGE = {
   LOADING: 'loading',
@@ -32,9 +37,10 @@ export default function App() {
   const [activeMonster, setActiveMonster] = useState(null);
   const [clearedStageIds, setClearedStageIds] = useState(new Set());
   const [inventory, setInventory] = useState([]);
+  const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
   const [pendingStage, setPendingStage] = useState(null);
-  const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop
+  const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,15 +62,17 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv] = await Promise.all([
+      const [p, monster, cleared, inv, skills] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
         fetchInventory(userId),
+        fetchUserSkills(userId),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
+      setUserSkills(skills);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -85,6 +93,12 @@ export default function App() {
     setStarterLoading(true);
     try {
       const monster = await createStarter(session.user.id, speciesId);
+      const [p, skills] = await Promise.all([
+        getMyProfile(),
+        fetchUserSkills(session.user.id),
+      ]);
+      setProfile(p);
+      setUserSkills(skills);
       setActiveMonster(monster);
       setCurrentStageIndex(1);
       setActiveTab('battle');
@@ -94,6 +108,16 @@ export default function App() {
     } finally {
       setStarterLoading(false);
     }
+  }
+
+  const refreshSkills = useCallback(async () => {
+    if (!session) return;
+    const skills = await fetchUserSkills(session.user.id);
+    setUserSkills(skills);
+  }, [session]);
+
+  function handleLoadoutChange(newEquippedKeys) {
+    setProfile((p) => ({ ...p, equipped_skills: newEquippedKeys }));
   }
 
   const refreshInventory = useCallback(async () => {
@@ -170,6 +194,9 @@ export default function App() {
 
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
   const equipmentBonus = sumEquippedBonus(inventory);
+  const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
+  // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
+  const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];
 
   return (
     <div className="app-shell">
@@ -214,6 +241,8 @@ export default function App() {
               <button className={`tab-btn ${activeTab === 'battle' ? 'active' : ''}`} onClick={() => setActiveTab('battle')}>⚔️ 전투</button>
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
+              <button className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`} onClick={() => setActiveTab('skills')}>🎯 스킬</button>
+              <button className={`tab-btn ${activeTab === 'mypage' ? 'active' : ''}`} onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
             </nav>
 
             {activeTab === 'battle' && (
@@ -223,6 +252,7 @@ export default function App() {
                 chapter={chapter}
                 stage={stageNum}
                 equipmentBonus={equipmentBonus}
+                equippedSkills={equippedSkills}
                 onClear={handleClear}
                 onIdleGain={handleIdleGain}
                 onAdvance={handleAdvance}
@@ -243,6 +273,29 @@ export default function App() {
                 inventory={inventory}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
+              />
+            )}
+            {activeTab === 'skills' && (
+              <SkillGacha
+                userId={session.user.id}
+                gold={profile?.gold ?? 0}
+                totalDraws={profile?.total_skill_draws ?? 0}
+                monsterLevel={activeMonster.level}
+                userSkills={userSkills}
+                equippedSkills={profile?.equipped_skills ?? []}
+                onGoldChange={handleGoldChange}
+                onSkillsRefresh={refreshSkills}
+                onLoadoutChange={handleLoadoutChange}
+              />
+            )}
+            {activeTab === 'mypage' && (
+              <MyPage
+                session={session}
+                profile={profile}
+                activeMonster={activeMonster}
+                clearedCount={clearedStageIds.size}
+                totalStages={TOTAL_STAGES}
+                onProfileUpdate={setProfile}
               />
             )}
           </div>

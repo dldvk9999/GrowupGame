@@ -9,25 +9,19 @@ export async function checkNicknameAvailable(nickname) {
   return !data; // true면 사용 가능
 }
 
-/** 이메일 회원가입 + 닉네임 등록까지 한번에 */
+/** 이메일 회원가입 - 닉네임은 트리거가 메타데이터로 직접 반영 (마이페이지의 "1회 수정"과 별개) */
 export async function signUp({ email, password, nickname }) {
   const available = await checkNicknameAvailable(nickname);
   if (!available) {
     throw new Error('이미 사용 중인 닉네임입니다.');
   }
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { nickname } },
+  });
   if (error) throw error;
-
-  // 트리거로 자동 생성된 profiles row에 실제 닉네임 반영
-  if (data.user) {
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ nickname })
-      .eq('id', data.user.id);
-    if (updateError) throw updateError;
-  }
-
   return data;
 }
 
@@ -44,16 +38,13 @@ export async function signOut() {
   if (error) throw error;
 }
 
-/** 닉네임 변경 (마이페이지 프로필 수정) */
-export async function updateNickname(userId, newNickname) {
+/** 마이페이지 닉네임 변경 - 평생 1회만 허용 (서버 RPC에서 재검증) */
+export async function updateNickname(newNickname) {
   const available = await checkNicknameAvailable(newNickname);
   if (!available) {
     throw new Error('이미 사용 중인 닉네임입니다.');
   }
-  const { error } = await supabase
-    .from('profiles')
-    .update({ nickname: newNickname })
-    .eq('id', userId);
+  const { error } = await supabase.rpc('update_nickname', { p_nickname: newNickname });
   if (error) throw error;
 }
 

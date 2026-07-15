@@ -361,21 +361,24 @@ button {
 }
 .tab-nav {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 20px;
   background: var(--bg-panel-2);
   padding: 4px;
   border-radius: var(--radius-md);
+  overflow-x: auto;
 }
 .tab-btn {
   flex: 1;
+  min-width: 74px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  padding: 10px 0;
+  padding: 10px 4px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+  white-space: nowrap;
 }
 .tab-btn.active { background: var(--accent-fire); color: #fff; }
 
@@ -644,6 +647,100 @@ button {
 .enhance-result { font-size: 12px; font-weight: 700; }
 .enhance-result.ok { color: var(--accent-heal); }
 .enhance-result.fail { color: var(--danger); }
+
+/* ---------- 마이페이지 ---------- */
+.mypage-screen { width: 100%; }
+.mypage-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 8px 18px;
+  margin-bottom: 24px;
+}
+.mypage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+}
+.mypage-row:last-child { border-bottom: none; }
+.mypage-row span { color: var(--text-secondary); }
+.mypage-subtitle { font-size: 15px; margin: 20px 0 10px; }
+.mypage-locked-hint { font-size: 13px; color: var(--text-muted); }
+.mypage-warning { font-size: 12.5px; color: var(--accent-gold); margin-bottom: 12px; }
+.mypage-nickname-form {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.nickname-input-row { display: flex; gap: 8px; }
+.nickname-input-row input { flex: 1; }
+
+/* ---------- 스킬 뽑기 ---------- */
+.skillgacha-screen { width: 100%; }
+.gacha-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.gacha-level-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
+.gacha-hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 16px; }
+.gacha-reveal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1.5px solid;
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-2);
+}
+.gacha-reveal-icon { font-size: 32px; }
+.gacha-reveal-rarity { font-size: 12px; color: var(--text-muted); }
+.gacha-reveal-desc { font-size: 12px; color: var(--text-secondary); margin: 4px 0 0; }
+
+.loadout-slots { display: flex; gap: 10px; margin-bottom: 14px; }
+.loadout-slot {
+  width: 56px; height: 56px;
+  border: 2px dashed var(--border-soft);
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-panel-2);
+}
+.loadout-slot.filled { border-style: solid; }
+.loadout-slot-empty { color: var(--text-muted); font-size: 20px; }
+
+.owned-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.owned-skill-card {
+  background: var(--bg-panel);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--text-primary);
+}
+.owned-skill-card.not-owned { opacity: 0.35; cursor: not-allowed; }
+.owned-skill-card.equipped { box-shadow: 0 0 0 2px var(--accent-gold) inset; }
+.owned-skill-icon { font-size: 22px; }
+.owned-skill-rarity { font-size: 10px; color: var(--text-muted); }
+.owned-skill-level { font-size: 11px; color: var(--text-secondary); }
+.owned-skill-locked { font-size: 11px; color: var(--text-muted); }
 
 /* ---------- 반응형 추가 ---------- */
 @media (max-width: 640px) {
