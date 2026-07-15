@@ -228,7 +228,7 @@ export default function BattleScreen({
       <div className="stage-badge">
         {chapter}-{stage} · {getChapterName(chapter)}{stageEnemyTemplate.isBoss ? ' (보스)' : ''}
         {mode === 'idle' && <span className="idle-tag">자동 사냥 중</span>}
-        <span className="combat-power-badge">⚔️ 전투력 {calculateCombatPower(player).toLocaleString()}</span>
+        <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
 
       <div className="arena">

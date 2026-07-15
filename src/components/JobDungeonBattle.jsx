@@ -153,7 +153,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
         전직 던전 · {jobBoss.tier}차
-        <span className="combat-power-badge">⚔️ 전투력 {calculateCombatPower(player).toLocaleString()}</span>
+        <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
 
       <div className="arena">

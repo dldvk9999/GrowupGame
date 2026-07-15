@@ -55,7 +55,7 @@ export default function Inventory({ userId, inventory, onInventoryChange }) {
                 if (!item) return null;
                 const level = row.enhance_level ?? 0;
                 return (
-                  <div key={row.id} className="inventory-row">
+                  <div key={row.id} className={`inventory-row ${row.equipped ? 'inventory-row--equipped' : ''}`}>
                     <span className="inventory-icon" style={{ color: item.color }}>{item.icon}</span>
                     <span className="inventory-name">
                       {item.name} {level > 0 && <span className="enhance-badge">+{level}</span>}

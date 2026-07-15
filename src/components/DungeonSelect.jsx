@@ -1,5 +1,6 @@
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
+import { showToast } from '../lib/toast';
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
@@ -63,9 +64,15 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
           EXP +{d.expReward.toLocaleString()} · 💰 +{d.goldReward.toLocaleString()}
         </div>
         <button
-          className="btn btn-challenge"
-          disabled={remaining <= 0 || entering}
-          onClick={() => onEnter(type)}
+          className={`btn btn-challenge ${remaining <= 0 ? 'btn-unaffordable' : ''}`}
+          disabled={entering}
+          onClick={() => {
+            if (remaining <= 0) {
+              showToast('오늘 하루 입장권을 모두 소진하셨습니다.', 'error');
+              return;
+            }
+            onEnter(type);
+          }}
         >
           {entering ? '입장 중...' : `${currentStage}층 도전하기`}
         </button>
@@ -108,9 +115,20 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
                 <span className="job-dungeon-done-badge">✅ 완료</span>
               ) : (
                 <button
-                  className="btn btn-challenge"
-                  disabled={isLocked || entering}
-                  onClick={() => onEnter(tier)}
+                  className={`btn btn-challenge ${isLocked ? 'btn-unaffordable' : ''}`}
+                  disabled={entering}
+                  onClick={() => {
+                    if (isLocked) {
+                      showToast(
+                        unlocked < tier - 1
+                          ? '이전 단계 전직을 먼저 완료해야 합니다.'
+                          : `레벨이 부족합니다. (Lv.${boss.requiredLevel} 필요)`,
+                        'error'
+                      );
+                      return;
+                    }
+                    onEnter(tier);
+                  }}
                 >
                   {isLocked
                     ? (unlocked < tier - 1 ? '이전 단계 필요' : `Lv.${boss.requiredLevel} 필요`)

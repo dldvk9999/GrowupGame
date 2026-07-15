@@ -14,6 +14,7 @@ import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { usePwaInstall } from './lib/usePwaInstall';
+import { showToast } from './lib/toast';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -219,7 +220,9 @@ export default function App() {
       setDungeonAttempts((prev) => ({ ...prev, [type]: remaining }));
       setDungeonBattle({ type, stage, sessionId });
     } catch (err) {
-      setDungeonError(err.message ?? '입장에 실패했어요.');
+      const message = err.message ?? '입장에 실패했어요.';
+      setDungeonError(message);
+      showToast(message, 'error');
     } finally {
       setDungeonEntering(false);
     }
@@ -249,7 +252,9 @@ export default function App() {
       const sessionId = await startJobDungeon(tier);
       setJobDungeonBattle({ tier, sessionId });
     } catch (err) {
-      setJobError(err.message ?? '입장에 실패했어요.');
+      const message = err.message ?? '입장에 실패했어요.';
+      setJobError(message);
+      showToast(message, 'error');
     } finally {
       setJobEntering(false);
     }
