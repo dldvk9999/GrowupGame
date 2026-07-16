@@ -7,6 +7,7 @@ export default function AuthScreen({ onAuthed }) {
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
   const [nicknameStatus, setNicknameStatus] = useState(null); // 'checking'|'ok'|'taken'|null
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,7 +34,7 @@ export default function AuthScreen({ onAuthed }) {
         }
         await signUp({ email, password, nickname });
       } else {
-        await signIn({ email, password });
+        await signIn({ email, password, rememberMe });
       }
       onAuthed();
     } catch (err) {
@@ -101,6 +102,17 @@ export default function AuthScreen({ onAuthed }) {
               required
             />
           </div>
+
+          {mode === 'signin' && (
+            <label className="auth-checkbox-row">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <span>자동 로그인 (다음에 접속할 때 자동으로 로그인돼요)</span>
+            </label>
+          )}
 
           {error && <p className="auth-error">{error}</p>}
 

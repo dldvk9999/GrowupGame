@@ -100,6 +100,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ## 5. 게임 시스템 상세
 
+### 5-0. 인증 (`AuthScreen.jsx`, `auth.js`, `supabaseClient.js`)
+
+- **자동 로그인 체크박스**: 로그인 화면에서 체크하면 세션이 `localStorage`(브라우저를 껐다 켜도 유지)에, 체크 해제하면 `sessionStorage`(탭/브라우저를 닫으면 사라짐)에 저장됨. 기본값은 체크됨(true)
+- 구현은 `supabaseClient.js`에 커스텀 storage 어댑터(`customStorage`)를 넣어서, `growupgame-remember-me`라는 플래그(항상 localStorage에 기록)를 보고 실제 세션 토큰을 어디에 쓸지 그때그때 결정하는 방식. `setRememberMe(true/false)`를 로그인 시도 **직전**에 호출해야 함(그래야 `signInWithPassword`가 세션을 저장할 때 올바른 storage로 감) — `auth.js`의 `signIn()`이 이 순서를 보장함
+- 새 계정 첫 방문(플래그 없음)은 기본적으로 sessionStorage 취급(브라우저 재시작 시 로그아웃) — 명시적으로 체크해야 영구 유지되는, 흔한 "로그인 유지" UX 패턴
+
 ### 5-1. 캐릭터/육성 (`growth.js`, `speciesData.js`, `jobAdvancement.js`)
 
 - 스타터 3종: `fire_1`(이모탄) / `water_1`(아쿠파피) / `grass_1`(새프링)
@@ -298,6 +304,9 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 장비 강화 최대치 15 → 1000으로 상향 (`user_inventory.enhance_level` 체크 제약, `draw_equipment`/`draw_equipment_batch`의 `least(15,...)` → `least(1000,...)`)
 - **4차 전직(Lv.140) 추가** — `owned_monsters.unlocked_job_tier` 체크 제약 0~3→0~4, `job_dungeon_sessions.tier` 체크 제약에 4 추가, `save_monster_growth` 스탯 상한선 6.0→10.0배로 재조정, `start_job_dungeon`에 4차 레벨조건(140) 추가, `claim_mission_reward`의 온보딩 우선순위 체인에 `job_tier4` 추가
 
+**022_security_mission_claim_cooldown.sql** ⚠️ **보안 패치, 필수 적용**
+- `claim_mission_reward`에 "미션 배정 후 최소 20초 경과" 게이트 추가 — 이전엔 진행도 조작+즉시클레임 반복으로 무한 골드 파밍이 가능했음 (5-13 참고)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -391,6 +400,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
 - "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴
 - 클라이언트가 진행도를 부풀려 보낼 수는 있지만(예: `bumpMission('spend_gold', 1000)`을 반복 호출), 어차피 미션 보상 자체가 소액(600~1200골드 수준, 온보딩 미션만 예외적으로 큼)이라 리스크 대비 실효성이 낮고, 온보딩 미션(가장 보상이 큰 것들)은 앞서 설명대로 서버가 실제 게임 상태로 재검증하므로 조작 불가능함
+- ⚠️ **보안 패치(022)**: 처음엔 진행도 채우기+클레임 사이에 아무 시간제한이 없어서, devtools로 `bumpMission`→`claimMissionReward`를 빠르게 반복 호출하면 실제 플레이 없이 무한히 골드를 받아갈 수 있는 구멍이 있었음. `claim_mission_reward`에 **"미션이 배정된 시각(`updated_at`)으로부터 최소 20초"** 게이트를 추가해서 막음(idle 보상의 2.5초 최소 간격 제한과 동일한 설계). 진행도 자체를 빨리 채우는 건 여전히 가능하지만, 클레임 자체가 20초에 1번으로 막혀서 실질적 파밍 속도가 크게 제한됨
+- **모바일 레이아웃 겹침 주의**: 플로팅 버튼이 `position:fixed`라서 콘텐츠 하단(특히 전투화면 스킬버튼 줄)을 가릴 수 있음 — `app-main`의 하단 padding을 데스크톱 110px/모바일 150px로 넉넉하게 잡아서 방지함(`index.css`). 하단에 새 UI를 추가할 때도 이 여백 고려할 것
 
 ### 5-14. 설정 > 쿠폰 입력 (`CouponRedeem.jsx`, `coupon.js`)
 

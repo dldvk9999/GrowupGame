@@ -9,4 +9,37 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase 환경변수(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)가 설정되지 않았습니다.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// "자동 로그인" 체크박스 - 켜져 있으면 세션을 localStorage(브라우저를 껐다 켜도 유지)에,
+// 꺼져 있으면 sessionStorage(탭/브라우저를 닫으면 사라짐)에 저장함.
+const REMEMBER_KEY = 'growupgame-remember-me';
+
+function getActiveStorage() {
+  return localStorage.getItem(REMEMBER_KEY) === '1' ? localStorage : sessionStorage;
+}
+
+/** 로그인 시도 직전에 호출 - 이후 세션 저장 위치를 결정함 */
+export function setRememberMe(remember) {
+  if (remember) {
+    localStorage.setItem(REMEMBER_KEY, '1');
+  } else {
+    localStorage.removeItem(REMEMBER_KEY);
+  }
+}
+
+export function getRememberMe() {
+  return localStorage.getItem(REMEMBER_KEY) === '1';
+}
+
+const customStorage = {
+  getItem: (key) => getActiveStorage().getItem(key),
+  setItem: (key, value) => getActiveStorage().setItem(key, value),
+  removeItem: (key) => getActiveStorage().removeItem(key),
+};
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: customStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});

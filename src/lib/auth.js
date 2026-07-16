@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, setRememberMe } from './supabaseClient';
 
 /** 닉네임 중복 확인 (회원가입/닉네임 변경 시 실시간 호출) */
 export async function checkNicknameAvailable(nickname) {
@@ -25,8 +25,9 @@ export async function signUp({ email, password, nickname }) {
   return data;
 }
 
-/** 로그인 */
-export async function signIn({ email, password }) {
+/** 로그인 - rememberMe가 true면 브라우저를 껐다 켜도 세션이 유지됨(localStorage), 아니면 탭 닫으면 로그아웃됨(sessionStorage) */
+export async function signIn({ email, password, rememberMe }) {
+  setRememberMe(rememberMe); // signInWithPassword가 세션을 저장하기 전에 먼저 저장 위치를 정해둬야 함
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data;
