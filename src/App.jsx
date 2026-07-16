@@ -508,6 +508,7 @@ export default function App() {
               <PvP
                 userId={session.user.id}
                 profile={profile}
+                activeMonster={activeMonster}
                 onCurrencyChange={(newCurrency) => setProfile((p) => ({ ...p, pvp_currency: newCurrency }))}
               />
             )}

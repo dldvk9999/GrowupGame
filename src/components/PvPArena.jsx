@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { fetchMyCombatPower, startPvpBattle } from '../lib/pvp';
+import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { showToast } from '../lib/toast';
+import PvPBattleScene from './PvPBattleScene';
 
-export default function PvPArena({ profile, onCurrencyChange }) {
+export default function PvPArena({ profile, activeMonster, onCurrencyChange }) {
   const [myPower, setMyPower] = useState(null);
   const [fighting, setFighting] = useState(false);
+  const [pendingBattle, setPendingBattle] = useState(null); // 서버 결과는 받았지만 아직 연출 중
   const [lastResult, setLastResult] = useState(null);
   const [error, setError] = useState('');
 
@@ -14,24 +17,35 @@ export default function PvPArena({ profile, onCurrencyChange }) {
 
   async function handleFight() {
     setError('');
+    setLastResult(null);
     setFighting(true);
     try {
       const res = await startPvpBattle();
-      setLastResult(res);
-      setMyPower(res.my_power);
-      onCurrencyChange(res.currency_balance);
-      if (res.result === 'win') {
-        showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
-      } else {
-        showToast('패배했어요. 다시 도전해보세요!', 'error');
-      }
+      setPendingBattle(res); // 결과는 이미 받았지만, 연출이 끝날 때까지 화면엔 안 보여줌
     } catch (err) {
       setError(err.message ?? '대결에 실패했어요.');
       showToast(err.message ?? '대결에 실패했어요.', 'error');
-    } finally {
       setFighting(false);
     }
   }
+
+  function handleSceneFinish() {
+    const res = pendingBattle;
+    setPendingBattle(null);
+    setLastResult(res);
+    setMyPower(res.my_power);
+    onCurrencyChange(res.currency_balance);
+    setFighting(false);
+    if (res.result === 'win') {
+      showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
+    } else {
+      showToast('패배했어요. 다시 도전해보세요!', 'error');
+    }
+  }
+
+  const mySpeciesKey = activeMonster
+    ? getDisplaySpriteKey(activeMonster.speciesId, activeMonster.element, activeMonster.unlockedJobTier ?? 0)
+    : undefined;
 
   return (
     <div className="pvp-arena">
@@ -43,14 +57,17 @@ export default function PvPArena({ profile, onCurrencyChange }) {
 
       <p className="stage-select-hint">
         전투력이 비슷한(±25%) 실제 유저와 매칭돼요. 마땅한 상대가 없으면 내 전투력과 비슷한 가상 캐릭터가 대신 나와요.
-        결과는 즉시 판정돼요(운 요소 있음).
       </p>
 
       {error && <p className="shop-error">{error}</p>}
 
-      <button className="btn btn-challenge pvp-fight-btn" disabled={fighting} onClick={handleFight}>
-        {fighting ? '대결 중...' : '⚔️ 대결 시작'}
-      </button>
+      {pendingBattle ? (
+        <PvPBattleScene battle={pendingBattle} mySpeciesKey={mySpeciesKey} onFinish={handleSceneFinish} />
+      ) : (
+        <button className="btn btn-challenge pvp-fight-btn" disabled={fighting} onClick={handleFight}>
+          {fighting ? '상대를 찾는 중...' : '⚔️ 대결 시작'}
+        </button>
+      )}
 
       {lastResult && (
         <div className={`pvp-result-card ${lastResult.result === 'win' ? 'win' : 'lose'}`}>

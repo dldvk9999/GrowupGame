@@ -14,7 +14,7 @@ function notifyMissionUpdate(row) {
 export const MISSION_META = {
   kill_monsters: { icon: '⚔️', label: (t) => `몬스터 ${t}마리 잡기` },
   spend_gold: { icon: '💰', label: (t) => `골드 ${t.toLocaleString()} 사용하기` },
-  login_minutes: { icon: '⏱️', label: (t) => `${t}분 접속 유지하기` },
+  login_minutes: { icon: '⏱️', label: (t) => `${t * 60}초 접속 유지하기` },
   use_skills: { icon: '🎯', label: (t) => `스킬 ${t}회 사용하기` },
   job_tier1: { icon: '✨', label: () => '1차 전직 던전 클리어하기' },
   job_tier2: { icon: '✨', label: () => '2차 전직 던전 클리어하기' },
