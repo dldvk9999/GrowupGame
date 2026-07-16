@@ -22,3 +22,9 @@ export async function claimMail(mailId) {
   const { error } = await supabase.rpc('claim_mail', { p_mail_id: mailId });
   if (error) throw error;
 }
+
+/** 수령 완료한 우편 삭제 (RLS가 claimed=true인 본인 우편만 허용) */
+export async function deleteMail(mailId) {
+  const { error } = await supabase.from('mails').delete().eq('id', mailId);
+  if (error) throw error;
+}

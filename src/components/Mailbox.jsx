@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { syncDailyMails, fetchMails, claimMail } from '../lib/mail';
+import { syncDailyMails, fetchMails, claimMail, deleteMail } from '../lib/mail';
 import { getItem } from '../lib/itemCatalog';
 
 export default function Mailbox({ userId, onGoldChange, gold }) {
   const [mails, setMails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -37,6 +38,19 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
     }
   }
 
+  async function handleDelete(mail) {
+    setError('');
+    setDeletingId(mail.id);
+    try {
+      await deleteMail(mail.id);
+      setMails((prev) => prev.filter((m) => m.id !== mail.id));
+    } catch (err) {
+      setError(err.message ?? '삭제에 실패했어요.');
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const unclaimed = mails.filter((m) => !m.claimed);
   const claimed = mails.filter((m) => m.claimed);
 
@@ -65,7 +79,14 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
           <h3 className="mypage-subtitle">수령 완료</h3>
           <div className="mail-list">
             {claimed.map((mail) => (
-              <MailRow key={mail.id} mail={mail} onClaim={handleClaim} claiming={false} />
+              <MailRow
+                key={mail.id}
+                mail={mail}
+                onClaim={handleClaim}
+                claiming={false}
+                onDelete={handleDelete}
+                deleting={deletingId === mail.id}
+              />
             ))}
           </div>
         </>
@@ -74,7 +95,7 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
   );
 }
 
-function MailRow({ mail, onClaim, claiming }) {
+function MailRow({ mail, onClaim, claiming, onDelete, deleting }) {
   const item = mail.item_key ? getItem(mail.item_key) : null;
   return (
     <div className={`mail-row ${mail.claimed ? 'claimed' : ''}`}>
@@ -87,7 +108,12 @@ function MailRow({ mail, onClaim, claiming }) {
         </div>
       </div>
       {mail.claimed ? (
-        <span className="mail-row-done">수령완료</span>
+        <div className="mail-row-actions">
+          <span className="mail-row-done">수령완료</span>
+          <button className="btn btn-ghost" disabled={deleting} onClick={() => onDelete(mail)}>
+            {deleting ? '삭제 중...' : '🗑️ 삭제'}
+          </button>
+        </div>
       ) : (
         <button className="btn btn-challenge" disabled={claiming} onClick={() => onClaim(mail)}>
           {claiming ? '수령 중...' : '수령'}

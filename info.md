@@ -283,6 +283,13 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `skill_catalog`에 `duration_ms`/`ticks`/`tick_interval_ms` 컬럼 추가, `type` 체크 제약에 `stun`/`dot`/`buff_atk`/`buff_def`/`haste` 추가
 - 스킬 35종 신규 추가(등급당 3→10종, 총 50종) - 기존 15종 키는 그대로 유지(유저 보유 데이터 호환)
 
+**018_fix_equipment_slot_ambiguous.sql / 019_fix_equipment_conflict_target_ambiguous.sql**
+- `draw_equipment`/`draw_equipment_batch`의 "column reference slot is ambiguous" 버그를 두 단계에 걸쳐 완전히 수정 — 018에서 `UPDATE ... WHERE slot = ...`에 테이블 별칭 추가, 019에서 `INSERT ... ON CONFLICT (user_id, slot)`의 대상 컬럼 목록까지 `ON CONFLICT ON CONSTRAINT equipment_gacha_progress_pkey`로 바꿔서 "slot"이라는 이름이 아예 등장하지 않게 함. **RETURNS TABLE에 어떤 컬럼명을 쓰든, 그 이름을 함수 본문의 UPDATE/INSERT-ON CONFLICT 어디서든 별칭 없이 bare로 쓰면 이 버그가 재발할 수 있음 — 새 RPC 짤 때마다 유의**
+
+**020_guide_missions.sql**
+- `mission_state` 테이블 + `init_mission_state()`/`increment_mission_progress()`/`claim_mission_reward()` RPC 신설 (가이드 미션 시스템, 5-13 참고)
+- `mails`에 "본인 소유 + claimed=true" 조건의 DELETE 정책 추가 (수령 완료한 우편 직접 삭제 가능)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -295,7 +302,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 | `user_skills` | ❌ | `draw_skill`/`draw_skill_batch` RPC |
 | `dungeon_attempts` | ❌ | `use_dungeon_attempt` RPC (원자적 증가로 레이스컨디션 수정됨) |
 | `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
-| `mails` | ❌ | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송) |
+| `mails` | ❌ (delete만 본인 claimed건 가능) | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송), 직접 `DELETE`는 본인 소유+claimed=true 조건에서만 허용(020) |
+| `mission_state` | ❌ | `init_mission_state`/`increment_mission_progress`/`claim_mission_reward` RPC |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
 
@@ -363,14 +371,26 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **정기 골드우편**: 매일 08:00 / 12:00 / 19:00 (서울시간) 기준으로 각 10만 골드. **017부터 그 정각~1시간 이내에 접속해야만 지급됨**(놓치면 그 회차는 영구 소멸, 소급 지급 없음)
 - cron 없이 **지연 생성(lazy) 방식**으로 구현함 — `sync_daily_mails()` RPC를 우편함 진입 시 호출하면, "지금이 정확히 그 시각의 시(hour) 안"일 때만 생성됨(`v_hour = v_slot.h`, 017에서 `>=`→`=`로 변경). `source_key`(예: `daily_gold_2026-07-15_08`)에 유니크 제약을 걸어 같은 시간대 중복 생성을 원천 차단
 - 우편 수령은 `claim_mail` RPC가 골드 지급 + (있다면) 아이템을 `user_inventory`에 원자적으로 넣어줌
+- **수령 완료한 우편은 삭제 가능** — `mails` 테이블에 "본인 소유 + `claimed=true`" 조건의 DELETE 정책 추가(RPC 없이 직접 삭제, 삭제는 아무것도 얻을 게 없는 행동이라 보안상 문제 없음). `Mailbox.jsx`의 "수령 완료" 목록에 🗑️ 삭제 버튼
 
-### 5-11. 설정 > 쿠폰 입력 (`CouponRedeem.jsx`, `coupon.js`)
+### 5-13. 가이드 미션 (`missions.js`, `MissionFloatingButton.jsx`, 020)
+
+- 화면 우하단(모바일은 하단 폭 전체)에 **항상 떠있는 플로팅 버튼**. 현재 "미션 #N", 아이콘, 라벨, 진행도(`N/M`)를 표시하고 진행바가 채워짐
+- **완료되면 초록 테두리 + 살짝 커졌다작아지는 펄스 애니메이션**으로 하이라이트되고, 클릭하면 `claim_mission_reward` RPC 호출 → 골드 지급 + 다음 미션으로 자동 전환
+- **일반 반복 미션 4종**이 `mission_number % 4`로 순환: `kill_monsters`(몬스터 10마리, 💰800) → `spend_gold`(골드 10000 사용, 💰1000) → `login_minutes`(10분 접속유지, 💰600) → `use_skills`(스킬 15회 사용, 💰700) → 다시 처음부터
+- **우선순위 온보딩 미션**이 항상 먼저 끼어듦(`claim_mission_reward`가 다음 미션을 정할 때마다 재검사): 활성 몬스터가 전직 가능 레벨(30/60/100)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`/`job_tier2`/`job_tier3` 미션(보상 3000~12000)이 최우선으로 배정되고, 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인 — 둘 다 아니면 그제서야 일반 미션으로 넘어감. 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가)
+- **진행도 갱신 방식**: `bumpMission(missionKey, amount)`가 서버 RPC(`increment_mission_progress`)를 호출 — 현재 활성 미션 키와 일치할 때만 반영되고, 1회 증가폭은 서버에서 최대 1000으로 캡 걸려있음(남용 방지). 호출 지점: 몬스터 처치(스테이지클리어/자동사냥/일반던전/전직던전 승리 4곳, `App.jsx`), 스킬 사용(3개 전투화면 `useSkill` 공통), 골드 소비(스킬뽑기/장비뽑기 성공 시 소비액만큼)
+- **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
+- "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴
+- 클라이언트가 진행도를 부풀려 보낼 수는 있지만(예: `bumpMission('spend_gold', 1000)`을 반복 호출), 어차피 미션 보상 자체가 소액(600~1200골드 수준, 온보딩 미션만 예외적으로 큼)이라 리스크 대비 실효성이 낮고, 온보딩 미션(가장 보상이 큰 것들)은 앞서 설명대로 서버가 실제 게임 상태로 재검증하므로 조작 불가능함
+
+### 5-14. 설정 > 쿠폰 입력 (`CouponRedeem.jsx`, `coupon.js`)
 
 - `coupons` 테이블에 쿠폰코드/골드량/아이템/최대사용횟수/만료일을 직접 INSERT해서 발행 (관리용 UI는 없음, SQL로 직접 발행)
 - `redeem_coupon(code)` RPC — 만료/횟수소진/중복사용(유저당 1회, `coupon_redemptions` 유니크 제약) 검증 후, 보상을 **우편함으로** 지급(바로 지급 아님, 우편함에서 수령해야 함)
 - 테스트용 예시 쿠폰 `WELCOME2026`(골드 5000 + 레어 무기) 하나가 시드로 들어가 있음
 
-### 5-12. 토스트 알림 (`toast.js`, `ToastContainer.jsx`)
+### 5-15. 토스트 알림 (`toast.js`, `ToastContainer.jsx`)
 
 - 간단한 pub-sub 이벤트버스(`showToast(message, type)`) + `App.jsx` 최상단에 마운트된 `ToastContainer`가 구독해서 화면 상단 중앙에 표시(3.2초 후 자동 소멸)
 - 골드 부족 에러가 발생하는 모든 지점(`inventory.js`의 `buyItem`, `enhance.js`의 `enhanceItem`, `skillGacha.js`의 `drawSkill`/`drawSkillBatch`)에서 공통으로 토스트를 띄우도록 처리됨 — 새로운 골드 소비 기능을 추가할 때도 동일 패턴(에러 메시지에 '골드' 포함되면 `showToast(..., 'error')` 호출) 유지할 것

@@ -16,6 +16,8 @@ import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { usePwaInstall } from './lib/usePwaInstall';
 import { showToast } from './lib/toast';
+import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate } from './lib/missions';
+import MissionFloatingButton from './components/MissionFloatingButton';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -67,6 +69,8 @@ export default function App() {
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
   const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
+  const [mission, setMission] = useState(null);
+  const [claimingMission, setClaimingMission] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -75,6 +79,20 @@ export default function App() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // 다른 화면(전투/던전/뽑기)에서 미션 진행도를 올리면 여기서도 즉시 반영
+  useEffect(() => subscribeMissionUpdate(setMission), []);
+
+  // "N분 접속 유지하기" 미션 진행 - 1분마다 체크
+  useEffect(() => {
+    if (stage !== STAGE.GAME) return;
+    const timer = setInterval(() => {
+      if (mission?.mission_key === 'login_minutes') {
+        bumpMission('login_minutes', 1);
+      }
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [stage, mission?.mission_key]);
 
   async function handleSession(newSession) {
     setSession(newSession);
@@ -86,7 +104,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -95,6 +113,7 @@ export default function App() {
         fetchDungeonAttemptsToday(userId),
         fetchDungeonProgress(userId),
         fetchEquipmentDrawProgress(userId),
+        fetchOrInitMissionState(),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -103,6 +122,7 @@ export default function App() {
       setDungeonAttempts(dungeon);
       setDungeonProgress(progress);
       setEquipmentDrawProgress(equipDraws);
+      setMission(missionState);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -196,6 +216,7 @@ export default function App() {
       ]);
       setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
       setClearedStageIds((prev) => new Set(prev).add(currentStageIndex));
+      bumpMission('kill_monsters', 1);
     } catch (err) {
       console.error('클리어 저장 실패', err);
     }
@@ -209,6 +230,7 @@ export default function App() {
         grantIdleReward(chapter, grownBase.level),
       ]);
       setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
+      bumpMission('kill_monsters', 1);
     } catch (err) {
       console.error('자동 사냥 저장 실패', err);
     }
@@ -248,6 +270,7 @@ export default function App() {
         ...prev,
         [dungeonBattle.type]: Math.max(prev[dungeonBattle.type] ?? 0, dungeonBattle.stage),
       }));
+      bumpMission('kill_monsters', 1);
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
     }
@@ -275,6 +298,7 @@ export default function App() {
       await claimJobDungeon(jobDungeonBattle.sessionId);
       const refreshed = await getActiveMonster(session.user.id);
       if (refreshed) setActiveMonster(refreshed);
+      bumpMission('kill_monsters', 1);
     } catch (err) {
       console.error('전직 적용 실패', err);
     }
@@ -282,6 +306,22 @@ export default function App() {
 
   async function handleLogout() {
     await signOut();
+  }
+
+  async function handleClaimMission() {
+    if (!mission || mission.progress < mission.target) return;
+    setClaimingMission(true);
+    try {
+      const reward = mission.reward_gold;
+      const nextMission = await claimMissionReward();
+      setMission(nextMission);
+      setProfile((p) => ({ ...p, gold: p.gold + reward }));
+      showToast(`미션 완료! 💰 ${reward.toLocaleString()} 획득`, 'success');
+    } catch (err) {
+      showToast(err.message ?? '보상 수령에 실패했어요.', 'error');
+    } finally {
+      setClaimingMission(false);
+    }
   }
 
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
@@ -296,6 +336,9 @@ export default function App() {
   return (
     <div className="app-shell">
       <ToastContainer />
+      {stage === STAGE.GAME && (
+        <MissionFloatingButton mission={mission} onClaim={handleClaimMission} claiming={claimingMission} />
+      )}
       {stage === STAGE.GAME && (
         <header className="app-header">
           <span className="app-title">GrowupGame</span>

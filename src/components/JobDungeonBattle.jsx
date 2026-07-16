@@ -4,6 +4,7 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
+import { bumpMission } from '../lib/missions';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1600;
@@ -183,6 +184,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       spawnParticles(0.2, 0.7, '#c9ff4a');
     }
 
+    bumpMission('use_skills', 1);
     const hasteActive = now < playerBuffs.hasteUntil;
     const effectiveCooldown = hasteActive ? Math.round(skill.cooldown * (1 - playerBuffs.hasteReduction)) : skill.cooldown;
     setCooldowns((prev) => ({ ...prev, [skill.id]: true }));

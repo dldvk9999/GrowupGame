@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { SLOTS, RARITIES, getItem } from '../lib/itemCatalog';
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
+import { bumpMission } from '../lib/missions';
 
 export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, onInventoryChange }) {
   const [drawing, setDrawing] = useState(false);
@@ -30,6 +31,7 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
       setLastResults(results);
       onGoldChange(gold - totalSpent);
       onInventoryChange();
+      bumpMission('spend_gold', totalSpent);
       if (results.length < count) {
         setError(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`);
         showToast(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`, 'error');
