@@ -35,6 +35,8 @@ import DungeonSelect from './components/DungeonSelect';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import Settings from './components/Settings';
+import PvP from './components/PvP';
+import LobbyChat from './components/LobbyChat';
 
 const STAGE = {
   LOADING: 'loading',
@@ -412,6 +414,8 @@ export default function App() {
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
               <button className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>🎒 인벤토리</button>
               <button className={`tab-btn ${activeTab === 'dungeon' ? 'active' : ''}`} onClick={() => setActiveTab('dungeon')}>🏰 던전</button>
+              <button className={`tab-btn ${activeTab === 'pvp' ? 'active' : ''}`} onClick={() => setActiveTab('pvp')}>⚔️ PvP</button>
+              <button className={`tab-btn ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>💬 로비</button>
             </nav>
 
             {activeTab === 'battle' && (
@@ -493,6 +497,16 @@ export default function App() {
                   onActiveTypeChange={setDungeonActiveType}
                 />
               )
+            )}
+            {activeTab === 'pvp' && (
+              <PvP
+                userId={session.user.id}
+                profile={profile}
+                onCurrencyChange={(newCurrency) => setProfile((p) => ({ ...p, pvp_currency: newCurrency }))}
+              />
+            )}
+            {activeTab === 'chat' && (
+              <LobbyChat profile={profile} />
             )}
             {activeTab === 'mypage' && (
               <MyPage

@@ -307,6 +307,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 **022_security_mission_claim_cooldown.sql** ⚠️ **보안 패치, 필수 적용**
 - `claim_mission_reward`에 "미션 배정 후 최소 20초 경과" 게이트 추가 — 이전엔 진행도 조작+즉시클레임 반복으로 무한 골드 파밍이 가능했음 (5-13 참고)
 
+**023_pvp_system.sql**
+- `profiles`에 `pvp_currency`/`pvp_wins`/`pvp_losses`/`last_pvp_battle_at` 컬럼 추가
+- `calc_monster_stats()`(종족+레벨+전직배율로 만피 기준 스탯 재계산), `calc_combat_power()` SQL 함수 신설
+- `pvp_battle_log` 테이블 + `start_pvp_battle()` RPC (매칭+전투판정+보상까지 한번에, 20초 쿨다운), `fetch_my_combat_power()` RPC
+- `pvp_shop_listings`(공용 진열대, 매시 정각 lazy 갱신) + `pvp_costume_inventory`(보유 코스튬) 테이블, `sync_pvp_shop()`/`buy_pvp_costume()` RPC
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -321,6 +327,9 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 | `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
 | `mails` | ❌ (delete만 본인 claimed건 가능) | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송), 직접 `DELETE`는 본인 소유+claimed=true 조건에서만 허용(020) |
 | `mission_state` | ❌ | `init_mission_state`/`increment_mission_progress`/`claim_mission_reward` RPC |
+| `pvp_battle_log` | ❌ | `start_pvp_battle` RPC 내부에서만 기록 |
+| `pvp_shop_listings` | ❌ (누구나 조회는 가능) | `sync_pvp_shop` RPC 내부에서만 생성 |
+| `pvp_costume_inventory` | ❌ | `buy_pvp_costume` RPC |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
 
@@ -421,7 +430,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 | 화면 | 키 | 동작 |
 |---|---|---|
-| 전투(스테이지/일반던전/전직던전) | `1`~`5` | 슬롯별 스킬 즉시 사용 (버튼 모서리에 숫자 배지로 표시, `SkillButton`의 `hotkey` prop) |
+| 전투(스테이지/일반던전/전직던전) | `1`~`9` | 슬롯별 스킬 즉시 사용 (기본 5슬롯 + 전직 스킬 최대 4개까지 커버, 버튼 모서리에 숫자 배지로 표시) |
 | 스테이지 전투 | `Space` | 상황별: 자동사냥 중→도전 시작 / 승리→다음 스테이지로 / 패배→재도전 |
 | 스테이지 전투 | `R` | 패배 시 즉시 재도전 (Space와 동일 동작, 습관적으로 R 누르는 사람 대비) |
 | 일반/전직 던전 전투 | `Space` | 결과가 나온 상태에서 "던전 목록으로"(또는 전직 성공 시 "확인") |
@@ -434,12 +443,34 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 `Space`/`Tab`은 브라우저 기본 동작(스크롤, 포커스 이동)과 충돌해서 각 핸들러 안에서 `e.preventDefault()` 처리함. 배틀 화면 3곳은 상태가 자주 바뀌는 특성상, 클로저 문제를 피하려고 `useRef`에 최신 상태(`mode`/`result`/`availableSkills` 등)를 매 렌더마다 담아두고 `keydown` 리스너 자체는 `useEffect(..., [])`로 1회만 등록하는 패턴을 씀 (리스너를 매 렌더 재등록하지 않기 위함).
 
+### 5-17. 로비 채팅 (`LobbyChat.jsx`, `useLobbyChat.js`)
+
+- `useLobbyChat.js` 훅은 사실 001/004 단계에서 이미 완성돼 있었음(최근 50개 로드 + Supabase Realtime `postgres_changes` INSERT 구독) — UI만 없었던 상태라 `LobbyChat.jsx`만 새로 만들어서 연결함
+- 닉네임은 서버 트리거가 `chat_messages.nickname`을 강제로 덮어씀(004) — client가 아무 닉네임이나 보내도 실제 저장되는 건 본인 프로필 닉네임이라 사칭 불가능
+- 하단 탭 "💬 로비"에서 접근, 최대 200자, 전체 유저 공용(방 구분 없음)
+
+### 5-18. PvP (`PvP.jsx`, `PvPArena.jsx`, `PvPShop.jsx`, `pvp.js`, 023)
+
+- **비동기 매칭 전투** — 실시간 대결이 아니라, 도전 버튼을 누르면 서버가 그 즉시 상대를 찾고 승패까지 한번에 판정해서 결과 리포트를 보여주는 방식(모바일 idle 게임에서 흔한 "고스트 대결" 패턴). 진짜 실시간 조작 대전은 아님
+- **매칭 로직** (`start_pvp_battle` RPC): 활성 몬스터가 있는 다른 유저 중 무작위 1명을 뽑아서, 그 사람 전투력이 내 전투력의 75~125% 범위 안이면 그대로 매칭. 범위 밖이거나 매칭 대상이 아예 없으면 **내 전투력 기준 90~110% 랜덤인 가상 캐릭터**(이름은 정해진 7개 후보 중 랜덤, "그림자 전사" 등)를 대신 세움
+- **전투력 계산**: `calc_monster_stats()`가 종족 base 스탯 + 레벨 성장 + 전직 배율(1~4차)로 "만피 기준" atk/def/maxHp를 다시 계산하고, `calc_combat_power()` = `atk*4.5+def*3.2+maxHp*0.6`(클라이언트 `combat.js`의 공식과 동일하게 맞춤). **장비 보너스는 PvP 전투력 계산에 포함되지 않음**(서버에서 매번 인벤토리를 조인해서 계산하는 부담을 피하려는 의도적 단순화 — 장비 착용 비중이 커지면 나중에 반영 고려)
+- **승패 판정**: 양측 전투력에 각각 ±15% 랜덤 보정을 곱해서 비교, 높은 쪽이 승리(약간의 운 요소). 정교한 턴제 시뮬레이션은 하지 않음(단순화)
+- **PvP 재화**: 승리 시 `reward = max(30, 30 + 상대전투력/50)`을 획득(`profiles.pvp_currency`), 패배 시 없음. 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음
+- ⚠️ **보안**: 미션 클레임과 동일하게 `profiles.last_pvp_battle_at` 기준 **최소 20초 쿨다운**을 서버에 걸어둠(무한 반복 파밍 방지)
+- **PvP 상점(코스튬)**: 전체 유저 공용 진열대 30칸, **매시 정각마다 자동 갱신**(`sync_pvp_shop` RPC, 우편함과 동일한 lazy-generation 패턴 — cron 없이 "이번 시간대 진열대가 아직 없으면 그때 생성"). 무기/방어구/장갑/신발 × 5등급 조합 중 등급 가중치(노멀40%~신화4%)로 랜덤 추첨, 가격은 등급별 기준가(노멀 3000~신화 150000)에 ±20% 랜덤 가산
+- **코스튬은 전투 스탯에 영향 없는 수집/과시용**임 — `pvp_costume_inventory`에 보유 여부만 기록되고, 기존 장비 인벤토리(`user_inventory`)와는 완전히 분리된 별도 테이블. (현재 게임이 장비 자체도 캐릭터 스프라이트에 시각적으로 반영되지 않는 구조라, 코스튬도 동일하게 "보유 목록"으로만 존재함 — 나중에 스프라이트에 장비/코스튬을 시각적으로 표시하는 기능이 생기면 그때 코스튬이 실제로 "입혀지는" 형태로 확장 가능)
+- 가격 설계 의도대로면 승리 1회 평균 보상이 대략 수십~백여 골드 수준이라, 노멀 코스튬(3000~3600) 하나 사려면 최소 수십 회 승리가 필요함 — "노멀도 꽤 비싸다"는 요구사항을 반영한 수치
+
+
+
 ## 7. 알려진 미구현/TODO 후보
 
-- 로비 채팅 UI 미연결 (`useLobbyChat` 훅은 완성, 화면에 아직 안 붙임)
+- ~~로비 채팅 UI 미연결~~ → 해결됨 (`LobbyChat.jsx` 연결, 5-17 참고)
 - 외부 이미지(실사/일러스트) 미적용 — `MonsterSprite`는 `VITE_SPRITE_CDN_URL` 세팅 시 자동으로 이미지 우선 사용하도록 이미 확장 가능 구조로 되어 있음
 - 사육장(보유 몬스터 목록/도감) 화면 없음 — 현재는 활성 몬스터 1마리만 운용
-- PvP, 몬스터 포획(교체) 기능 없음 (설계상 보스 처치=자동 성장 개념으로 대체됨, 애초 "포획" 요건은 스타터 선택으로 단순화됨)
+- ~~PvP~~ → 해결됨(비동기 매칭 전투, 5-18 참고). 몬스터 포획(교체) 기능은 여전히 없음(설계상 보스 처치=자동 성장 개념으로 대체됨, 애초 "포획" 요건은 스타터 선택으로 단순화됨)
+- 장비/코스튬이 캐릭터 스프라이트에 시각적으로 반영되지 않음(스탯/수집 목록으로만 존재) — PvP 코스튬 도입 시에도 동일한 한계로 이어짐
+- PvP 전투력 계산에 장비 보너스 미포함(서버 계산 단순화, 5-18 참고) — 장비 비중이 커지면 나중에 반영 검토
 - ~~2·3단계 진화 스프라이트 없음~~ → 해결됨 (9종 벡터 스프라이트 전부 완성)
 - ~~마이페이지/닉네임 수정~~ → 해결됨 (닉네임 1회 수정)
 - ~~스킬 커스터마이징~~ → 해결됨 (뽑기/합성/편성 시스템)

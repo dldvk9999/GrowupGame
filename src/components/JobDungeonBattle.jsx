@@ -201,7 +201,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
       const { result, availableSkills, useSkill, onExit } = keyStateRef.current;
 
-      if (/^[1-5]$/.test(e.key)) {
+      if (/^[1-9]$/.test(e.key)) {
         if (!result) {
           const skill = availableSkills[Number(e.key) - 1];
           if (skill) { e.preventDefault(); useSkill(skill); }
@@ -264,7 +264,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
               disabled={!!cooldowns[skill.id]}
               startedAt={cooldownStarts[skill.id]}
               onUse={useSkill}
-              hotkey={i < 5 ? i + 1 : undefined}
+              hotkey={i < 9 ? i + 1 : undefined}
             />
           ))}
         </div>
