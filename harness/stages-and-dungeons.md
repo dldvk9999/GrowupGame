@@ -17,15 +17,19 @@
 ```
 index = (chapter-1)*10 + stage
 isBoss = (stage === 10)
-chapterStep = 1 + (chapter-1)*0.04         // 챕터(10스테이지) 단위 계단식 상승
-hp  = round(30 + index*5.0*(isBoss?2.4:1)*chapterStep)
-atk = round(4 + index*0.56*(isBoss?2.0:1)*chapterStep)
-def = round(3 + index*0.25*(isBoss?1.6:1)*chapterStep)
+chapterStep = 1 + (chapter-1)*0.05              // 챕터(10스테이지) 단위 계단식 상승
+midChapterStep = stage >= 5 ? 1.15 : 1          // 같은 챕터 안에서도 5번째 스테이지부터 한 단계 더 상승
+stepMultiplier = chapterStep * midChapterStep
+hp  = round((30 + index*7.5*(isBoss?3.0:1)) * stepMultiplier)
+atk = round((4 + index*0.85*(isBoss?2.6:1)) * stepMultiplier)
+def = round((3 + index*0.4*(isBoss?2.2:1)) * stepMultiplier)
 ```
 
+- migration 030에서 **대폭 상향**됨(전직을 거듭할수록 스테이지가 너무 쉬워진다는 피드백 반영) — 기존 대비 계수 자체가 커졌고, **5스테이지째부터 챕터 내에서도 한 번 더 강해지는 계단**(`midChapterStep`)이 추가됨. 챕터가 바뀔 때(10스테이지)도 `chapterStep`이 그대로 한 단계 더 오름 — 즉 "5마다 한 번, 10마다 한 번 더" 체감되는 이중 계단 구조
 - `def`는 방어력 신설 시(스탯 밸런스 조정) 추가된 것으로, 몬스터/보스/일반던전보스/전직던전보스 전부 적용됨
 - 데미지 계산은 [`combat.md`](./combat.md)의 `mitigateDamage` 공식으로 경감됨
 - 적 공격 텀은 **1.9초**(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`)
+- ⚠️ 이 상향으로 최후반(챕터100/스테이지10) 보스 골드 보상이 약 69만 골드까지 치솟아서, `add_gold` 1회 상한도 400000→**1,000,000**으로 재상향함(migration 030)
 - 실제 플레이해보고 너무 세거나 약하면 `stages.js`/`dungeonStages.js`/`jobDungeon.js`의 계수를 조정하면 됨
 
 ### 보상 공식

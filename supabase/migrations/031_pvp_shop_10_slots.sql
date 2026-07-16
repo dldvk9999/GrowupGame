@@ -1,0 +1,45 @@
+-- ============================================
+-- 031: PvP 상점 진열대 30개 → 10개, 등급별 확률 재조정(고등급일수록 더 희귀하게)
+-- Supabase SQL Editor에 순서대로 실행 (001~030 먼저 적용되어 있어야 함)
+-- ============================================
+
+create or replace function public.sync_pvp_shop()
+returns void as $$
+declare
+  v_period text := to_char(date_trunc('hour', now()), 'YYYYMMDDHH24');
+  v_exists integer;
+  v_slots text[] := array['weapon', 'armor', 'gloves', 'shoes'];
+  v_rarities text[] := array['normal', 'rare', 'epic', 'legendary', 'mythic'];
+  v_base_price integer[] := array[3000, 8000, 20000, 55000, 150000];
+  i integer;
+  v_roll numeric;
+  v_rarity_idx integer;
+  v_slot text;
+  v_item_key text;
+  v_price integer;
+begin
+  select count(*) into v_exists from public.pvp_shop_listings where period_key = v_period;
+  if v_exists > 0 then
+    return;
+  end if;
+
+  for i in 1..10 loop
+    v_roll := random();
+    -- 등급이 높을수록 뚜렷하게 희귀해지도록: 노멀45% / 레어27% / 에픽16% / 전설8% / 신화4%
+    if v_roll < 0.45 then v_rarity_idx := 1;
+    elsif v_roll < 0.72 then v_rarity_idx := 2;
+    elsif v_roll < 0.88 then v_rarity_idx := 3;
+    elsif v_roll < 0.96 then v_rarity_idx := 4;
+    else v_rarity_idx := 5;
+    end if;
+
+    v_slot := v_slots[1 + floor(random() * 4)::int];
+    v_item_key := v_slot || '_' || v_rarities[v_rarity_idx];
+    v_price := v_base_price[v_rarity_idx] + floor(random() * v_base_price[v_rarity_idx] * 0.2)::int;
+
+    insert into public.pvp_shop_listings (period_key, slot_index, item_key, price)
+    values (v_period, i, v_item_key, v_price)
+    on conflict on constraint pvp_shop_listings_period_key_slot_index_key do nothing;
+  end loop;
+end;
+$$ language plpgsql security definer;

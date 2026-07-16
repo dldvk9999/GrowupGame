@@ -62,12 +62,16 @@ export function getStageEnemy(chapter, stage) {
   const baseName = names[(chapter + stage) % names.length];
 
   // 전체 진행도(index)에 비례해 서서히 강해짐 + 보스는 같은 챕터 잡몹보다 확실히 강하게
-  // + 챕터(10스테이지) 단위로 계단식 소폭 상승(챕터당 +4%)까지 곱해서, 10스테이지 넘어갈 때마다 체감되게 함
-  // (난이도 재상향: 기본 스케일링/보스 배율을 한 단계 더 올림 + 방어력 신설로 데미지 경감 추가)
-  const chapterStep = 1 + (chapter - 1) * 0.04;
-  const hp = Math.round(30 + index * 5.0 * (isBoss ? 2.4 : 1) * chapterStep);
-  const atk = Math.round(4 + index * 0.56 * (isBoss ? 2.0 : 1) * chapterStep);
-  const def = Math.round(3 + index * 0.25 * (isBoss ? 1.6 : 1) * chapterStep);
+  // 계단식 상승 2단계:
+  //  - chapterStep: 챕터(10스테이지) 단위로 계단식 상승 (챕터당 +5%, 10스테이지 넘어갈 때마다 체감)
+  //  - midChapterStep: 같은 챕터 안에서도 5번째 스테이지부터 추가로 한 단계 더 강해짐 (5스테이지마다 체감)
+  // 기본 스케일링/보스 배율 자체도 대폭 상향함 (전직을 거듭할수록 스테이지가 너무 쉬워지는 문제 대응)
+  const chapterStep = 1 + (chapter - 1) * 0.05;
+  const midChapterStep = stage >= 5 ? 1.15 : 1;
+  const stepMultiplier = chapterStep * midChapterStep;
+  const hp = Math.round((30 + index * 7.5 * (isBoss ? 3.0 : 1)) * stepMultiplier);
+  const atk = Math.round((4 + index * 0.85 * (isBoss ? 2.6 : 1)) * stepMultiplier);
+  const def = Math.round((3 + index * 0.4 * (isBoss ? 2.2 : 1)) * stepMultiplier);
 
   return {
     stageIndex: index,

@@ -134,6 +134,14 @@
 - `mission_state.assigned_at` 컬럼 추가, `claim_mission_reward`의 20초 쿨다운 기준을 `updated_at`→`assigned_at`으로 변경(오탐 버그 수정)
 - **5차 전직(Lv.180) 추가** — `owned_monsters.unlocked_job_tier` 체크 제약 0~4→0~5, `job_dungeon_sessions.tier` 체크 제약에 5 추가, `save_monster_growth`/`calc_monster_stats` 상한선 10.0→16.0배로 재조정, `start_job_dungeon`에 5차 레벨조건(180) 추가, `claim_mission_reward`의 온보딩 우선순위 체인에 `job_tier5` 추가
 
+**030_stage_difficulty_boost_and_gold_cap.sql**
+- 스테이지 난이도 대폭 상향 + "5스테이지/10스테이지마다" 이중 계단식 상승 추가 (`chapterStep` 0.04→0.05, `midChapterStep` 신설) — 자세한 공식은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+- `calc_stage_gold`를 새 난이도 공식과 동기화, `add_gold` 1회 상한 400000→**1,000,000**으로 재상향(최후반 보스 골드가 약 69만까지 치솟음)
+
+**031_pvp_shop_10_slots.sql**
+- PvP 상점 진열대 30개 → **10개**로 축소
+- 등급별 확률을 더 뚜렷하게 재조정(노멀45%/레어27%/에픽16%/전설8%/신화4%, 이전엔 40/28/18/10/4)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

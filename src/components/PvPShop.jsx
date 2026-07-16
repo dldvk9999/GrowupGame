@@ -54,7 +54,7 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
         <span className="gold-display">🎖️ {currency.toLocaleString()}</span>
       </div>
       <p className="stage-select-hint">
-        진열대는 매시 정각에 30개로 새로 갱신돼요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요.
+        진열대는 매시 정각에 10개로 새로 갱신돼요. 등급이 높을수록 나올 확률이 낮아요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요.
       </p>
 
       {error && <p className="shop-error">{error}</p>}

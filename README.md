@@ -1,52 +1,41 @@
-# Supabase 세팅 가이드
+# 🐣 키우기 게임 (GrowupGame)
 
-## 1. DB 마이그레이션 실행
-1. Supabase 대시보드 → SQL Editor 접속
-2. `supabase/migrations/001_init.sql` 내용 전체 복사해서 붙여넣고 실행
-3. Table Editor에서 `profiles`, `monster_species`, `owned_monsters`, `stage_progress`, `chat_messages` 생성됐는지 확인
+> 알에서 깬 지 5분 된 몬스터가, 5차 전직을 하고 나면 온 대륙이 벌벌 떠는 재앙이 됩니다.
 
-## 2. 키 재발급 (중요, 아직 안 했으면 지금 하기)
-채팅에 service_role 키/DB 비밀번호가 노출됐으므로 Supabase 대시보드 →
-Project Settings → API 에서 키 재생성 필수.
+방치하면 알아서 크고, 신경 쓰면 더 잘 크는 몬스터 육성 RPG예요. 불/물/풀 중 하나를 골라 계약을 맺고, **100개 챕터 × 1000개 스테이지**를 정복하면서 강해지는 게임입니다. 탭 하나로 즐기는 웹 게임이라 설치도 필요 없어요 (원한다면 PWA로 설치도 가능하지만요).
 
-## 3. 프론트엔드 연결
+## 🔥 이런 게임이에요
+
+- **키운다** — 스타터 몬스터 하나를 골라서 레벨업시키고, 3단계까지 진화시켜요. 방치만 해도 자동사냥으로 조금씩 크지만, 진짜 강해지려면 직접 스테이지에 도전해야 해요.
+- **전직한다, 다섯 번이나** — 레벨 30/60/100/140/180마다 전직 던전이 열려요. 그냥 레벨업만으론 안 되고, 던전을 실제로 깨야 진짜 힘이 생겨요. 5차까지 다 찍으면 원래 캐릭터가 맞나 싶을 정도로 스탯이 달라져요(무려 16배).
+- **뽑는다** — 상점에서 무기/방어구/장갑/신발, 그리고 스킬까지 전부 가챠로 뽑아요. 등급은 노멀부터 신화까지 5단계, 스킬은 데미지/힐뿐 아니라 기절·도트·버프·헤이스트까지 50종이나 있어요.
+- **합성한다** — 강화수치 10을 모으면 한 단계 위 등급으로 합성할 수 있어요. 일괄합성 버튼 누르면 자동으로 갈 수 있는 데까지 쭉 가줘요.
+- **싸운다, 사람이랑도** — PvP 경기장에서 다른 플레이어(또는 비슷한 세기의 가상 상대)와 붙어요. 이기면 PvP 전용 재화를 벌고, 그걸로 코스튬도 살 수 있어요.
+- **떠든다** — 로비 채팅으로 다른 플레이어들이랑 실시간으로 수다도 떨 수 있어요.
+- **길을 잃지 않는다** — 화면 한켠에 항상 떠있는 가이드 미션이 "지금 뭘 해야 하는지" 계속 알려줘요. 전직할 때 되면 미션도 눈치채고 던전으로 등 떠밀어줘요.
+
+## ⌨️ 키보드파를 위한 배려
+
+마우스 딸깍딸깍이 귀찮다면 숫자키 `1`~`9`로 스킬 쏘고, `Space`로 다음 스테이지 넘어가고, `G`/`Shift+G`/`Ctrl+G`로 뽑기 1/10/100연차까지 돌릴 수 있어요.
+
+## 🛠️ 기술 스택
+
+Vite + React 18 프론트엔드, Supabase(Postgres + Auth + Realtime) 백엔드. 전투 밸런스, 골드 지급, 뽑기 확률 같은 건 전부 서버(SQL RPC)에서 검증하기 때문에 브라우저 콘솔을 아무리 열어봐도 골드가 뿅 하고 늘어나진 않아요 *(여러 번의 보안 점검을 거쳤답니다 👀)*.
+
+## 📚 더 자세히 알고 싶다면
+
+이 게임의 모든 시스템, 밸런스 공식, DB 스키마, 버그/보안 수정 이력까지 전부 [`harness/`](./harness) 폴더에 카테고리별로 정리되어 있어요. 개발 이어서 하고 싶으면 [`harness/README.md`](./harness/README.md)부터 시작하면 돼요.
+
+## 🚀 로컬에서 돌려보기
+
 ```bash
-npm install @supabase/supabase-js
-cp .env.example .env
-```
-`.env`에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`(anon 또는 publishable 키)만 채우기.
-service_role 키는 프론트엔드에 절대 넣지 않는다.
-
-`src/lib/` 폴더를 프로젝트에 그대로 복사:
-- `supabaseClient.js` — 클라이언트 초기화
-- `auth.js` — 회원가입/로그인/닉네임 중복확인/프로필 수정
-- `useLobbyChat.js` — 로비 실시간 채팅 훅
-
-## 4. 사용 예시
-```jsx
-import { signUp, checkNicknameAvailable } from './lib/auth';
-import { useLobbyChat } from './lib/useLobbyChat';
-
-// 회원가입
-await signUp({ email, password, nickname });
-
-// 채팅
-const { messages, sendMessage } = useLobbyChat(myProfile);
+npm install
+cp .env.example .env   # VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY 채우기
+npm run dev
 ```
 
-## 5. 몬스터 이미지를 외부 리소스로 교체하기
+Supabase 마이그레이션 적용 방법은 [`harness/dev-guide.md`](./harness/dev-guide.md) 참고하세요.
 
-지금은 `src/assets/sprites/`에 있는 SVG 벡터로 그려지지만, 실사/외주 일러스트로
-바꿀 때 코드를 거의 안 건드리도록 `MonsterSprite` 컴포넌트가 자동 폴백 구조로
-되어 있음.
+---
 
-1. 이미지를 올릴 CDN(Supabase Storage 등)에 `{sprite_key}.png` 이름으로 업로드
-   (예: `fire_1.png`, `water_2.png` — `monster_species.sprite_key` 컬럼값과 동일하게)
-2. `.env`의 `VITE_SPRITE_CDN_URL`에 그 base URL 채우기
-3. 끝. 이미지가 있으면 자동으로 이미지가 우선 표시되고, 아직 업로드 안 된
-   몬스터는 이미지 로드 실패 시 자동으로 기존 벡터로 폴백됨 — 몬스터별로
-   하나씩 순차 교체 가능
-
-## 6. Realtime 활성화 확인
-Supabase 대시보드 → Database → Replication 에서 `chat_messages` 테이블의
-Realtime 토글이 켜져 있는지 확인 (기본적으로 꺼져있을 수 있음).
+*몬스터를 키우다 보면 어느새 여러분이 더 크고 있을지도 몰라요.*
