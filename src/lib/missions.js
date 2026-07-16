@@ -19,6 +19,7 @@ export const MISSION_META = {
   job_tier1: { icon: '✨', label: () => '1차 전직 던전 클리어하기' },
   job_tier2: { icon: '✨', label: () => '2차 전직 던전 클리어하기' },
   job_tier3: { icon: '✨', label: () => '3차 전직 던전 클리어하기' },
+  job_tier4: { icon: '✨', label: () => '4차 전직 던전 클리어하기' },
   equip_skill_slot: { icon: '🆕', label: () => '새로 열린 스킬 슬롯 채우기' },
 };
 

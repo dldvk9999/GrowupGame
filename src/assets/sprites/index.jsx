@@ -33,4 +33,7 @@ export const spriteRegistry = {
   grass_job1: (props) => <JobTierSprite element="grass" tier={1} {...props} />,
   grass_job2: (props) => <JobTierSprite element="grass" tier={2} {...props} />,
   grass_job3: (props) => <JobTierSprite element="grass" tier={3} {...props} />,
+  fire_job4: (props) => <JobTierSprite element="fire" tier={4} {...props} />,
+  water_job4: (props) => <JobTierSprite element="water" tier={4} {...props} />,
+  grass_job4: (props) => <JobTierSprite element="grass" tier={4} {...props} />,
 };

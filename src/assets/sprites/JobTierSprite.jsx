@@ -4,7 +4,7 @@ const ELEMENT_HUES = {
   grass: { core: '#f2ffd9', mid: '#63b845', dark: '#1d3a0f', body: '#4a9e2f' },
 };
 
-/** 전직 단계(1~3)가 오를수록 오라 크기/날개/왕관이 더 화려해짐 */
+/** 전직 단계(1~4)가 오를수록 오라 크기/날개/왕관이 더 화려해짐 */
 export default function JobTierSprite({ element, tier, size = 90 }) {
   const c = ELEMENT_HUES[element] ?? ELEMENT_HUES.fire;
   const gradId = `jobtier-${element}-${tier}`;

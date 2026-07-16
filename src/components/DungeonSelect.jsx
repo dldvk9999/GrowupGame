@@ -101,7 +101,7 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
       {error && <p className="shop-error">{error}</p>}
 
       <div className="job-dungeon-list">
-        {[1, 2, 3].map((tier) => {
+        {[1, 2, 3, 4].map((tier) => {
           const boss = JOB_DUNGEON_BOSS[tier];
           const isDone = unlocked >= tier;
           const isEligible = activeMonster.level >= boss.requiredLevel && unlocked === tier - 1;

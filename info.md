@@ -139,6 +139,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 1차(Lv.30): 배율 3.6배, 쿨타임 6.5초
 - 2차(Lv.60): 배율 4.6배, 쿨타임 8초
 - 3차(Lv.100): 배율 6.2배, 쿨타임 10초
+- 4차(Lv.140, 021 신규): 배율 8.2배, 쿨타임 12.5초, statMultiplier 10.0배(기존 3차 6.0배에서 상향)
 
 **전투력 표시**: `calculateCombatPower(monster)`(`combat.js`) = `atk*4.5 + def*3.2 + maxHp*0.6`(반올림). 세 전투 화면(스테이지/일반던전/전직던전) 상단 배지에 "⚔️ 나의 전투력 N"으로 항상 표시됨 — 장비 보유효과/장착 보너스까지 다 반영된 `player` 객체 기준이라 실제 체감 강함과 대략 비례함
 
@@ -155,6 +156,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **스테이지 선택 UI** (`StageSelect.jsx`): 챕터를 **좌우로 스와이프하는 카드 캐러셀**로 표시. 카드에는 대표 몬스터 이미지(`MonsterSprite`), 챕터명/속성, 클리어 진행도, 짧은 스토리 요약(`getChapterStory`의 body 3줄 클램프)이 들어감. 카드를 선택하면 하단에 해당 챕터의 10개 서브스테이지 그리드가 나타남. 잠긴 챕터는 회색 처리+자물쇠 아이콘, 현재 위치엔 "현재" 뱃지.
 - **난이도**: `hp = round(30 + index*5.0*(보스면 2.4)*chapterStep)`, `chapterStep = 1 + (chapter-1)*0.04` — **10스테이지(=챕터 1개) 단위로 소폭 계단식 상승**이 기존 연속 스케일링 위에 추가로 곱해짐(012에서 계수 재상향: 4.0→5.0, 보스 2.1→2.4). `atk`도 동일 구조(0.44→0.56, 보스 1.7→2.0). **방어력(`def`) 신설** — `def = round(3 + index*0.25*(보스면 1.6)*chapterStep)`, 몬스터/보스/일반던전보스/전직던전보스 전부 적용됨. 데미지 계산 시 `mitigateDamage(rawDamage, defenderDef)`(`combat.js`, `100/(100+def)` 공식)로 경감되며, **플레이어 쪽도 자기 `def`로 받는 피해가 경감**됨(예전엔 방어력이 사실상 장식 스탯이었음). 전직해서 공격력이 급격히 세져도 후반 스테이지는 몬스터 방어력 때문에 여전히 버거워지도록 의도한 밸런스 — 실제 플레이해보고 너무 세거나 약하면 `stages.js`/`dungeonStages.js`/`jobDungeon.js`의 계수 조정하면 됨. 보상도 같이 상향: `expReward = round(hp*(보스 1.5, 일반 0.85))`, `goldReward`는 기존 공식의 **5배**(서버 `calc_stage_gold`도 동일 공식 반영, 012 — def는 골드 공식에 영향 없어서 서버 쪽은 변경 불필요). 적 공격 텀은 1.9초로 단축(`BattleScreen.jsx`의 `ENEMY_ATTACK_INTERVAL`, 012에서 2.1→1.9초). 일반 던전 보스도 같은 맥락으로 난이도 상향(`dungeonStages.js`)
 - **자동사냥 보상**: `hp = max(10, round(8 + chapter*2.0 + playerLevel*3.0))` — 챕터/레벨 가중치를 대폭 올려서(기존 0.6/0.8 → 2.0/3.0) **레벨이 높거나 진행 챕터가 높을수록 자동사냥 보상이 눈에 띄게 커짐**. exp/gold 둘 다 이 hp에 비례하므로 자동으로 같이 상향됨. 서버 `calc_idle_gold`도 동일 공식 반영(012)
+- **자동사냥 처치 텀**: 1.5초(`BattleScreen.jsx`의 `IDLE_KILL_INTERVAL`, 021에서 3초→1.5초로 2배 단축)
 - ⚠️ 난이도 상향으로 최후반 챕터(100) 보스 골드가 `add_gold` 기존 상한(100000)을 넘어설 수 있어서, 012에서 상한을 **400000**으로 재상향함
 
 ### 5-4. 전투 방식 (`BattleScreen.jsx`) — 자동사냥 vs 스테이지 도전
@@ -183,7 +185,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ### 5-6. 아이템 강화 (~~폐지됨, 014~~)
 
-- ~~골드 소모 + 확률 기반 강화(`enhance_item`)~~ 시스템은 **완전히 삭제됨**(014). 지금은 **뽑기 중복 시 자동으로 +1씩 강화**되는 방식만 존재함 (5-5 참고, `enhance_level` 0~15, 스탯 +8%/레벨 누적은 그대로 유지)
+- ~~골드 소모 + 확률 기반 강화(`enhance_item`)~~ 시스템은 **완전히 삭제됨**(014). 지금은 **뽑기 중복 시 자동으로 +1씩 강화**되는 방식만 존재함 (5-5 참고, `enhance_level` **0~1000**(021에서 15→1000으로 대폭 상향), 스탯 +8%/레벨 누적 공식은 그대로 유지)
+- ⚠️ **밸런스 유의**: `getEnhancedStatBonus`/`getPossessionBonus`가 `1 + enhanceLevel*0.08`이라 레벨1000이면 +8000%(81배)까지 커짐 — 사용자가 "상한선만 1000으로 올려달라"고 명시적으로 요청해서 공식 자체는 안 건드렸지만, 실제로 유저가 근접해서 게임이 깨질 정도로 느껴지면 `itemCatalog.js`의 `0.08` 계수를 낮추는 것도 고려할 것
 
 ### 5-7. 로비 채팅 (`useLobbyChat.js`)
 
@@ -290,6 +293,11 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `mission_state` 테이블 + `init_mission_state()`/`increment_mission_progress()`/`claim_mission_reward()` RPC 신설 (가이드 미션 시스템, 5-13 참고)
 - `mails`에 "본인 소유 + claimed=true" 조건의 DELETE 정책 추가 (수령 완료한 우편 직접 삭제 가능)
 
+**021_login_mission_enhance_cap_job_tier4.sql**
+- "10분 접속 유지" 미션을 "1분 접속 유지"로 변경 (기존 진행중인 유저 행도 소급 수정 + `claim_mission_reward`의 향후 배정값도 변경)
+- 장비 강화 최대치 15 → 1000으로 상향 (`user_inventory.enhance_level` 체크 제약, `draw_equipment`/`draw_equipment_batch`의 `least(15,...)` → `least(1000,...)`)
+- **4차 전직(Lv.140) 추가** — `owned_monsters.unlocked_job_tier` 체크 제약 0~3→0~4, `job_dungeon_sessions.tier` 체크 제약에 4 추가, `save_monster_growth` 스탯 상한선 6.0→10.0배로 재조정, `start_job_dungeon`에 4차 레벨조건(140) 추가, `claim_mission_reward`의 온보딩 우선순위 체인에 `job_tier4` 추가
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -357,12 +365,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ### 5-9-1. 전직 던전 (`JobDungeonBattle.jsx`, `jobDungeon.js`, `jobDungeonApi.js`)
 
-- 전직(Lv.30/60/100)은 이제 **레벨업만으로 자동 적용되지 않음**. 레벨 조건을 채우면 상단에 "✨ 전직 가능!" 배너가 뜨고(`hasPendingJobAdvancement`), **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨
-- `owned_monsters.unlocked_job_tier`(0~3)가 "실제 적용된" 전직 단계의 단일 진실 공급원. `jobAdvancement.js`가 "조건 충족(레벨 기준, `getEligibleTierNumber`)"과 "실제 적용(unlocked_job_tier 기준, `getAppliedTier`)"을 분리해서 관리함
-- 전직 던전은 순차적으로만 진행 가능(1차 안 깨면 2차 도전 불가, `start_job_dungeon` RPC가 레벨+이전단계 완료 여부 검증), 하루 횟수 제한은 없음
-- **난이도**: 같은 레벨대 일반 던전보다 훨씬 강하게 잡음 (예: 1차 Lv.30 기준 보스 체력 2600/공격력 130, 공격 텀 1.6초로 빠름) — 기본공격만 연타해서는 못 이기고 스킬 로테이션(특히 회복기)이 필요하도록 설계
+- 전직(Lv.30/60/100/**140**)은 이제 **레벨업만으로 자동 적용되지 않음**. 레벨 조건을 채우면 상단에 "✨ 전직 가능!" 배너가 뜨고(`hasPendingJobAdvancement`), **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨
+- `owned_monsters.unlocked_job_tier`(0~4, 021에서 3→4로 확장)가 "실제 적용된" 전직 단계의 단일 진실 공급원. `jobAdvancement.js`가 "조건 충족(레벨 기준, `getEligibleTierNumber`)"과 "실제 적용(unlocked_job_tier 기준, `getAppliedTier`)"을 분리해서 관리함
+- 전직 던전은 순차적으로만 진행 가능(전 단계 안 깨면 다음 단계 도전 불가, `start_job_dungeon` RPC가 레벨+이전단계 완료 여부 검증), 하루 횟수 제한은 없음
+- **난이도**: 같은 레벨대 일반 던전보다 훨씬 강하게 잡음 (예: 1차 Lv.30 기준 보스 체력 2600/공격력 130, 공격 텀 1.6초로 빠름) — 기본공격만 연타해서는 못 이기고 스킬 로테이션(특히 회복기)이 필요하도록 설계. **4차(Lv.140, `JOB_DUNGEON_BOSS[4]`) 보스는 체력 28000/공격력 780/방어력 840**으로 3차 대비 대폭 강화됨
 - 승리하면 경험치는 얻지만, **전직 자체(외형/스탯/스킬 적용)는 별도로 `claim_job_dungeon` RPC를 호출**해야 반영됨(`job_dungeon_sessions`로 "진짜 입장→클리어"를 서버가 검증, 세션 위조 불가)
-- **외형 변경**: 전직에 성공하면 `MonsterSprite`가 진화단계 그림 대신 전직 전용 그림으로 바뀜. `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier>0`이면 `${element}_job${tier}` 키를 반환하고, `JobTierSprite.jsx`(공용 렌더러, 오라/날개/왕관이 단계별로 화려해짐)가 9개 조합(3속성×3단계)을 전부 커버함
+- **외형 변경**: 전직에 성공하면 `MonsterSprite`가 진화단계 그림 대신 전직 전용 그림으로 바뀜. `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier>0`이면 `${element}_job${tier}` 키를 반환하고, `JobTierSprite.jsx`(공용 렌더러, 오라/날개/왕관이 단계별로 화려해짐)가 이제 12개 조합(3속성×4단계)을 커버함 — 4차는 별도 아트 없이 기존 컴포넌트가 `tier=4`를 받으면 오라가 더 커지고 3차와 동일한 왕관/할로 장식이 유지되는 방식으로 자동 확장됨
 
 ### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)
 
@@ -377,8 +385,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 - 화면 우하단(모바일은 하단 폭 전체)에 **항상 떠있는 플로팅 버튼**. 현재 "미션 #N", 아이콘, 라벨, 진행도(`N/M`)를 표시하고 진행바가 채워짐
 - **완료되면 초록 테두리 + 살짝 커졌다작아지는 펄스 애니메이션**으로 하이라이트되고, 클릭하면 `claim_mission_reward` RPC 호출 → 골드 지급 + 다음 미션으로 자동 전환
-- **일반 반복 미션 4종**이 `mission_number % 4`로 순환: `kill_monsters`(몬스터 10마리, 💰800) → `spend_gold`(골드 10000 사용, 💰1000) → `login_minutes`(10분 접속유지, 💰600) → `use_skills`(스킬 15회 사용, 💰700) → 다시 처음부터
-- **우선순위 온보딩 미션**이 항상 먼저 끼어듦(`claim_mission_reward`가 다음 미션을 정할 때마다 재검사): 활성 몬스터가 전직 가능 레벨(30/60/100)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`/`job_tier2`/`job_tier3` 미션(보상 3000~12000)이 최우선으로 배정되고, 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인 — 둘 다 아니면 그제서야 일반 미션으로 넘어감. 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가)
+- **일반 반복 미션 4종**이 `mission_number % 4`로 순환: `kill_monsters`(몬스터 10마리, 💰800) → `spend_gold`(골드 10000 사용, 💰1000) → `login_minutes`(**1분** 접속유지, 💰600, 021에서 10분→1분으로 변경) → `use_skills`(스킬 15회 사용, 💰700) → 다시 처음부터
+- **우선순위 온보딩 미션**이 항상 먼저 끼어듦(`claim_mission_reward`가 다음 미션을 정할 때마다 재검사): 활성 몬스터가 전직 가능 레벨(30/60/100/**140**)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`~`job_tier4` 미션(보상 3000~**24000**)이 최우선으로 배정되고, 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인 — 둘 다 아니면 그제서야 일반 미션으로 넘어감. 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가)
 - **진행도 갱신 방식**: `bumpMission(missionKey, amount)`가 서버 RPC(`increment_mission_progress`)를 호출 — 현재 활성 미션 키와 일치할 때만 반영되고, 1회 증가폭은 서버에서 최대 1000으로 캡 걸려있음(남용 방지). 호출 지점: 몬스터 처치(스테이지클리어/자동사냥/일반던전/전직던전 승리 4곳, `App.jsx`), 스킬 사용(3개 전투화면 `useSkill` 공통), 골드 소비(스킬뽑기/장비뽑기 성공 시 소비액만큼)
 - **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
 - "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴

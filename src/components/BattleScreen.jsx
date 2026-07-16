@@ -11,7 +11,7 @@ import { bumpMission } from '../lib/missions';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
-const IDLE_KILL_INTERVAL = 3000; // ms, 자동 사냥 처치 텀
+const IDLE_KILL_INTERVAL = 1500; // ms, 자동 사냥 처치 텀 (2배 상향)
 
 function withEquipment(monster, bonus) {
   const b = bonus ?? { atk: 0, def: 0, hp: 0 };

@@ -38,7 +38,7 @@ export function getItem(itemKey) {
   return ITEM_CATALOG.find((i) => i.itemKey === itemKey);
 }
 
-export const MAX_ENHANCE_LEVEL = 15;
+export const MAX_ENHANCE_LEVEL = 1000;
 
 /** 강화 수치가 반영된 실제 스탯 보너스 (강화 1당 +8%, 뽑기 중복으로만 오름) */
 export function getEnhancedStatBonus(item, enhanceLevel) {
