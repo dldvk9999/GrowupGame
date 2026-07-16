@@ -434,6 +434,24 @@ button {
   color: var(--accent-gold);
   font-size: 12px;
 }
+
+.buff-status-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.buff-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+.buff-tag.buff-atk { color: #ff8a4a; border-color: #ff8a4a; background: rgba(255, 138, 74, 0.12); }
+.buff-tag.buff-def { color: #4aa8ff; border-color: #4aa8ff; background: rgba(74, 168, 255, 0.12); }
+.buff-tag.buff-haste { color: #c9ff4a; border-color: #c9ff4a; background: rgba(201, 255, 74, 0.12); }
+.buff-tag.buff-stun { color: #ffe680; border-color: #ffe680; background: rgba(255, 230, 128, 0.12); }
 .result-hint { font-size: 13px; color: var(--text-muted); }
 .skill-job { border-color: var(--accent-gold); box-shadow: 0 0 0 1px rgba(242, 183, 5, 0.4); }
 

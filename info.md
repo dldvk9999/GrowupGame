@@ -112,9 +112,9 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
   - 전직에 성공하면 **외형도 전용 그래픽으로 바뀜** (5-9-1 참고)
 - **진화**와 **전직**은 별개 시스템: 진화=외형/도감상 종족 변경, 전직=같은 종족 내 강함 단계
 
-### 5-2. 스킬 (`skills.js` + `jobAdvancement.js`)
+### 5-2. 스킬 (`skillCatalog.js` + `jobAdvancement.js`)
 
-⚠️ 아래 "기본 5종"은 `skills.js`에 남아있는 **안전 폴백용**(장착 스킬이 0개인 예외 상황 대비)일 뿐, 실제 플레이에서 쓰는 스킬은 상점의 스킬 뽑기(5-5, 5-8)로 획득한 것들임. 참고용으로만 볼 것:
+⚠️ `skills.js`의 아래 5종은 **안전 폴백용**(장착 스킬이 0개인 예외 상황 대비)일 뿐, 실제 플레이 스킬은 상점의 스킬 뽑기(5-5, 5-8)로 획득함:
 | 스킬 | 타입 | 배율/회복 | 쿨타임 |
 |---|---|---|---|
 | 🔥 불꽃 발톱 | damage | 1.1배 | 0.8초 |
@@ -123,7 +123,19 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 | 💥 분노의 강타 | damage | 3.0배 | 5초 |
 | ✨ 재생의 불씨 | heal | 최대체력 22% | 6초 |
 
-전직 스킬 (속성별로 다름, 전직 던전 클리어 시 해금):
+**뽑기 스킬 카탈로그(`skillCatalog.js`, 017)**: 등급당 **10종 × 5등급 = 총 50종**(006 시드 15종 + 017 추가 35종). 등급별로 4종 damage / 2종 heal / 1종 stun / 1종 dot / 1종 buff(atk 또는 def) / 1종 haste 구성. base(=power)는 등급마다 ×1.4 기하급수로 벌어짐(노멀 1.0 → 신화 3.84 근방), 레벨 성장식은 기존과 동일(`getEffectiveSkillValue`, 레벨100 최대 ×1.297)
+
+**스킬 타입별 전투 로직** (`BattleScreen`/`DungeonBattle`/`JobDungeonBattle` 세 화면에 동일하게 구현, 값 해석 기준은 `skillCatalog.js` 상단 주석 참고):
+- `damage`: 기존과 동일, `mitigateDamage(atk*배율, 상대방어력)`
+- `heal`: 기존과 동일, 최대체력 대비 %
+- `stun`: `base`=기절 지속시간(초). 적 자동공격 인터벌이 매 틱마다 `Date.now() < enemyStunnedUntil`인지 체크해서, 기절 중이면 공격을 스킵함(로그로 안내)
+- `dot`: `base`=틱당 데미지 배율, `ticks`/`tickInterval`(카탈로그 고정값)만큼 `setTimeout`을 예약해서 일정 간격으로 데미지를 흘림. 시전 시점의 방어력 기준으로 틱뎀 확정(성장/버프 변동은 반영 안 됨, 단순화)
+- `buff_atk`/`buff_def`: `base`=스탯 증가 배율(예 0.3=+30%), `duration`(고정)만큼 지속. `playerBuffs` state에 `{atkUntil, atkMult}`/`{defUntil, defMult}`로 저장하고, 데미지를 주고받는 매 순간 `Date.now()`와 비교해서 활성 여부 판정 후 배율 곱함
+- `haste`: `base`=쿨타임 감소 비율(예 0.3=-30%), `duration`만큼 지속. 즉시 발동 중인 다른 스킬의 타이머를 되돌리진 않고, **헤이스트가 켜진 상태에서 스킬을 쓸 때마다 그 스킬의 쿨타임 자체가 줄어서 적용**되는 방식(구현 단순화 - "앞으로 쓰는 스킬들이 더 빨리 도는" 개념)
+- 버프/기절 상태는 `BuffStatusRow` 컴포넌트가 HP바 아래에 배지로 표시함(⚔️공격력상승/🛡️방어력상승/⚡쿨감/💫적기절중)
+- 헤이스트로 실제 쿨타임이 줄어든 경우, `SkillButton`에는 `skill.cooldown` 대신 그때 계산된 `effectiveCooldowns[skill.id]`를 넘겨서 링 애니메이션도 정확한 시간에 맞춰 돎
+
+전직 스킬 (속성별로 다름, 전직 던전 클리어 시 해금, 전부 `damage` 타입):
 - 1차(Lv.30): 배율 3.6배, 쿨타임 6.5초
 - 2차(Lv.60): 배율 4.6배, 쿨타임 8초
 - 3차(Lv.100): 배율 6.2배, 쿨타임 10초
@@ -162,7 +174,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 몬스터 처치(자동사냥/스테이지 클리어 모두) 시 **골드 획득** → 이 골드로 뽑기(스킬/장비 5종 공통)
 - 4개 슬롯: 무기(`weapon`, atk) / 보호구(`armor`, def) / 장갑(`gloves`, atk 보조) / 신발(`shoes`, hp)
 - 5개 등급: 노멀 < 레어 < 에픽 < 전설 < 신화 (등급 오를수록 스탯 보너스 ↑) — `item_catalog`(서버)/`itemCatalog.js`(client)의 값은 그대로 유지, 가격(`price`)은 더 이상 안 쓰임(직접구매가 없으니)
-- **장비 뽑기(`EquipmentGacha.jsx`, 014)**: 슬롯별로 완전히 분리된 뽑기 4개. 스킬뽑기와 동일 구조(뽑기레벨 1~20, 1000회당 1레벨, 등급 확률표 동일, 1/10/100연차). 지정한 슬롯 안에서만 등급이 뽑힘(슬롯은 더 이상 랜덤 아님 — 013의 랜덤슬롯 방식에서 변경됨)
+- **장비 뽑기(`EquipmentGacha.jsx`, 014, 017)**: 슬롯별로 완전히 분리된 뽑기 4개. 스킬뽑기와 동일 구조(뽑기레벨 1~20, 1000회당 1레벨, 등급 확률표 동일, 1/10/100연차). 지정한 슬롯 안에서만 등급이 뽑힘(슬롯은 더 이상 랜덤 아님 — 013의 랜덤슬롯 방식에서 변경됨). **뽑기레벨도 4슬롯이 완전히 독립적**임(017) — `equipment_gacha_progress` 테이블(`user_id, slot` 복합키)에 슬롯별 누적횟수를 따로 저장, 무기만 많이 뽑아도 신발 뽑기레벨엔 영향 없음. 클라이언트는 `equipmentDrawProgress`(`{weapon,armor,gloves,shoes}`) 객체를 `App.jsx`가 로드해서 `Shop`이 현재 탭에 맞는 값만 골라 `EquipmentGacha`에 전달
 - **뽑기 중복 시 자동 강화**: 이미 보유한 등급을 또 뽑으면 새 행이 안 생기고 `enhance_level`이 **+1씩** 오름(최대 +15) — `user_inventory`에 `unique(user_id, item_key)` 제약을 걸어서 원천적으로 중복 행이 생길 수 없게 함(014). **유료(골드 소모) 강화 시스템은 완전히 삭제됨** — `enhance_item` RPC도 EXECUTE 권한 회수로 차단
 - 슬롯당 1개만 장착 가능 (DB 유니크 제약으로 강제, 기존 그대로)
 - **인벤토리(`Inventory.jsx`)는 상점과 분리된 별도 탭** — 슬롯별(무기/보호구/장갑/신발)로 영역이 나뉘어 표시됨, 각 구역 내에서는 **등급 높은 순으로 정렬**됨(`rarityOrder` 내림차순). **장착 중인 장비는 금색 테두리로 하이라이트**됨(`.inventory-row--equipped`). 각 아이템마다 "장착 시" 보너스와 "보유효과" 보너스를 함께 보여줌. 강화 버튼은 없음(뽑기로만 오르므로)
@@ -265,6 +277,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 **016_dungeon_error_message.sql**
 - `use_dungeon_attempt`의 입장권 소진 오류 메시지를 클라이언트 토스트 문구("오늘 하루 입장권을 모두 소진하셨습니다.")와 동일하게 통일
 
+**017_mail_window_slot_gacha_skill_expansion.sql**
+- `sync_daily_mails`를 "그 시각이 지나면 언제든 지급" → "정각~1시간 이내에만 지급"(`v_hour = v_slot.h`)으로 변경
+- `equipment_gacha_progress` 테이블 신설 - 장비 뽑기레벨을 슬롯별로 완전히 독립 분리(기존 `profiles.total_equipment_draws` 단일 카운터 폐기, `draw_equipment`/`draw_equipment_batch`가 이 테이블 기준으로 재작성됨)
+- `skill_catalog`에 `duration_ms`/`ticks`/`tick_interval_ms` 컬럼 추가, `type` 체크 제약에 `stun`/`dot`/`buff_atk`/`buff_def`/`haste` 추가
+- 스킬 35종 신규 추가(등급당 3→10종, 총 50종) - 기존 15종 키는 그대로 유지(유저 보유 데이터 호환)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -279,6 +297,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 | `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
 | `mails` | ❌ | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송) |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
+| `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
 
 ### 009 보안 감사에서 발견/수정한 것
 
@@ -341,8 +360,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 - 헤더의 "⚙️ 설정" 버튼으로 진입, 내부에 우편함/쿠폰입력 서브탭
 - 스토리 관련 팝업(`StoryIntro`, `ChapterStory`)은 `.center-viewport` 래퍼로 화면 중앙에 표시됨(로그인 화면과 동일한 유틸 클래스)
-- **정기 골드우편**: 매일 08:00 / 12:00 / 19:00 (서울시간) 기준으로 각 10만 골드
-- cron 없이 **지연 생성(lazy) 방식**으로 구현함 — `sync_daily_mails()` RPC를 우편함 진입 시 호출하면, "이미 그 시각이 지났는데 아직 안 만들어진" 우편만 그때 생성됨. `source_key`(예: `daily_gold_2026-07-15_08`)에 유니크 제약을 걸어 중복 생성을 원천 차단
+- **정기 골드우편**: 매일 08:00 / 12:00 / 19:00 (서울시간) 기준으로 각 10만 골드. **017부터 그 정각~1시간 이내에 접속해야만 지급됨**(놓치면 그 회차는 영구 소멸, 소급 지급 없음)
+- cron 없이 **지연 생성(lazy) 방식**으로 구현함 — `sync_daily_mails()` RPC를 우편함 진입 시 호출하면, "지금이 정확히 그 시각의 시(hour) 안"일 때만 생성됨(`v_hour = v_slot.h`, 017에서 `>=`→`=`로 변경). `source_key`(예: `daily_gold_2026-07-15_08`)에 유니크 제약을 걸어 같은 시간대 중복 생성을 원천 차단
 - 우편 수령은 `claim_mail` RPC가 골드 지급 + (있다면) 아이템을 `user_inventory`에 원자적으로 넣어줌
 
 ### 5-11. 설정 > 쿠폰 입력 (`CouponRedeem.jsx`, `coupon.js`)

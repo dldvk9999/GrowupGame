@@ -6,7 +6,7 @@ import SkillGacha from './SkillGacha';
 const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
 
 export default function Shop({
-  userId, gold, totalEquipmentDraws, totalSkillDraws, monsterLevel,
+  userId, gold, equipmentDrawProgress, totalSkillDraws, monsterLevel,
   userSkills, equippedSkills, onInventoryChange, onGoldChange, onSkillsRefresh, onLoadoutChange,
 }) {
   const [tab, setTab] = useState('weapon');
@@ -45,7 +45,7 @@ export default function Shop({
         <EquipmentGacha
           slot={tab}
           gold={gold}
-          totalDraws={totalEquipmentDraws}
+          totalDraws={equipmentDrawProgress?.[tab] ?? 0}
           onGoldChange={onGoldChange}
           onInventoryChange={onInventoryChange}
         />

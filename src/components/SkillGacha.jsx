@@ -144,7 +144,7 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
               <span className="owned-skill-rarity">{RARITY_LABEL[def.rarity]}</span>
               {owned ? (
                 <span className="owned-skill-level">
-                  Lv.{level} · {def.type === 'heal' ? `회복 ${Math.round(effective * 100)}%` : `배율 ${effective.toFixed(2)}x`}
+                  Lv.{level} · {formatSkillPower(def, effective)}
                 </span>
               ) : (
                 <span className="owned-skill-locked">미보유</span>
@@ -187,4 +187,16 @@ function GachaResultList({ results }) {
       </div>
     </div>
   );
+}
+
+function formatSkillPower(def, effective) {
+  switch (def.type) {
+    case 'heal': return `회복 ${Math.round(effective * 100)}%`;
+    case 'stun': return `기절 ${effective.toFixed(1)}초`;
+    case 'dot': return `틱당 ${effective.toFixed(2)}x ×${def.ticks}회`;
+    case 'buff_atk': return `공격력 +${Math.round(effective * 100)}%`;
+    case 'buff_def': return `방어력 +${Math.round(effective * 100)}%`;
+    case 'haste': return `쿨감 -${Math.round(effective * 100)}%`;
+    default: return `배율 ${effective.toFixed(2)}x`;
+  }
 }

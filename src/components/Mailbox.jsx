@@ -43,7 +43,7 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
   return (
     <div className="mailbox-screen">
       <h2>우편함</h2>
-      <p className="stage-select-hint">매일 아침 8시 / 낮 12시 / 저녁 7시(서울시간)에 골드 우편이 도착해요.</p>
+      <p className="stage-select-hint">매일 아침 8시 / 낮 12시 / 저녁 7시(서울시간) 정각부터 1시간 안에 접속해야 그 우편을 받을 수 있어요. 놓치면 그 회차는 사라져요.</p>
 
       {error && <p className="shop-error">{error}</p>}
       {loading && <p className="app-loading">불러오는 중...</p>}

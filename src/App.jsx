@@ -5,6 +5,7 @@ import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/mon
 import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus } from './lib/inventory';
+import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
@@ -50,6 +51,7 @@ export default function App() {
   const [activeMonster, setActiveMonster] = useState(null);
   const [clearedStageIds, setClearedStageIds] = useState(new Set());
   const [inventory, setInventory] = useState([]);
+  const [equipmentDrawProgress, setEquipmentDrawProgress] = useState({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
   const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
   const [pendingStage, setPendingStage] = useState(null);
@@ -84,7 +86,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -92,6 +94,7 @@ export default function App() {
         fetchUserSkills(userId),
         fetchDungeonAttemptsToday(userId),
         fetchDungeonProgress(userId),
+        fetchEquipmentDrawProgress(userId),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -99,6 +102,7 @@ export default function App() {
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
       setDungeonProgress(progress);
+      setEquipmentDrawProgress(equipDraws);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -148,8 +152,12 @@ export default function App() {
 
   const refreshInventory = useCallback(async () => {
     if (!session) return;
-    const inv = await fetchInventory(session.user.id);
+    const [inv, drawProgress] = await Promise.all([
+      fetchInventory(session.user.id),
+      fetchEquipmentDrawProgress(session.user.id),
+    ]);
     setInventory(inv);
+    setEquipmentDrawProgress(drawProgress);
   }, [session]);
 
   function handleGoldChange(newGold) {
@@ -375,7 +383,7 @@ export default function App() {
               <Shop
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
-                totalEquipmentDraws={profile?.total_equipment_draws ?? 0}
+                equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
                 monsterLevel={activeMonster.level}
                 userSkills={userSkills}
