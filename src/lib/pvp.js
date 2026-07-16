@@ -31,9 +31,21 @@ export async function fetchPvpShop() {
   const syncRes = await supabase.rpc('sync_pvp_shop');
   if (syncRes.error) throw syncRes.error;
 
+  // period_key로 필터링 없이 전체 조회하면 지난 시간대 진열대까지 다 섞여 나오므로,
+  // 가장 최신 period_key(=지금 시간대)만 걸러서 가져옴
+  const { data: latest, error: latestError } = await supabase
+    .from('pvp_shop_listings')
+    .select('period_key')
+    .order('period_key', { ascending: false })
+    .limit(1);
+  if (latestError) throw latestError;
+  const currentPeriod = latest?.[0]?.period_key;
+  if (!currentPeriod) return [];
+
   const { data, error } = await supabase
     .from('pvp_shop_listings')
     .select('*')
+    .eq('period_key', currentPeriod)
     .order('slot_index', { ascending: true });
   if (error) throw error;
   return data;
