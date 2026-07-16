@@ -148,6 +148,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 2차(Lv.60): 배율 4.6배, 쿨타임 8초
 - 3차(Lv.100): 배율 6.2배, 쿨타임 10초
 - 4차(Lv.140, 021 신규): 배율 8.2배, 쿨타임 12.5초, statMultiplier 10.0배(기존 3차 6.0배에서 상향)
+- 5차(Lv.180, 029 신규): 배율 10.6배, 쿨타임 15.5초, statMultiplier 16.0배(기존 4차 10.0배에서 상향)
 
 ⚠️ **버그 수정 이력**: 스킬 아이콘 일부가 특정 기기/브라우저에서 X박스(글자 없음)로 보이는 문제가 있었음 — `stone_throw`(🪨)와 `phoenix_feather`(🪶)가 Unicode 13.0(2020년) 이모지라 오래된 폰트/OS에서 지원이 안 될 수 있었음. 각각 🔨/💖(둘 다 훨씬 오래되고 보편적인 이모지)로 교체함. 추가로 `index.css`의 기본 `font-family`에 `Apple Color Emoji`/`Segoe UI Emoji`/`Noto Color Emoji` 등 이모지 전용 폰트를 폴백으로 추가해서, 특정 이모지가 본문 폰트에 없어도 브라우저가 시스템 이모지 폰트로 대체 렌더링하도록 시스템적으로 보강함. **새 스킬/아이템에 이모지 아이콘을 넣을 땐 너무 최신(대략 2019년 이후) 이모지는 피할 것**
 
@@ -335,6 +336,10 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 **028_equipment_synthesis_batch.sql**
 - `synthesize_equipment_batch(p_item_key)` RPC 신설 - 가능한 만큼 한번에 반복 합성(왕복 여러 번 안 함), 몇 회 합성됐는지도 반환
 
+**029_job_tier5_and_mission_cooldown_fix.sql**
+- `mission_state.assigned_at` 컬럼 추가, `claim_mission_reward`의 20초 쿨다운 기준을 `updated_at`→`assigned_at`으로 변경(오탐 버그 수정, 5-13 참고)
+- **5차 전직(Lv.180) 추가** — `owned_monsters.unlocked_job_tier` 체크 제약 0~4→0~5, `job_dungeon_sessions.tier` 체크 제약에 5 추가, `save_monster_growth`/`calc_monster_stats` 상한선 10.0→16.0배로 재조정, `start_job_dungeon`에 5차 레벨조건(180) 추가, `claim_mission_reward`의 온보딩 우선순위 체인에 `job_tier5` 추가
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -405,12 +410,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 
 ### 5-9-1. 전직 던전 (`JobDungeonBattle.jsx`, `jobDungeon.js`, `jobDungeonApi.js`)
 
-- 전직(Lv.30/60/100/**140**)은 이제 **레벨업만으로 자동 적용되지 않음**. 레벨 조건을 채우면 상단에 "✨ 전직 가능!" 배너가 뜨고(`hasPendingJobAdvancement`), **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨
-- `owned_monsters.unlocked_job_tier`(0~4, 021에서 3→4로 확장)가 "실제 적용된" 전직 단계의 단일 진실 공급원. `jobAdvancement.js`가 "조건 충족(레벨 기준, `getEligibleTierNumber`)"과 "실제 적용(unlocked_job_tier 기준, `getAppliedTier`)"을 분리해서 관리함
+- 전직(Lv.30/60/100/140/**180**)은 이제 **레벨업만으로 자동 적용되지 않음**. 레벨 조건을 채우면 상단에 "✨ 전직 가능!" 배너가 뜨고(`hasPendingJobAdvancement`), **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨
+- `owned_monsters.unlocked_job_tier`(0~5, 029에서 4→5로 확장)가 "실제 적용된" 전직 단계의 단일 진실 공급원. `jobAdvancement.js`가 "조건 충족(레벨 기준, `getEligibleTierNumber`)"과 "실제 적용(unlocked_job_tier 기준, `getAppliedTier`)"을 분리해서 관리함
 - 전직 던전은 순차적으로만 진행 가능(전 단계 안 깨면 다음 단계 도전 불가, `start_job_dungeon` RPC가 레벨+이전단계 완료 여부 검증), 하루 횟수 제한은 없음
-- **난이도**: 같은 레벨대 일반 던전보다 훨씬 강하게 잡음 (예: 1차 Lv.30 기준 보스 체력 2600/공격력 130, 공격 텀 1.6초로 빠름) — 기본공격만 연타해서는 못 이기고 스킬 로테이션(특히 회복기)이 필요하도록 설계. **4차(Lv.140, `JOB_DUNGEON_BOSS[4]`) 보스는 체력 28000/공격력 780/방어력 840**으로 3차 대비 대폭 강화됨
+- **난이도**: 같은 레벨대 일반 던전보다 훨씬 강하게 잡음 (예: 1차 Lv.30 기준 보스 체력 2600/공격력 130, 공격 텀 1.6초로 빠름) — 기본공격만 연타해서는 못 이기고 스킬 로테이션(특히 회복기)이 필요하도록 설계. **5차(Lv.180, `JOB_DUNGEON_BOSS[5]`) 보스는 체력 58000/공격력 1450/방어력 1680**으로 역대 최강
 - 승리하면 경험치는 얻지만, **전직 자체(외형/스탯/스킬 적용)는 별도로 `claim_job_dungeon` RPC를 호출**해야 반영됨(`job_dungeon_sessions`로 "진짜 입장→클리어"를 서버가 검증, 세션 위조 불가)
-- **외형 변경**: 전직에 성공하면 `MonsterSprite`가 진화단계 그림 대신 전직 전용 그림으로 바뀜. `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier>0`이면 `${element}_job${tier}` 키를 반환하고, `JobTierSprite.jsx`(공용 렌더러, 오라/날개/왕관이 단계별로 화려해짐)가 이제 12개 조합(3속성×4단계)을 커버함 — 4차는 별도 아트 없이 기존 컴포넌트가 `tier=4`를 받으면 오라가 더 커지고 3차와 동일한 왕관/할로 장식이 유지되는 방식으로 자동 확장됨
+- **외형 변경**: 전직에 성공하면 `MonsterSprite`가 진화단계 그림 대신 전직 전용 그림으로 바뀜. `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier>0`이면 `${element}_job${tier}` 키를 반환하고, `JobTierSprite.jsx`(공용 렌더러, 오라/날개/왕관이 단계별로 화려해짐)가 이제 15개 조합(3속성×5단계)을 커버함 — 4~5차는 별도 아트 없이 기존 컴포넌트가 `tier` 값을 받으면 오라가 계속 더 커지고 3차와 동일한 왕관/할로 장식이 유지되는 방식으로 자동 확장됨
 
 ### 5-10. 설정 > 우편함 (`Settings.jsx`, `Mailbox.jsx`, `mail.js`)
 
@@ -426,7 +431,8 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - 화면 우하단(모바일은 하단 폭 전체)에 **항상 떠있는 플로팅 버튼**. 현재 "미션 #N", 아이콘, 라벨, 진행도(`N/M`)를 표시하고 진행바가 채워짐
 - **완료되면 초록 테두리 + 살짝 커졌다작아지는 펄스 애니메이션**으로 하이라이트되고, 클릭하면 `claim_mission_reward` RPC 호출 → 골드 지급 + 다음 미션으로 자동 전환
 - **일반 반복 미션 4종**이 `mission_number % 4`로 순환: `kill_monsters`(몬스터 10마리, 💰800) → `spend_gold`(골드 10000 사용, 💰1000) → `login_minutes`(**60초** 접속유지, 💰600, target은 DB상 "분" 단위 1로 저장되지만 표시만 `t*60`으로 초 환산) → `use_skills`(스킬 15회 사용, 💰700) → 다시 처음부터
-- **우선순위 온보딩 미션**이 항상 먼저 끼어듦(`claim_mission_reward`가 다음 미션을 정할 때마다 재검사): 활성 몬스터가 전직 가능 레벨(30/60/100/**140**)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`~`job_tier4` 미션(보상 3000~**24000**)이 최우선으로 배정되고, 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인 — 둘 다 아니면 그제서야 일반 미션으로 넘어감. 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가)
+- **우선순위 온보딩 미션**이 항상 먼저 끼어듦(`claim_mission_reward`가 다음 미션을 정할 때마다 재검사): 활성 몬스터가 전직 가능 레벨(30/60/100/140/**180**)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`~`job_tier5` 미션(보상 3000~**40000**)이 최우선으로 배정되고, 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인 — 둘 다 아니면 그제서야 일반 미션으로 넘어감. 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가)
+- ⚠️ **버그 수정 이력(029)**: `claim_mission_reward`의 20초 쿨다운이 `mission_state.updated_at` 기준이었는데, `increment_mission_progress`도 진행도를 올릴 때마다 `updated_at`을 같이 갱신해서 — **미션을 막 완료시킨 마지막 진행도 증가 직후 완료 버튼을 눌러도 "너무 빠릅니다" 오탐이 뜨는 문제**가 있었음. `mission_state`에 `assigned_at`(미션이 배정된 시각) 컬럼을 별도로 두고, 쿨다운 체크는 이 값만 보도록 분리해서 수정함. **진행도 갱신 시각과 쿨다운 판정 기준 시각은 절대 같은 컬럼을 쓰면 안 됨** — 비슷한 실수 재발 방지용 메모
 - **진행도 갱신 방식**: `bumpMission(missionKey, amount)`가 서버 RPC(`increment_mission_progress`)를 호출 — 현재 활성 미션 키와 일치할 때만 반영되고, 1회 증가폭은 서버에서 최대 1000으로 캡 걸려있음(남용 방지). 호출 지점: 몬스터 처치(스테이지클리어/자동사냥/일반던전/전직던전 승리 4곳, `App.jsx`), 스킬 사용(3개 전투화면 `useSkill` 공통), 골드 소비(스킬뽑기/장비뽑기 성공 시 소비액만큼)
 - **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
 - "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴

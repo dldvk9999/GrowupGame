@@ -5,9 +5,10 @@ export const JOB_DUNGEON_BOSS = {
   2: { name: '심판자의 결계', requiredLevel: 60, hp: 6200, atk: 260, def: 220 },
   3: { name: '종언의 제단', requiredLevel: 100, hp: 13000, atk: 430, def: 420 },
   4: { name: '초월자의 관문', requiredLevel: 140, hp: 28000, atk: 780, def: 840 },
+  5: { name: '태초의 심판자', requiredLevel: 180, hp: 58000, atk: 1450, def: 1680 },
 };
 
-const TIER_TITLE = { 1: '1차 전직', 2: '2차 전직', 3: '3차 전직', 4: '4차 전직' };
+const TIER_TITLE = { 1: '1차 전직', 2: '2차 전직', 3: '3차 전직', 4: '4차 전직', 5: '5차 전직' };
 
 export function getJobDungeonBoss(tier, element) {
   const base = JOB_DUNGEON_BOSS[tier];

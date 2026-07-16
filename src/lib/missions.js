@@ -20,6 +20,7 @@ export const MISSION_META = {
   job_tier2: { icon: '✨', label: () => '2차 전직 던전 클리어하기' },
   job_tier3: { icon: '✨', label: () => '3차 전직 던전 클리어하기' },
   job_tier4: { icon: '✨', label: () => '4차 전직 던전 클리어하기' },
+  job_tier5: { icon: '✨', label: () => '5차 전직 던전 클리어하기' },
   equip_skill_slot: { icon: '🆕', label: () => '새로 열린 스킬 슬롯 채우기' },
 };
 
@@ -47,6 +48,7 @@ export function isMissionComplete(mission, { unlockedJobTier, equippedSkillCount
     case 'job_tier2': return (unlockedJobTier ?? 0) >= 2;
     case 'job_tier3': return (unlockedJobTier ?? 0) >= 3;
     case 'job_tier4': return (unlockedJobTier ?? 0) >= 4;
+    case 'job_tier5': return (unlockedJobTier ?? 0) >= 5;
     case 'equip_skill_slot': return (equippedSkillCount ?? 0) >= (skillSlotLimit ?? 1);
     default: return mission.progress >= mission.target;
   }
