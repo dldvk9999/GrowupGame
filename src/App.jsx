@@ -7,7 +7,7 @@ import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus } from './lib/inventory';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
-import { resolveLoadout } from './lib/skillCatalog';
+import { resolveLoadout, getSkillSlotCount } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
 import { getDungeonStage } from './lib/dungeonStages';
@@ -16,7 +16,7 @@ import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { usePwaInstall } from './lib/usePwaInstall';
 import { showToast } from './lib/toast';
-import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate } from './lib/missions';
+import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
@@ -324,7 +324,7 @@ export default function App() {
   }
 
   async function handleClaimMission() {
-    if (!mission || mission.progress < mission.target) return;
+    if (!missionCompleted) return;
     setClaimingMission(true);
     try {
       const reward = mission.reward_gold;
@@ -347,12 +347,18 @@ export default function App() {
   const jobAdvancementPending = activeMonster
     ? hasPendingJobAdvancement(activeMonster.element, activeMonster.level, activeMonster.unlockedJobTier ?? 0)
     : false;
+  // 전직/스킬슬롯 온보딩 미션은 progress 카운터가 아니라 실제 게임 상태로 완료 여부를 판정해야 함
+  const missionCompleted = isMissionComplete(mission, {
+    unlockedJobTier: activeMonster?.unlockedJobTier ?? 0,
+    equippedSkillCount: (profile?.equipped_skills ?? []).length,
+    skillSlotLimit: getSkillSlotCount(activeMonster?.level ?? 1),
+  });
 
   return (
     <div className="app-shell">
       <ToastContainer />
       {stage === STAGE.GAME && (
-        <MissionFloatingButton mission={mission} onClaim={handleClaimMission} claiming={claimingMission} />
+        <MissionFloatingButton mission={mission} completed={missionCompleted} onClaim={handleClaimMission} claiming={claimingMission} />
       )}
       {stage === STAGE.GAME && (
         <header className="app-header">

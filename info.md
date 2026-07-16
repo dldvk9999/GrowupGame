@@ -313,6 +313,12 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `pvp_battle_log` 테이블 + `start_pvp_battle()` RPC (매칭+전투판정+보상까지 한번에, 20초 쿨다운), `fetch_my_combat_power()` RPC
 - `pvp_shop_listings`(공용 진열대, 매시 정각 lazy 갱신) + `pvp_costume_inventory`(보유 코스튬) 테이블, `sync_pvp_shop()`/`buy_pvp_costume()` RPC
 
+**024**: 023 배포 중 `calc_combat_power`가 `language sql`인데 몸통을 `begin/return/end`(plpgsql 문법)로 써서 문법 오류 났던 걸 수정(023 파일 자체를 고쳐서 재배포, 별도 024 파일 없음 — `supabase db push`가 실패한 마이그레이션은 트랜잭션 롤백하기 때문에 023을 통째로 다시 실행해도 안전)
+
+**025_chat_realtime_pvp_reward_tune.sql**
+- `chat_messages`를 `supabase_realtime` publication에 등록 (누락돼있어서 메시지 전송은 성공해도 화면에 실시간 반영이 안 되던 버그 수정)
+- `start_pvp_battle`의 승리 보상 공식을 약 30% 하향(`max(30,30+opp/50)` → `max(20,20+opp/65)`)
+
 ### 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -409,6 +415,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
 - "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴
 - 클라이언트가 진행도를 부풀려 보낼 수는 있지만(예: `bumpMission('spend_gold', 1000)`을 반복 호출), 어차피 미션 보상 자체가 소액(600~1200골드 수준, 온보딩 미션만 예외적으로 큼)이라 리스크 대비 실효성이 낮고, 온보딩 미션(가장 보상이 큰 것들)은 앞서 설명대로 서버가 실제 게임 상태로 재검증하므로 조작 불가능함
+- ⚠️ **버그 수정 이력**: `job_tier1`~`4`/`equip_skill_slot`(온보딩 미션)은 애초에 `progress`가 절대 증가하지 않고(실제 게임 상태로만 서버가 완료 검증) `target`이 항상 1로 고정된 구조인데, 클라이언트가 "완료됐다"는 판단을 `mission.progress >= mission.target`으로만 계산해서 **실제로 조건을 채워도 버튼이 영영 완료 표시로 안 바뀌던 버그**가 있었음(025 대응 커밋에서 수정). `missions.js`의 `isMissionComplete(mission, {unlockedJobTier, equippedSkillCount, skillSlotLimit})`가 미션 종류별로 실제 게임 상태를 직접 보고 판정하도록 바뀌었고, `App.jsx`가 이 결과를 `completed` prop으로 `MissionFloatingButton`에 명시적으로 내려줌(컴포넌트 내부에서 progress/target으로 자체 판단하지 않음). **새로운 온보딩형(boolean) 미션을 추가할 때는 이 함수에도 케이스를 같이 추가해야 함**, 안 그러면 똑같은 버그가 재발함
 - ⚠️ **보안 패치(022)**: 처음엔 진행도 채우기+클레임 사이에 아무 시간제한이 없어서, devtools로 `bumpMission`→`claimMissionReward`를 빠르게 반복 호출하면 실제 플레이 없이 무한히 골드를 받아갈 수 있는 구멍이 있었음. `claim_mission_reward`에 **"미션이 배정된 시각(`updated_at`)으로부터 최소 20초"** 게이트를 추가해서 막음(idle 보상의 2.5초 최소 간격 제한과 동일한 설계). 진행도 자체를 빨리 채우는 건 여전히 가능하지만, 클레임 자체가 20초에 1번으로 막혀서 실질적 파밍 속도가 크게 제한됨
 - **모바일 레이아웃 겹침 주의**: 플로팅 버튼이 `position:fixed`라서 콘텐츠 하단(특히 전투화면 스킬버튼 줄)을 가릴 수 있음 — `app-main`의 하단 padding을 데스크톱 110px/모바일 150px로 넉넉하게 잡아서 방지함(`index.css`). 하단에 새 UI를 추가할 때도 이 여백 고려할 것
 
@@ -448,6 +455,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - `useLobbyChat.js` 훅은 사실 001/004 단계에서 이미 완성돼 있었음(최근 50개 로드 + Supabase Realtime `postgres_changes` INSERT 구독) — UI만 없었던 상태라 `LobbyChat.jsx`만 새로 만들어서 연결함
 - 닉네임은 서버 트리거가 `chat_messages.nickname`을 강제로 덮어씀(004) — client가 아무 닉네임이나 보내도 실제 저장되는 건 본인 프로필 닉네임이라 사칭 불가능
 - 하단 탭 "💬 로비"에서 접근, 최대 200자, 전체 유저 공용(방 구분 없음)
+- ⚠️ **버그 수정 이력**: `chat_messages` 테이블이 `supabase_realtime` publication에 등록이 안 돼있어서, 메시지는 서버에 정상 저장되는데도 **아무한테도(보낸 사람 본인 포함) 실시간으로 화면에 안 뜨는** 문제가 있었음(025에서 `alter publication supabase_realtime add table chat_messages`로 수정). 추가로 클라이언트도 realtime 수신 여부와 무관하게 항상 동작하도록, `sendMessage`가 INSERT 결과를 직접 받아서 **보낸 즉시 내 화면에 바로 반영**하게 바꿈(realtime으로 같은 메시지가 나중에 도착해도 `id` 기준으로 중복 추가 안 되게 dedupe 처리). **앞으로 realtime 구독이 필요한 새 테이블을 추가할 때는 `supabase_realtime` publication 등록을 빠뜨리지 않도록 유의**
 
 ### 5-18. PvP (`PvP.jsx`, `PvPArena.jsx`, `PvPShop.jsx`, `pvp.js`, 023)
 
@@ -455,7 +463,7 @@ LOADING → (세션 없음) → AUTH (로그인/회원가입)
 - **매칭 로직** (`start_pvp_battle` RPC): 활성 몬스터가 있는 다른 유저 중 무작위 1명을 뽑아서, 그 사람 전투력이 내 전투력의 75~125% 범위 안이면 그대로 매칭. 범위 밖이거나 매칭 대상이 아예 없으면 **내 전투력 기준 90~110% 랜덤인 가상 캐릭터**(이름은 정해진 7개 후보 중 랜덤, "그림자 전사" 등)를 대신 세움
 - **전투력 계산**: `calc_monster_stats()`가 종족 base 스탯 + 레벨 성장 + 전직 배율(1~4차)로 "만피 기준" atk/def/maxHp를 다시 계산하고, `calc_combat_power()` = `atk*4.5+def*3.2+maxHp*0.6`(클라이언트 `combat.js`의 공식과 동일하게 맞춤). **장비 보너스는 PvP 전투력 계산에 포함되지 않음**(서버에서 매번 인벤토리를 조인해서 계산하는 부담을 피하려는 의도적 단순화 — 장비 착용 비중이 커지면 나중에 반영 고려)
 - **승패 판정**: 양측 전투력에 각각 ±15% 랜덤 보정을 곱해서 비교, 높은 쪽이 승리(약간의 운 요소). 정교한 턴제 시뮬레이션은 하지 않음(단순화)
-- **PvP 재화**: 승리 시 `reward = max(30, 30 + 상대전투력/50)`을 획득(`profiles.pvp_currency`), 패배 시 없음. 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음
+- **PvP 재화**: 승리 시 `reward = max(20, 20 + 상대전투력/65)`을 획득(`profiles.pvp_currency`, 025에서 기존 `max(30, 30+상대전투력/50)`보다 약 30% 하향), 패배 시 없음. 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음
 - ⚠️ **보안**: 미션 클레임과 동일하게 `profiles.last_pvp_battle_at` 기준 **최소 20초 쿨다운**을 서버에 걸어둠(무한 반복 파밍 방지)
 - **PvP 상점(코스튬)**: 전체 유저 공용 진열대 30칸, **매시 정각마다 자동 갱신**(`sync_pvp_shop` RPC, 우편함과 동일한 lazy-generation 패턴 — cron 없이 "이번 시간대 진열대가 아직 없으면 그때 생성"). 무기/방어구/장갑/신발 × 5등급 조합 중 등급 가중치(노멀40%~신화4%)로 랜덤 추첨, 가격은 등급별 기준가(노멀 3000~신화 150000)에 ±20% 랜덤 가산
 - **코스튬은 전투 스탯에 영향 없는 수집/과시용**임 — `pvp_costume_inventory`에 보유 여부만 기록되고, 기존 장비 인벤토리(`user_inventory`)와는 완전히 분리된 별도 테이블. (현재 게임이 장비 자체도 캐릭터 스프라이트에 시각적으로 반영되지 않는 구조라, 코스튬도 동일하게 "보유 목록"으로만 존재함 — 나중에 스프라이트에 장비/코스튬을 시각적으로 표시하는 기능이 생기면 그때 코스튬이 실제로 "입혀지는" 형태로 확장 가능)

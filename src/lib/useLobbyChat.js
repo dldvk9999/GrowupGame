@@ -21,14 +21,14 @@ export function useLobbyChat(profile) {
         if (!ignore && data) setMessages(data.reverse());
       });
 
-    // 신규 메시지 실시간 구독
+    // 신규 메시지 실시간 구독 (다른 사람이 보낸 메시지가 내 화면에도 뜨게 함)
     const channel = supabase
       .channel('lobby-chat')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages' },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new]);
+          setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
         }
       )
       .subscribe();
@@ -42,12 +42,20 @@ export function useLobbyChat(profile) {
   const sendMessage = useCallback(
     async (content) => {
       if (!profile || !content.trim()) return;
-      const { error } = await supabase.from('chat_messages').insert({
-        user_id: profile.id,
-        nickname: profile.nickname,
-        content: content.trim(),
-      });
+      // insert 결과를 직접 받아서 내 화면엔 realtime을 기다리지 않고 바로 반영함
+      // (realtime publication 설정과 무관하게 "보냈는데 안 뜨는" 문제가 없도록)
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          user_id: profile.id,
+          nickname: profile.nickname,
+          content: content.trim(),
+        })
+        .select()
+        .single();
       if (error) throw error;
+      setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data]));
+      return data;
     },
     [profile]
   );

@@ -33,6 +33,25 @@ export function getMissionIcon(missionKey) {
   return MISSION_META[missionKey]?.icon ?? '📋';
 }
 
+/**
+ * 미션 완료 여부 판정.
+ * 일반 반복 미션(kill_monsters 등)은 progress/target 카운터로 판단하지만,
+ * 온보딩 우선순위 미션(job_tier1~4, equip_skill_slot)은 progress가 아예 증가하지 않고
+ * "실제 게임 상태"로만 서버가 검증하는 구조라, 클라이언트도 동일하게 실제 상태로 판정해야
+ * 완료됐는데도 버튼이 안 넘어가는 문제가 안 생김.
+ */
+export function isMissionComplete(mission, { unlockedJobTier, equippedSkillCount, skillSlotLimit } = {}) {
+  if (!mission) return false;
+  switch (mission.mission_key) {
+    case 'job_tier1': return (unlockedJobTier ?? 0) >= 1;
+    case 'job_tier2': return (unlockedJobTier ?? 0) >= 2;
+    case 'job_tier3': return (unlockedJobTier ?? 0) >= 3;
+    case 'job_tier4': return (unlockedJobTier ?? 0) >= 4;
+    case 'equip_skill_slot': return (equippedSkillCount ?? 0) >= (skillSlotLimit ?? 1);
+    default: return mission.progress >= mission.target;
+  }
+}
+
 export async function fetchOrInitMissionState() {
   const { data, error } = await supabase.rpc('init_mission_state');
   if (error) throw error;
