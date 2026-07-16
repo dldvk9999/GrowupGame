@@ -1,0 +1,40 @@
+name: Repair Supabase Migration History (one-time)
+
+# SQL Editor에 수동으로 이미 실행해둔 마이그레이션들을
+# supabase CLI의 이력 테이블에 "적용됨"으로 등록만 해주는 1회성 도구.
+# 이후로는 supabase-migrate.yml 워크플로우가 새 마이그레이션만 정상적으로 적용함.
+# 실행 후에는 이 파일을 지워도 되고, 남겨둬도 무해함(다시 실행해도 이미 적용된 건 알아서 무시됨).
+on:
+  workflow_dispatch: {}
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+      - name: Mark existing migrations as already applied
+        run: |
+          supabase migration repair --status applied \
+            001 002 003 004 005 006 007 008 009 010 \
+            011 012 013 014 015 016 017 018 019 020 \
+            021 022
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Verify
+        run: supabase migration list
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
