@@ -33,3 +33,10 @@ export async function synthesizeEquipment(itemKey) {
   if (error) throw error;
   return data?.[0]; // { target_item_key, target_new_level, source_remaining_level }
 }
+
+/** 장비 일괄합성 - 가능한 만큼 한번에 반복 합성 */
+export async function synthesizeEquipmentBatch(itemKey) {
+  const { data, error } = await supabase.rpc('synthesize_equipment_batch', { p_item_key: itemKey });
+  if (error) throw error;
+  return data?.[0]; // { target_item_key, target_new_level, source_remaining_level, times }
+}

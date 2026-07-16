@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
+import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, getSkillPossessionBonus, sumSkillPossessionBonus, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch, setSkillLoadout } from '../lib/skillGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
@@ -124,6 +124,10 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
 
       <h3 className="mypage-subtitle">스킬 편성 ({pendingLoadout.length}/{slotLimit} 슬롯)</h3>
       <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75마다 +1). 원하는 스킬을 눌러 편성하세요.</p>
+      <p className="gacha-hint">
+        보유한 스킬은 장착 여부와 상관없이 <strong>상시 공격력 보너스</strong>를 줘요.
+        현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
+      </p>
 
       <div className="loadout-slots">
         {Array.from({ length: slotLimit }, (_, i) => {
@@ -162,6 +166,8 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
               {owned ? (
                 <span className="owned-skill-level">
                   Lv.{level} · {formatSkillPower(def, effective)}
+                  <br />
+                  <span className="owned-skill-possession">보유효과 +{getSkillPossessionBonus(def, level)} ATK</span>
                 </span>
               ) : (
                 <span className="owned-skill-locked">미보유</span>

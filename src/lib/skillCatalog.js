@@ -8,7 +8,7 @@ export const SKILL_CATALOG = [
   // ---------- 노멀 ----------
   { skillKey: 'basic_strike', name: '기본 찌르기', icon: '🗡️', rarity: 'normal', rarityOrder: 1, type: 'damage', base: 1.00, cooldown: 800, description: '기본 공격' },
   { skillKey: 'quick_slash', name: '속사 베기', icon: '💨', rarity: 'normal', rarityOrder: 1, type: 'damage', base: 1.05, cooldown: 900, description: '빠르고 가벼운 연속 베기' },
-  { skillKey: 'stone_throw', name: '돌팔매', icon: '🪨', rarity: 'normal', rarityOrder: 1, type: 'damage', base: 1.02, cooldown: 850, description: '돌을 던져 공격' },
+  { skillKey: 'stone_throw', name: '돌팔매', icon: '🔨', rarity: 'normal', rarityOrder: 1, type: 'damage', base: 1.02, cooldown: 850, description: '돌을 던져 공격' },
   { skillKey: 'double_jab', name: '연속 잽', icon: '👊', rarity: 'normal', rarityOrder: 1, type: 'damage', base: 1.08, cooldown: 950, description: '빠르게 두 번 타격' },
   { skillKey: 'minor_heal', name: '작은 회복', icon: '💧', rarity: 'normal', rarityOrder: 1, type: 'heal', base: 0.10, cooldown: 5000, description: '체력을 소량 회복' },
   { skillKey: 'light_bandage', name: '가벼운 붕대', icon: '🩹', rarity: 'normal', rarityOrder: 1, type: 'heal', base: 0.12, cooldown: 5200, description: '상처를 간단히 감쌈' },
@@ -35,7 +35,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'plasma_burst', name: '플라즈마 폭발', icon: '🔆', rarity: 'epic', rarityOrder: 3, type: 'damage', base: 1.98, cooldown: 2750, description: '고에너지 폭발' },
   { skillKey: 'blade_dance', name: '칼춤', icon: '🗡️', rarity: 'epic', rarityOrder: 3, type: 'damage', base: 2.02, cooldown: 2850, description: '연속 베기 콤보' },
   { skillKey: 'greater_heal', name: '상급 치유', icon: '💠', rarity: 'epic', rarityOrder: 3, type: 'heal', base: 0.20, cooldown: 6000, description: '깊은 상처까지 회복' },
-  { skillKey: 'phoenix_feather', name: '불사조 깃털', icon: '🪶', rarity: 'epic', rarityOrder: 3, type: 'heal', base: 0.22, cooldown: 6100, description: '불사조의 깃털이 생명력을 불어넣음' },
+  { skillKey: 'phoenix_feather', name: '불사조 깃털', icon: '💖', rarity: 'epic', rarityOrder: 3, type: 'heal', base: 0.22, cooldown: 6100, description: '불사조의 깃털이 생명력을 불어넣음' },
   { skillKey: 'gravity_crush', name: '중력 압박', icon: '🌌', rarity: 'epic', rarityOrder: 3, type: 'stun', base: 1.6, cooldown: 11000, description: '중력으로 짓눌러 움직임을 봉인' },
   { skillKey: 'corrosive_mist', name: '부식 안개', icon: '☁️', rarity: 'epic', rarityOrder: 3, type: 'dot', base: 0.60, cooldown: 8000, ticks: 4, tickInterval: 1500, description: '부식성 안개가 서서히 갉아먹음' },
   { skillKey: 'berserk', name: '광폭화', icon: '😤', rarity: 'epic', rarityOrder: 3, type: 'buff_atk', base: 0.30, cooldown: 17000, duration: 10000, description: '이성을 놓고 힘을 폭발시킴' },
@@ -71,6 +71,27 @@ export const RARITY_COLOR = { normal: '#9aa0b8', rare: '#3aa8e0', epic: '#b566e0
 
 export function getSkillDef(skillKey) {
   return SKILL_CATALOG.find((s) => s.skillKey === skillKey);
+}
+
+// 장비의 "보유효과"와 같은 개념: 장착/미장착 상관없이 보유만 하고 있어도
+// 상시 공격력 보너스를 조금씩 줌. 등급이 높을수록, 스킬레벨이 높을수록 커짐.
+const SKILL_POSSESSION_BASE = { normal: 2, rare: 4, epic: 8, legendary: 16, mythic: 32 };
+
+/** 스킬 1개의 보유효과 - 상시 공격력 보너스 (정수) */
+export function getSkillPossessionBonus(skillDef, skillLevel) {
+  const base = SKILL_POSSESSION_BASE[skillDef.rarity] ?? 2;
+  return Math.round(base * (1 + (skillLevel - 1) * 0.01));
+}
+
+/** 보유한 스킬 전체의 보유효과 합산 - 상시 공격력 보너스 총합 */
+export function sumSkillPossessionBonus(userSkills) {
+  let total = 0;
+  for (const s of userSkills ?? []) {
+    const def = getSkillDef(s.skill_key);
+    if (!def) continue;
+    total += getSkillPossessionBonus(def, s.skill_level);
+  }
+  return total;
 }
 
 /**

@@ -7,7 +7,7 @@ import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus } from './lib/inventory';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
-import { resolveLoadout, getSkillSlotCount } from './lib/skillCatalog';
+import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
 import { getDungeonStage } from './lib/dungeonStages';
@@ -340,7 +340,13 @@ export default function App() {
   }
 
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
-  const equipmentBonus = getTotalEquipmentBonus(inventory);
+  const equipmentOnlyBonus = getTotalEquipmentBonus(inventory);
+  const skillPossessionAtk = sumSkillPossessionBonus(userSkills);
+  const equipmentBonus = {
+    atk: equipmentOnlyBonus.atk + skillPossessionAtk,
+    def: equipmentOnlyBonus.def,
+    hp: equipmentOnlyBonus.hp,
+  };
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
   const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];
@@ -510,6 +516,12 @@ export default function App() {
                 profile={profile}
                 activeMonster={activeMonster}
                 onCurrencyChange={(newCurrency) => setProfile((p) => ({ ...p, pvp_currency: newCurrency }))}
+                onBattleResolved={(res) => setProfile((p) => ({
+                  ...p,
+                  pvp_currency: res.currency_balance,
+                  pvp_wins: (p.pvp_wins ?? 0) + (res.result === 'win' ? 1 : 0),
+                  pvp_losses: (p.pvp_losses ?? 0) + (res.result === 'lose' ? 1 : 0),
+                }))}
               />
             )}
             {activeTab === 'chat' && (

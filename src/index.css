@@ -23,7 +23,8 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   background: radial-gradient(ellipse at top, #1c2140 0%, #0a0c17 65%);
   color: var(--text-primary);
   min-height: 100dvh;
@@ -1034,6 +1035,7 @@ button {
 .owned-skill-icon { font-size: 22px; }
 .owned-skill-rarity { font-size: 10px; color: var(--text-muted); }
 .owned-skill-level { font-size: 11px; color: var(--text-secondary); }
+.owned-skill-possession { font-size: 10px; color: var(--accent-gold); }
 .owned-skill-locked { font-size: 11px; color: var(--text-muted); }
 
 /* ---------- 던전 ---------- */

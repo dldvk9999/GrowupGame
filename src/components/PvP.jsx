@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PvPArena from './PvPArena';
 import PvPShop from './PvPShop';
 
-export default function PvP({ userId, profile, activeMonster, onCurrencyChange }) {
+export default function PvP({ userId, profile, activeMonster, onCurrencyChange, onBattleResolved }) {
   const [tab, setTab] = useState('arena');
 
   return (
@@ -14,7 +14,7 @@ export default function PvP({ userId, profile, activeMonster, onCurrencyChange }
       </div>
 
       {tab === 'arena' ? (
-        <PvPArena profile={profile} activeMonster={activeMonster} onCurrencyChange={onCurrencyChange} />
+        <PvPArena profile={profile} activeMonster={activeMonster} onBattleResolved={onBattleResolved} />
       ) : (
         <PvPShop userId={userId} currency={profile?.pvp_currency ?? 0} onCurrencyChange={onCurrencyChange} />
       )}

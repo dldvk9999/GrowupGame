@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionBonus } from '../lib/itemCatalog';
 import { equipItem, unequipItem } from '../lib/inventory';
-import { synthesizeEquipment } from '../lib/equipmentGacha';
+import { synthesizeEquipment, synthesizeEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 
 const SLOT_ORDER = Object.keys(SLOTS);
@@ -41,6 +41,26 @@ export default function Inventory({ userId, inventory, onInventoryChange }) {
       const result = await synthesizeEquipment(row.item_key);
       const targetItem = getItem(result.target_item_key);
       showToast(`합성 성공! ${targetItem?.name ?? '상위 등급'} +${result.target_new_level}`, 'success');
+      onInventoryChange();
+    } catch (err) {
+      showToast(err.message ?? '합성에 실패했어요.', 'error');
+    } finally {
+      setSynthesizingId(null);
+    }
+  }
+
+  async function handleSynthesizeAll(row) {
+    setError('');
+    const level = row.enhance_level ?? 0;
+    if (level < SYNTHESIS_COST) {
+      showToast(`강화수치가 ${SYNTHESIS_COST} 이상이어야 합성할 수 있어요.`, 'error');
+      return;
+    }
+    setSynthesizingId(row.id);
+    try {
+      const result = await synthesizeEquipmentBatch(row.item_key);
+      const targetItem = getItem(result.target_item_key);
+      showToast(`일괄합성 완료! ${result.times}회 합성 → ${targetItem?.name ?? '상위 등급'} +${result.target_new_level}`, 'success');
       onInventoryChange();
     } catch (err) {
       showToast(err.message ?? '합성에 실패했어요.', 'error');
@@ -96,14 +116,24 @@ export default function Inventory({ userId, inventory, onInventoryChange }) {
                     </span>
                     <div className="inventory-row-actions">
                       {item.rarityOrder < 5 && (
-                        <button
-                          className={`btn btn-ghost ${!canSynthesize ? 'btn-unaffordable' : ''}`}
-                          disabled={synthesizingId === row.id}
-                          onClick={() => handleSynthesize(row)}
-                          title={`강화수치 ${SYNTHESIS_COST} 소모 → 상위 등급 +1`}
-                        >
-                          {synthesizingId === row.id ? '합성 중...' : `합성 (-${SYNTHESIS_COST})`}
-                        </button>
+                        <>
+                          <button
+                            className={`btn btn-ghost ${!canSynthesize ? 'btn-unaffordable' : ''}`}
+                            disabled={synthesizingId === row.id}
+                            onClick={() => handleSynthesize(row)}
+                            title={`강화수치 ${SYNTHESIS_COST} 소모 → 상위 등급 +1`}
+                          >
+                            {synthesizingId === row.id ? '처리 중...' : `합성 (-${SYNTHESIS_COST})`}
+                          </button>
+                          <button
+                            className={`btn btn-ghost ${!canSynthesize ? 'btn-unaffordable' : ''}`}
+                            disabled={synthesizingId === row.id}
+                            onClick={() => handleSynthesizeAll(row)}
+                            title="가능한 만큼 한번에 반복 합성"
+                          >
+                            {synthesizingId === row.id ? '처리 중...' : '일괄합성'}
+                          </button>
+                        </>
                       )}
                       <button
                         className={`btn ${row.equipped ? 'btn-neutral' : 'btn-ghost'}`}

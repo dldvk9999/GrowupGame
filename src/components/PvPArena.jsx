@@ -4,7 +4,7 @@ import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { showToast } from '../lib/toast';
 import PvPBattleScene from './PvPBattleScene';
 
-export default function PvPArena({ profile, activeMonster, onCurrencyChange }) {
+export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
   const [myPower, setMyPower] = useState(null);
   const [fighting, setFighting] = useState(false);
   const [pendingBattle, setPendingBattle] = useState(null); // 서버 결과는 받았지만 아직 연출 중
@@ -34,7 +34,7 @@ export default function PvPArena({ profile, activeMonster, onCurrencyChange }) {
     setPendingBattle(null);
     setLastResult(res);
     setMyPower(res.my_power);
-    onCurrencyChange(res.currency_balance);
+    onBattleResolved(res);
     setFighting(false);
     if (res.result === 'win') {
       showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
