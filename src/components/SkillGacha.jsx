@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch, setSkillLoadout } from '../lib/skillGacha';
 import { showToast } from '../lib/toast';
@@ -48,6 +48,21 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
     }
   }
 
+  // G: 1회, Shift+G: 10회, Ctrl(⌘)+G: 100회
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'g' && e.key !== 'G') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (drawing) return;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) handleDraw(100);
+      else if (e.shiftKey) handleDraw(10);
+      else handleDraw(1);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawing, gold]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function toggleSlot(skillKey) {
     setPendingLoadout((prev) => {
       if (prev.includes(skillKey)) {
@@ -89,13 +104,13 @@ export default function SkillGacha({ userId, gold, totalDraws, monsterLevel, use
 
         <div className="gacha-draw-buttons">
           <button className={`btn btn-challenge ${gold < cost ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(1)}>
-            {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`}
+            {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`} <span className="key-hint">G</span>
           </button>
           <button className={`btn btn-neutral ${gold < cost * 10 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(10)}>
-            10회 뽑기 (💰 {(cost * 10).toLocaleString()})
+            10회 뽑기 (💰 {(cost * 10).toLocaleString()}) <span className="key-hint">Shift+G</span>
           </button>
           <button className={`btn btn-neutral ${gold < cost * 100 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(100)}>
-            100회 뽑기 (💰 {(cost * 100).toLocaleString()})
+            100회 뽑기 (💰 {(cost * 100).toLocaleString()}) <span className="key-hint">Ctrl+G</span>
           </button>
         </div>
         <p className="gacha-hint" style={{ marginTop: 6 }}>

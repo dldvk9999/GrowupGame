@@ -271,6 +271,43 @@ export default function BattleScreen({
   const displayEnemy = mode === 'challenge' ? enemy : idleEnemy;
   const displayLog = mode === 'challenge' ? log : idleLog;
 
+  // 키보드 단축키: 1~5 스킬 즉발, Space(상황별 진행), R(재도전)
+  // 리스너는 1번만 등록하고, 최신 상태는 ref로 읽어서 클로저 문제 없이 처리
+  const keyStateRef = useRef();
+  keyStateRef.current = { mode, result, availableSkills, useSkill, startChallenge, onAdvance };
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      const { mode, result, availableSkills, useSkill, startChallenge, onAdvance } = keyStateRef.current;
+
+      if (/^[1-5]$/.test(e.key)) {
+        if (mode === 'challenge' && !result) {
+          const skill = availableSkills[Number(e.key) - 1];
+          if (skill) { e.preventDefault(); useSkill(skill); }
+        }
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (mode === 'idle') startChallenge();
+        else if (mode === 'challenge' && result === 'win') onAdvance?.();
+        else if (mode === 'challenge' && result === 'lose') startChallenge();
+        return;
+      }
+
+      if (e.key === 'r' || e.key === 'R') {
+        if (mode === 'challenge' && result === 'lose') {
+          e.preventDefault();
+          startChallenge();
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
@@ -307,30 +344,34 @@ export default function BattleScreen({
         <div className="idle-panel">
           <p className="idle-hint">약한 필드 몬스터를 자동으로 잡으며 경험치를 조금씩 얻고 있어요.</p>
           <button className="btn btn-challenge" onClick={startChallenge}>
-            ⚔️ {chapter}-{stage} 스테이지 도전하기
+            ⚔️ {chapter}-{stage} 스테이지 도전하기 <span className="key-hint">Space</span>
           </button>
         </div>
       )}
 
       {mode === 'challenge' && !result && (
-        <div className="skills-row">
-          {availableSkills.map((skill) => (
-            <SkillButton
-              key={skill.id}
-              skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
-              disabled={!!cooldowns[skill.id]}
-              startedAt={cooldownStarts[skill.id]}
-              onUse={useSkill}
-            />
-          ))}
-        </div>
+        <>
+          <div className="skills-row">
+            {availableSkills.map((skill, i) => (
+              <SkillButton
+                key={skill.id}
+                skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
+                disabled={!!cooldowns[skill.id]}
+                startedAt={cooldownStarts[skill.id]}
+                onUse={useSkill}
+                hotkey={i < 5 ? i + 1 : undefined}
+              />
+            ))}
+          </div>
+          <p className="keyboard-hint">숫자키 1~5로 스킬 사용</p>
+        </>
       )}
 
       {mode === 'challenge' && result === 'win' && (
         <div className="result-panel">
           <p className="result-text">승리!</p>
           <div className="result-actions">
-            <button className="btn btn-challenge" onClick={onAdvance}>다음 스테이지로</button>
+            <button className="btn btn-challenge" onClick={onAdvance}>다음 스테이지로 <span className="key-hint">Space</span></button>
             <button className="btn btn-neutral" onClick={onGoStageList}>스테이지 목록</button>
             <button className="btn btn-ghost" onClick={backToIdle}>사냥터로</button>
           </div>
@@ -341,7 +382,7 @@ export default function BattleScreen({
         <div className="result-panel">
           <p className="result-text">패배...</p>
           <div className="result-actions">
-            <button className="btn btn-challenge" onClick={startChallenge}>다시 도전</button>
+            <button className="btn btn-challenge" onClick={startChallenge}>다시 도전 <span className="key-hint">Space / R</span></button>
             <button className="btn btn-ghost" onClick={backToIdle}>사냥터로</button>
           </div>
         </div>

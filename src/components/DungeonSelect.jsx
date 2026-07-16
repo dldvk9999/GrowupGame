@@ -1,12 +1,31 @@
+import { useEffect } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { showToast } from '../lib/toast';
+
+const DUNGEON_TABS = ['exp', 'gold', 'job'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
   activeMonster, onEnterJobDungeon, jobEntering, jobError,
   activeType, onActiveTypeChange,
 }) {
+  // Tab / Shift+Tab으로 던전 탭 순환
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'Tab') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      const idx = DUNGEON_TABS.indexOf(activeType);
+      const next = e.shiftKey
+        ? DUNGEON_TABS[(idx - 1 + DUNGEON_TABS.length) % DUNGEON_TABS.length]
+        : DUNGEON_TABS[(idx + 1) % DUNGEON_TABS.length];
+      onActiveTypeChange(next);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeType, onActiveTypeChange]);
+
   return (
     <div className="dungeon-select">
       <h2>던전</h2>
@@ -22,6 +41,7 @@ export default function DungeonSelect({
           ⚔️ 전직 던전
         </button>
       </div>
+      <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
       {activeType !== 'job' ? (
         <ProgressiveDungeon

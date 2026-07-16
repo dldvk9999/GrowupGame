@@ -1,15 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SLOTS } from '../lib/itemCatalog';
 import EquipmentGacha from './EquipmentGacha';
 import SkillGacha from './SkillGacha';
 
 const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
+const ALL_TABS = [...EQUIP_TABS, 'skill'];
 
 export default function Shop({
   userId, gold, equipmentDrawProgress, totalSkillDraws, monsterLevel,
   userSkills, equippedSkills, onInventoryChange, onGoldChange, onSkillsRefresh, onLoadoutChange,
 }) {
   const [tab, setTab] = useState('weapon');
+
+  // Tab / Shift+Tab으로 뽑기 탭 순환
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'Tab') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      const idx = ALL_TABS.indexOf(tab);
+      const next = e.shiftKey
+        ? ALL_TABS[(idx - 1 + ALL_TABS.length) % ALL_TABS.length]
+        : ALL_TABS[(idx + 1) % ALL_TABS.length];
+      setTab(next);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [tab]);
 
   return (
     <div className="shop-screen">
@@ -28,6 +45,7 @@ export default function Shop({
           🎯 스킬 뽑기
         </button>
       </div>
+      <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
       {tab === 'skill' ? (
         <SkillGacha

@@ -94,6 +94,19 @@ export default function App() {
     return () => clearInterval(timer);
   }, [stage, mission?.mission_key]);
 
+  // Esc로 마이페이지/설정 화면 닫고 전투탭으로 복귀 (다른 화면에선 아무 동작 안 함)
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'Escape') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (stage === STAGE.GAME && (activeTab === 'mypage' || activeTab === 'settings')) {
+        setActiveTab('battle');
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [stage, activeTab]);
+
   async function handleSession(newSession) {
     setSession(newSession);
     if (!newSession) {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SLOTS, RARITIES, getItem } from '../lib/itemCatalog';
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
@@ -43,6 +43,21 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
     }
   }
 
+  // G: 1회, Shift+G: 10회, Ctrl(⌘)+G: 100회
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'g' && e.key !== 'G') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      if (drawing) return;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) handleDraw(100);
+      else if (e.shiftKey) handleDraw(10);
+      else handleDraw(1);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawing, gold, cost, slot]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const counts = { normal: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
   for (const r of lastResults) counts[r.rarity] += 1;
 
@@ -58,20 +73,20 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
         </div>
         <p className="gacha-hint">
           {slotMeta.icon} {slotMeta.label} 전용 뽑기예요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요.
-          이미 보유한 등급이 또 나오면 <strong>자동으로 강화(+1, 최대 +15)</strong>돼요.
+          이미 보유한 등급이 또 나오면 <strong>자동으로 강화(+1, 최대 +1000)</strong>돼요.
         </p>
 
         {error && <p className="shop-error">{error}</p>}
 
         <div className="gacha-draw-buttons">
           <button className={`btn btn-challenge ${gold < cost ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(1)}>
-            {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`}
+            {drawing ? '뽑는 중...' : `1회 뽑기 (💰 ${cost.toLocaleString()})`} <span className="key-hint">G</span>
           </button>
           <button className={`btn btn-neutral ${gold < cost * 10 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(10)}>
-            10회 뽑기 (💰 약 {(cost * 10).toLocaleString()}+)
+            10회 뽑기 (💰 약 {(cost * 10).toLocaleString()}+) <span className="key-hint">Shift+G</span>
           </button>
           <button className={`btn btn-neutral ${gold < cost * 100 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(100)}>
-            100회 뽑기 (💰 약 {(cost * 100).toLocaleString()}+)
+            100회 뽑기 (💰 약 {(cost * 100).toLocaleString()}+) <span className="key-hint">Ctrl+G</span>
           </button>
         </div>
 

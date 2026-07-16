@@ -379,6 +379,19 @@ button {
 .skill-btn.skill-heal { border-color: rgba(79, 214, 122, 0.5); }
 .skill-icon { font-size: 22px; }
 .skill-name { font-size: 12px; font-weight: 600; text-align: center; }
+.skill-hotkey {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 0 3px;
+  line-height: 1.4;
+}
 
 /* 스킬 쿨타임 링 - 시계방향으로 채워지는 border */
 .skill-cooldown-ring {
@@ -511,6 +524,17 @@ button {
 }
 .result-hint { font-size: 13px; color: var(--text-muted); }
 .skill-job { border-color: var(--accent-gold); box-shadow: 0 0 0 1px rgba(242, 183, 5, 0.4); }
+.keyboard-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
+.key-hint {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
 
 /* ---------- 스테이지 선택 ---------- */
 .stage-select { width: 100%; }

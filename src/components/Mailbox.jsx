@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { syncDailyMails, fetchMails, claimMail, deleteMail } from '../lib/mail';
 import { getItem } from '../lib/itemCatalog';
+import { showToast } from '../lib/toast';
 
 export default function Mailbox({ userId, onGoldChange, gold }) {
   const [mails, setMails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState(null);
+  const [claimingAll, setClaimingAll] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
 
@@ -38,6 +40,39 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
     }
   }
 
+  const handleClaimAll = useCallback(async () => {
+    const targets = mails.filter((m) => !m.claimed);
+    if (targets.length === 0 || claimingAll) return;
+    setError('');
+    setClaimingAll(true);
+    let gained = 0;
+    let failed = 0;
+    for (const mail of targets) {
+      try {
+        await claimMail(mail.id);
+        gained += mail.gold_amount ?? 0;
+        setMails((prev) => prev.map((m) => (m.id === mail.id ? { ...m, claimed: true } : m)));
+      } catch {
+        failed += 1;
+      }
+    }
+    setClaimingAll(false);
+    if (gained > 0) showToast(`우편 일괄수령! 💰 ${gained.toLocaleString()} 획득`, 'success');
+    if (failed > 0) showToast(`${failed}개 우편은 수령에 실패했어요.`, 'error');
+  }, [mails, claimingAll, gold, onGoldChange]);
+
+  // Enter로 미수령 우편 일괄수령
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key !== 'Enter') return;
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      handleClaimAll();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleClaimAll]);
+
   async function handleDelete(mail) {
     setError('');
     setDeletingId(mail.id);
@@ -56,7 +91,14 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
 
   return (
     <div className="mailbox-screen">
-      <h2>우편함</h2>
+      <div className="shop-header">
+        <h2>우편함</h2>
+        {unclaimed.length > 0 && (
+          <button className="btn btn-challenge" disabled={claimingAll} onClick={handleClaimAll}>
+            {claimingAll ? '수령 중...' : `전체 수령 (${unclaimed.length})`} <span className="key-hint">Enter</span>
+          </button>
+        )}
+      </div>
       <p className="stage-select-hint">매일 아침 8시 / 낮 12시 / 저녁 7시(서울시간) 정각부터 1시간 안에 접속해야 그 우편을 받을 수 있어요. 놓치면 그 회차는 사라져요.</p>
 
       {error && <p className="shop-error">{error}</p>}

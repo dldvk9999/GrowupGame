@@ -193,6 +193,30 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
     setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), effectiveCooldown);
   }
 
+  const keyStateRef = useRef();
+  keyStateRef.current = { result, availableSkills, useSkill, onExit };
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+      const { result, availableSkills, useSkill, onExit } = keyStateRef.current;
+
+      if (/^[1-5]$/.test(e.key)) {
+        if (!result) {
+          const skill = availableSkills[Number(e.key) - 1];
+          if (skill) { e.preventDefault(); useSkill(skill); }
+        }
+        return;
+      }
+      if (e.code === 'Space' && result) {
+        e.preventDefault();
+        onExit?.();
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
@@ -226,22 +250,26 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
           <p className="result-text">{result === 'win' ? '전직 성공!' : '패배...'}</p>
           <div className="result-actions">
             <button className="btn btn-neutral" onClick={onExit}>
-              {result === 'win' ? '확인' : '던전 목록으로'}
+              {result === 'win' ? '확인' : '던전 목록으로'} <span className="key-hint">Space</span>
             </button>
           </div>
         </div>
       ) : (
+        <>
         <div className="skills-row">
-          {availableSkills.map((skill) => (
+          {availableSkills.map((skill, i) => (
             <SkillButton
               key={skill.id}
               skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
               disabled={!!cooldowns[skill.id]}
               startedAt={cooldownStarts[skill.id]}
               onUse={useSkill}
+              hotkey={i < 5 ? i + 1 : undefined}
             />
           ))}
         </div>
+        <p className="keyboard-hint">숫자키 1~5로 스킬 사용</p>
+        </>
       )}
     </div>
   );
