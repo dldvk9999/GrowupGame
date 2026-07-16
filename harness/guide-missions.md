@@ -1,0 +1,66 @@
+# 가이드 미션
+
+관련 파일: `missions.js`, `MissionFloatingButton.jsx`, migration 020/021/022/029
+
+## UI
+
+- 화면 우하단(모바일은 하단 폭 전체)에 **항상 떠있는 플로팅 버튼**. 현재 "미션 #N", 아이콘, 라벨, 진행도(`N/M`)를 표시하고 진행바가 채워짐
+- **완료되면 초록 테두리 + 살짝 커졌다작아지는 펄스 애니메이션**으로 하이라이트되고, 클릭하면 `claim_mission_reward` RPC 호출 → 골드 지급 + 다음 미션으로 자동 전환
+
+## 일반 반복 미션 (4종 순환)
+
+`mission_number % 4`로 순환:
+
+| 순서 | 미션 키 | 조건 | 보상 |
+|---|---|---|---|
+| 1 | `kill_monsters` | 몬스터 10마리 처치 | 💰800 |
+| 2 | `spend_gold` | 골드 10,000 사용 | 💰1000 |
+| 3 | `login_minutes` | **60초** 접속 유지 | 💰600 |
+| 4 | `use_skills` | 스킬 15회 사용 | 💰700 |
+
+(`login_minutes`의 target은 DB상 "분" 단위 1로 저장되지만, 표시 라벨만 `t*60`으로 초 환산해서 "60초 접속 유지하기"로 보여줌)
+
+## 우선순위 온보딩 미션
+
+`claim_mission_reward`가 다음 미션을 정할 때마다 재검사하며, 항상 일반 미션보다 먼저 끼어듦:
+
+1. 활성 몬스터가 전직 가능 레벨(30/60/100/140/180)인데 아직 그 단계로 전직을 안 했으면 `job_tier1`~`job_tier5` 미션(보상 3000~40000)이 최우선으로 배정
+2. 전직 조건이 없으면 스킬 슬롯이 새로 열렸는데 덜 채워져 있는지(`equip_skill_slot`, 보상 1000) 확인
+3. 둘 다 아니면 그제서야 일반 미션으로 넘어감
+
+이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가).
+
+## 진행도 갱신 방식
+
+- `bumpMission(missionKey, amount)`가 서버 RPC(`increment_mission_progress`)를 호출 — 현재 활성 미션 키와 일치할 때만 반영되고, 1회 증가폭은 서버에서 최대 1000으로 캡 걸려있음(남용 방지)
+- 호출 지점: 몬스터 처치(스테이지클리어/자동사냥/일반던전/전직던전 승리 4곳, `App.jsx`), 스킬 사용(3개 전투화면 `useSkill` 공통), 골드 소비(스킬뽑기/장비뽑기 성공 시 소비액만큼)
+- **여러 화면에서 진행도를 올려도 플로팅 버튼이 즉시 갱신**되도록 `missions.js`에 `toast.js`와 동일한 pub-sub 버스(`subscribeMissionUpdate`)를 두고, `App.jsx`가 구독해서 자기 `mission` state를 갱신함
+- "N분 접속 유지" 미션은 `App.jsx`의 1분 간격 타이머가 현재 활성 미션이 `login_minutes`일 때만 증가시킴
+
+클라이언트가 진행도를 부풀려 보낼 수는 있지만(예: `bumpMission('spend_gold', 1000)`을 반복 호출), 어차피 미션 보상 자체가 소액(600~1200골드 수준, 온보딩 미션만 예외적으로 큼)이라 리스크 대비 실효성이 낮고, 온보딩 미션(가장 보상이 큰 것들)은 서버가 실제 게임 상태로 재검증하므로 조작 불가능함.
+
+## 버그 수정 이력
+
+### 1. 온보딩 미션이 완료해도 버튼이 안 넘어가던 버그
+
+`job_tier1`~`5`/`equip_skill_slot`(온보딩 미션)은 애초에 `progress`가 절대 증가하지 않고(실제 게임 상태로만 서버가 완료 검증) `target`이 항상 1로 고정된 구조인데, 클라이언트가 "완료됐다"는 판단을 `mission.progress >= mission.target`으로만 계산해서 **실제로 조건을 채워도 버튼이 영영 완료 표시로 안 바뀌던 버그**가 있었음.
+
+수정: `missions.js`의 `isMissionComplete(mission, {unlockedJobTier, equippedSkillCount, skillSlotLimit})`가 미션 종류별로 실제 게임 상태를 직접 보고 판정하도록 바뀌었고, `App.jsx`가 이 결과를 `completed` prop으로 `MissionFloatingButton`에 명시적으로 내려줌(컴포넌트 내부에서 progress/target으로 자체 판단하지 않음).
+
+**새로운 온보딩형(boolean) 미션을 추가할 때는 `isMissionComplete`에도 케이스를 같이 추가해야 함**, 안 그러면 똑같은 버그가 재발함.
+
+### 2. 쿨다운 오탐 버그
+
+`claim_mission_reward`의 20초 쿨다운이 `mission_state.updated_at` 기준이었는데, `increment_mission_progress`도 진행도를 올릴 때마다 `updated_at`을 같이 갱신해서 — **미션을 막 완료시킨 마지막 진행도 증가 직후 완료 버튼을 눌러도 "너무 빠릅니다" 오탐이 뜨는 문제**가 있었음.
+
+수정(migration 029): `mission_state`에 `assigned_at`(미션이 배정된 시각) 컬럼을 별도로 두고, 쿨다운 체크는 이 값만 보도록 분리함.
+
+**진행도 갱신 시각과 쿨다운 판정 기준 시각은 절대 같은 컬럼을 쓰면 안 됨** — 비슷한 실수 재발 방지용 메모.
+
+## 보안 패치
+
+⚠️ 처음엔 진행도 채우기+클레임 사이에 아무 시간제한이 없어서, devtools로 `bumpMission`→`claimMissionReward`를 빠르게 반복 호출하면 실제 플레이 없이 무한히 골드를 받아갈 수 있는 구멍이 있었음. `claim_mission_reward`에 **"미션이 배정된 시각으로부터 최소 20초"** 게이트를 추가해서 막음(idle 보상의 2.5초 최소 간격 제한과 동일한 설계, migration 022, 029에서 기준 컬럼을 `assigned_at`으로 수정). 진행도 자체를 빨리 채우는 건 여전히 가능하지만, 클레임 자체가 20초에 1번으로 막혀서 실질적 파밍 속도가 크게 제한됨.
+
+## 모바일 레이아웃 겹침 주의
+
+플로팅 버튼이 `position:fixed`라서 콘텐츠 하단(특히 전투화면 스킬버튼 줄)을 가릴 수 있음 — `app-main`의 하단 padding을 데스크톱 110px/모바일 150px로 넉넉하게 잡아서 방지함(`index.css`). 하단에 새 UI를 추가할 때도 이 여백 고려할 것(자세한 내용은 [`ui-and-ux.md`](./ui-and-ux.md)).
