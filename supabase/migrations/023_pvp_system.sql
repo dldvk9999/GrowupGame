@@ -36,9 +36,7 @@ $$ language plpgsql stable;
 
 create or replace function public.calc_combat_power(p_atk integer, p_def integer, p_max_hp integer)
 returns integer as $$
-begin
-  return round(p_atk * 4.5 + p_def * 3.2 + p_max_hp * 0.6);
-end;
+  select round(p_atk * 4.5 + p_def * 3.2 + p_max_hp * 0.6);
 $$ language sql immutable;
 
 -- ============================================
