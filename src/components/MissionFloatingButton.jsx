@@ -1,6 +1,6 @@
 import { getMissionLabel, getMissionIcon } from '../lib/missions';
 
-const CONDITION_MISSIONS = new Set(['job_tier1', 'job_tier2', 'job_tier3', 'job_tier4', 'equip_skill_slot']);
+const CONDITION_MISSIONS = new Set(['job_tier1', 'job_tier2', 'job_tier3', 'job_tier4', 'job_tier5', 'equip_skill_slot']);
 
 export default function MissionFloatingButton({ mission, completed, onClaim, claiming }) {
   if (!mission) return null;

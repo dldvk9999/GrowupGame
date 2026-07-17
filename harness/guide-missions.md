@@ -46,6 +46,8 @@
 
 이 온보딩 미션들은 클라이언트가 보낸 진행도를 안 믿고, **완료 판정 시 서버가 `owned_monsters.unlocked_job_tier`/`profiles.equipped_skills`를 직접 재조회해서 검증**함(진행도 카운터 우회 불가).
 
+⚠️ **표시 버그(자체 발견/수정)**: `MissionFloatingButton.jsx`의 `CONDITION_MISSIONS`(진행도 카운터 대신 "조건을 달성하면 자동으로 완료돼요" 문구를 보여줘야 하는 미션 키 목록)에 `job_tier1`~`job_tier4`는 들어있었는데 **`job_tier5`가 빠져있었음**. 그래서 5차 전직 온보딩 미션이 뜬 유저는 실제로는 조건형(진행도 카운터가 절대 안 오르는) 미션인데도 플로팅 버튼에 "0/1"이 그대로 찍혀서 마치 멈춰있는 것처럼 보이는 문제가 있었음(실제로는 전직만 하면 정상적으로 완료 처리됨, 표시만 잘못됐던 것). `job_tier5`를 Set에 추가해서 수정.
+
 ## 진행도 갱신 방식
 
 - `bumpMission(missionKey, amount)`가 서버 RPC(`increment_mission_progress`)를 호출 — 현재 활성 미션 키와 일치할 때만 반영되고, 1회 증가폭은 서버에서 최대 1000으로 캡 걸려있음(남용 방지)
