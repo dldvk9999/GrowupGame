@@ -21,6 +21,7 @@
 
 - `calc_combat_power`가 `language sql`인데 몸통을 `begin/return/end`(plpgsql 문법)로 써서 문법 오류가 난 적 있음 → `language sql` 함수는 몸통이 순수 SQL 표현식(`select ...`)이어야 하고 `begin/end` 블록을 쓰면 안 됨(그건 `language plpgsql` 전용 문법)
 - "column reference X is ambiguous" 버그 패턴은 [`security.md`](./security.md) 참고
+- **함수 반환 컬럼을 추가/삭제/타입변경하는 재정의는 `CREATE OR REPLACE FUNCTION`만으로 안 됨** — PostgreSQL은 기존 함수의 리턴 타입(TABLE의 OUT 파라미터 구성)이 다르면 `cannot change return type of existing function` 에러를 내고 배포가 그 자리에서 실패함(050에서 `fetch_leaderboard()`에 `equipped_title` 컬럼을 추가하다가 실제로 발생, GitHub Actions 로그로 확인 후 수정). **반환 컬럼 목록이 바뀌는 재정의를 할 때는 `CREATE OR REPLACE` 앞에 `DROP FUNCTION IF EXISTS 함수명(인자타입...)`을 반드시 먼저 넣을 것.** 반대로 반환 컬럼이 그대로고 함수 몸통(로직)만 바뀌는 경우는 `CREATE OR REPLACE`만으로 충분하고 DROP이 불필요함(이 프로젝트의 절대다수 재정의 패턴). 새 마이그레이션을 작성할 때 함수의 `returns table(...)` 목록을 이전 정의와 diff해서, 컬럼이 하나라도 늘거나 줄거나 이름/타입이 바뀌면 DROP을 추가해야 함을 항상 체크할 것.
 
 ## 과거에 있었던 CSS 스크롤 버그
 
