@@ -19,9 +19,11 @@ import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
+import { fetchDailyFreeDrawState, hasUsedFreeDrawToday } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import AttendanceModal from './components/AttendanceModal';
+import DailyChecklist from './components/DailyChecklist';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -92,6 +94,7 @@ export default function App() {
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [freeDrawUsedToday, setFreeDrawUsedToday] = useState(null); // null=로딩중
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -155,12 +158,13 @@ export default function App() {
       setMission(null);
       setHasUnreadMail(false);
       setAttendanceState(null);
+      setFreeDrawUsedToday(null);
       setLoginAt(null);
       return;
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -175,6 +179,7 @@ export default function App() {
         fetchMails(userId).catch(() => []),
         fetchAttendanceState(userId).catch(() => null),
         hasEverParticipatedInWorldBoss(userId).catch(() => false),
+        fetchDailyFreeDrawState(userId).catch(() => null),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -189,6 +194,7 @@ export default function App() {
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
+      setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -566,6 +572,14 @@ export default function App() {
               </button>
             )}
 
+            <DailyChecklist
+              attendanceClaimedToday={hasClaimedToday(attendanceState)}
+              freeDrawUsed={freeDrawUsedToday}
+              missionCompleted={missionCompleted}
+              onOpenAttendance={() => setShowAttendanceModal(true)}
+              onOpenShop={() => setActiveTab('shop')}
+            />
+
             <nav className="tab-nav">
               <button className={`tab-btn ${activeTab === 'battle' ? 'active' : ''}`} onClick={() => setActiveTab('battle')}>⚔️ 전투</button>
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
@@ -614,6 +628,8 @@ export default function App() {
                 equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
                 inventory={inventory}
+                freeDrawUsed={freeDrawUsedToday}
+                onFreeDrawUsedChange={setFreeDrawUsedToday}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}

@@ -1097,6 +1097,32 @@ button {
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
 .patch-note-tab-btn { position: relative; }
 
+/* ---------- 오늘의 할 일 체크리스트 ---------- */
+.daily-checklist {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-panel-2);
+}
+.daily-checklist-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; flex-shrink: 0; }
+.daily-checklist-items { display: flex; gap: 6px; flex-wrap: wrap; }
+.daily-checklist-item {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.daily-checklist-item:disabled { cursor: default; }
+.daily-checklist-item.done { opacity: 0.55; text-decoration: line-through; }
+
 /* ---------- 마이페이지 능력치 상세 ---------- */
 .stat-breakdown-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
 .stat-breakdown-table { width: 100%; border-collapse: collapse; font-size: 12px; }

@@ -3,24 +3,18 @@ import { SLOTS, getItem } from '../lib/itemCatalog';
 import { getSkillDef } from '../lib/skillCatalog';
 import EquipmentGacha from './EquipmentGacha';
 import SkillGacha from './SkillGacha';
-import { fetchDailyFreeDrawState, hasUsedFreeDrawToday, claimDailyFreeDraw } from '../lib/dailyFreeDraw';
+import { claimDailyFreeDraw } from '../lib/dailyFreeDraw';
 import { showToast } from '../lib/toast';
 
 const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
 const ALL_TABS = [...EQUIP_TABS, 'skill'];
 
 export default function Shop({
-  userId, gold, equipmentDrawProgress, totalSkillDraws, inventory,
+  userId, gold, equipmentDrawProgress, totalSkillDraws, inventory, freeDrawUsed, onFreeDrawUsedChange,
   onInventoryChange, onGoldChange, onSkillsRefresh,
 }) {
   const [tab, setTab] = useState('weapon');
-  const [freeDrawUsed, setFreeDrawUsed] = useState(null); // null=로딩중
   const [claimingFree, setClaimingFree] = useState(false);
-
-  useEffect(() => {
-    if (!userId) return;
-    fetchDailyFreeDrawState(userId).then((s) => setFreeDrawUsed(hasUsedFreeDrawToday(s))).catch(() => setFreeDrawUsed(false));
-  }, [userId]);
 
   // Tab / Shift+Tab으로 뽑기 탭 순환
   useEffect(() => {
@@ -43,7 +37,7 @@ export default function Shop({
     try {
       const type = tab === 'skill' ? 'skill' : 'equipment';
       const result = await claimDailyFreeDraw(type, type === 'equipment' ? tab : undefined);
-      setFreeDrawUsed(true);
+      onFreeDrawUsedChange?.(true);
       if (type === 'skill') {
         const def = getSkillDef(result.skill_key);
         showToast(`🎁 무료뽑기! ${def?.name ?? result.skill_key} ${result.was_duplicate ? `(중복, Lv.${result.new_level})` : '(신규 획득!)'}`, 'success');
