@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { updateNickname, checkNicknameAvailable } from '../lib/auth';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive }) {
   const [nickname, setNickname] = useState('');
   const [checkState, setCheckState] = useState(null); // 'checking' | 'ok' | 'taken' | null
   const [saving, setSaving] = useState(false);
@@ -70,6 +70,53 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
         myElement={activeMonster?.element}
         myStage={activeMonster?.speciesId ? Number(activeMonster.speciesId.split('_')[1]) : 0}
       />
+
+      {activeMonster && (
+        <div className="stat-breakdown-card">
+          <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>⚔️ 능력치 상세</h3>
+          <table className="stat-breakdown-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>ATK</th>
+                <th>DEF</th>
+                <th>HP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>기본(레벨·전직)</td>
+                <td>{activeMonster.atk.toLocaleString()}</td>
+                <td>{activeMonster.def.toLocaleString()}</td>
+                <td>{activeMonster.maxHp.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>장비 보너스</td>
+                <td>+{(equipmentBonus?.atk ?? 0).toLocaleString()}</td>
+                <td>+{(equipmentBonus?.def ?? 0).toLocaleString()}</td>
+                <td>+{(equipmentBonus?.hp ?? 0).toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>스킬 보유효과</td>
+                <td>+{(skillPossessionAtk ?? 0).toLocaleString()}</td>
+                <td>-</td>
+                <td>-</td>
+              </tr>
+              <tr className="stat-breakdown-total">
+                <td>최종</td>
+                <td>{(activeMonster.atk + (equipmentBonus?.atk ?? 0) + (skillPossessionAtk ?? 0)).toLocaleString()}</td>
+                <td>{(activeMonster.def + (equipmentBonus?.def ?? 0)).toLocaleString()}</td>
+                <td>{(activeMonster.maxHp + (equipmentBonus?.hp ?? 0)).toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+          {dragonBuffActive && (
+            <p className="mypage-locked-hint" style={{ color: 'var(--accent-gold)' }}>
+              🐉 용의 버프 적용 중 — 전투 시 위 최종 공격력·방어력이 20배로 적용돼요.
+            </p>
+          )}
+        </div>
+      )}
 
       <h3 className="mypage-subtitle">닉네임 변경</h3>
       {alreadyEdited ? (

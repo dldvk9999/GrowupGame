@@ -707,6 +707,9 @@ export default function App() {
                 clearedCount={clearedStageIds.size}
                 totalStages={TOTAL_STAGES}
                 onProfileUpdate={setProfile}
+                equipmentBonus={equipmentOnlyBonus}
+                skillPossessionAtk={skillPossessionAtk}
+                dragonBuffActive={dragonBuffActive}
               />
             )}
             {activeTab === 'settings' && (

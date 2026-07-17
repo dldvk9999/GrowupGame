@@ -1096,6 +1096,15 @@ button {
 .patch-note-date { font-size: 11px; color: var(--text-muted); }
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
 
+/* ---------- 마이페이지 능력치 상세 ---------- */
+.stat-breakdown-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.stat-breakdown-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.stat-breakdown-table th, .stat-breakdown-table td { text-align: right; padding: 6px 4px; }
+.stat-breakdown-table th:first-child, .stat-breakdown-table td:first-child { text-align: left; color: var(--text-secondary); }
+.stat-breakdown-table th { color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border-soft); }
+.stat-breakdown-table tbody tr:not(:last-child) { border-bottom: 1px solid var(--border-soft); }
+.stat-breakdown-total td { font-weight: 700; color: var(--accent-gold); padding-top: 8px; }
+
 .inventory-section { margin-bottom: 24px; }
 .inventory-section-title {
   font-size: 14px;
