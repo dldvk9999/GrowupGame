@@ -2,6 +2,12 @@
 // 전직 스킬은 SKILLS(기본 5종)에 추가로 사용 가능해짐 (해금될 때마다 +1개씩 누적).
 // 전직 배율은 대폭 강화됨(1차 2배/2차 3.5배/3차 6배/4차 10배/5차 16배) - save_monster_growth RPC의
 // 스탯 상한선 공식도 이 최대값(16.0)에 맞춰 함께 올려야 함 (009/006/011/021 참고, 029에서 갱신).
+/** 전직 전용 스킬인지 판별하고, 맞다면 몇 차 전직 스킬인지 반환 (아니면 0) */
+export function getJobSkillTier(skillId) {
+  const m = /^(?:fire|water|grass)_job([1-5])$/.exec(skillId ?? '');
+  return m ? Number(m[1]) : 0;
+}
+
 export const JOB_TIERS = {
   fire: [
     { tier: 1, level: 30, title: '작열의 전사', statMultiplier: 2.0,

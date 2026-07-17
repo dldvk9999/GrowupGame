@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
-import { getDisplaySpriteKey, getAvailableSkills } from '../lib/jobAdvancement';
+import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -39,6 +39,8 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   const [log, setLog] = useState(`${dungeonEnemy.name} 등장!`);
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
+  const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
+  const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
 
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
@@ -77,7 +79,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
     };
   }, []);
 
-  const spawnParticles = useCallback((xr, yr, color, count = 18) => {
+  const spawnParticles = useCallback((xr, yr, color, count = 18, sizeMult = 1) => {
     const { w, h } = dimsRef.current;
     const x = w * xr, y = h * yr;
     for (let i = 0; i < count; i++) {
@@ -85,7 +87,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
       const speed = 2 + Math.random() * 4;
       particlesRef.current.push({
         x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        size: 2 + Math.random() * 3, color, life: 30 + Math.random() * 20, maxLife: 50,
+        size: (2 + Math.random() * 3) * sizeMult, color, life: 30 + Math.random() * 20, maxLife: 50,
       });
     }
   }, []);
@@ -149,15 +151,28 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
     const atkBuffActive = now < playerBuffs.atkUntil;
     const effAtk = player.atk * (atkBuffActive ? playerBuffs.atkMult : 1);
 
+    const jobTier = getJobSkillTier(skill.id);
     if (skill.type === 'damage') {
       const dmg = mitigateDamage(effAtk * skill.multiplier, enemy.def);
       setLog(`${player.name}의 ${skill.name}!`);
       damageEnemy(dmg);
+      if (jobTier > 0) {
+        // 전직(각성) 스킬일수록 이펙트가 더 크고 화려해짐
+        const jobColors = ['#ffd24a', '#ff9a3c', '#ff5a5a', '#ff4ad9', '#c94aff'];
+        spawnParticles(0.8, 0.35, jobColors[jobTier - 1], 22 + jobTier * 18, 1 + jobTier * 0.35);
+        spawnParticles(0.5, 0.4, '#ffffff', 6 + jobTier * 6, 1 + jobTier * 0.2);
+        if (jobTier >= 3) {
+          setScreenFlash(jobColors[jobTier - 1]);
+          setTimeout(() => setScreenFlash(null), 260 + jobTier * 40);
+        }
+      }
     } else if (skill.type === 'heal') {
       const healAmount = Math.round(player.maxHp * skill.multiplier);
       setPlayer((prev) => ({ ...prev, hp: Math.min(prev.hp + healAmount, prev.maxHp) }));
       setLog(`${player.name}의 ${skill.name}! 체력 +${healAmount}`);
       spawnParticles(0.2, 0.7, '#8fffb0');
+      setShowHealFx(true);
+      setTimeout(() => setShowHealFx(false), 1300);
     } else if (skill.type === 'stun') {
       const stunMs = Math.round(skill.multiplier * 1000);
       setEnemyStunnedUntil(now + stunMs);
@@ -229,7 +244,14 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
           <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
+          {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
+            <div className="player-status-fx">
+              {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}
+              {showHealFx && <span className="status-fx-icon status-fx-heal" title="회복!">💚</span>}
+            </div>
+          )}
         </div>
+        {screenFlash && <div className="job-skill-flash" style={{ background: screenFlash }} />}
         <div className="fighter-slot fighter-slot--enemy">
           <MonsterSprite speciesKey={enemy.spriteKey} size={110} alt={enemy.name} />
         </div>
