@@ -1633,6 +1633,7 @@ button {
 .leaderboard-list { display: flex; flex-direction: column; gap: 6px; }
 .leaderboard-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .leaderboard-refresh-btn { font-size: 12px; padding: 6px 10px; flex-shrink: 0; }
+.lobby-online-badge { font-size: 12px; color: var(--accent-heal); font-weight: 600; margin-left: 8px; vertical-align: middle; }
 .leaderboard-row {
   display: grid;
   grid-template-columns: 36px 24px 1fr 40px 56px 72px;

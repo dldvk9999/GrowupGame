@@ -5,6 +5,7 @@
 ## 개요
 
 - Supabase Realtime으로 `chat_messages` 테이블 구독, **로그인한 시점(sinceIso) 이후의 메시지만 로드** + 신규 메시지 실시간 반영
+- **실시간 접속자 수 표시**(Presence) — `useLobbyChat`이 같은 `lobby-chat` 채널에 Supabase Realtime **Presence**로 자기 자신을 `track()`하고, `presenceState()`의 키 개수를 "지금 로비에 접속 중인 인원"으로 헤더에 "🟢 N명 접속 중"으로 보여줌. 다른 유저와의 상호작용을 눈에 보이게 해서 "사람이 있다"는 사회적 실재감을 주는 장치(같은 유저가 탭을 여러 개 열면 각각 별도로 카운트됨 — 정확한 순유저 수가 아니라 "지금 열려있는 연결 수" 근사치)
 - **로그아웃하면(=`LobbyChat`이 언마운트되면) 로컬 화면에서 그 대화 내역이 사라짐** — 단, 이건 "내가 로그인한 동안만 보이는 화면 범위"를 좁힌 것뿐이고, `chat_messages` 테이블 자체에서 실제로 삭제하는 건 아님(다른 유저들은 계속 그 메시지를 볼 수 있음). `App.jsx`가 세션이 확립될 때마다 `loginAt`(현재 시각)을 기록해서 `useLobbyChat(profile, sinceIso)`에 넘겨주고, 로그아웃 시 `loginAt`을 `null`로 되돌림
 - 닉네임은 서버 트리거가 `chat_messages.nickname`을 강제로 덮어씀(migration 004) — client가 아무 닉네임이나 보내도 실제 저장되는 건 본인 프로필 닉네임이라 사칭 불가능
 - 하단 탭 "💬 로비"에서 접근, 최대 200자, 전체 유저 공용(방 구분 없음)

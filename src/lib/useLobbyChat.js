@@ -10,6 +10,7 @@ import { supabase } from './supabaseClient';
  */
 export function useLobbyChat(profile, sinceIso) {
   const [messages, setMessages] = useState([]);
+  const [onlineCount, setOnlineCount] = useState(1);
 
   useEffect(() => {
     let ignore = false;
@@ -26,7 +27,7 @@ export function useLobbyChat(profile, sinceIso) {
         if (!ignore && data) setMessages(data);
       });
 
-    // 신규 메시지 실시간 구독 (다른 사람이 보낸 메시지가 내 화면에도 뜨게 함)
+    // 신규 메시지 실시간 구독 (다른 사람이 보낸 메시지가 내 화면에도 뜨게 함) + 접속자수 Presence
     const channel = supabase
       .channel('lobby-chat')
       .on(
@@ -36,13 +37,22 @@ export function useLobbyChat(profile, sinceIso) {
           setMessages((prev) => (prev.some((m) => m.id === payload.new.id) ? prev : [...prev, payload.new]));
         }
       )
-      .subscribe();
+      .on('presence', { event: 'sync' }, () => {
+        // presenceState()의 key 개수 = 현재 이 채널에 접속 중인 고유 클라이언트 수
+        const state = channel.presenceState();
+        setOnlineCount(Math.max(1, Object.keys(state).length));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED' && profile?.id) {
+          await channel.track({ user_id: profile.id, online_at: new Date().toISOString() });
+        }
+      });
 
     return () => {
       ignore = true;
       supabase.removeChannel(channel);
     };
-  }, [sinceIso]);
+  }, [sinceIso, profile?.id]);
 
   const sendMessage = useCallback(
     async (content) => {
@@ -65,5 +75,5 @@ export function useLobbyChat(profile, sinceIso) {
     [profile]
   );
 
-  return { messages, sendMessage };
+  return { messages, sendMessage, onlineCount };
 }

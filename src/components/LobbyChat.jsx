@@ -3,7 +3,7 @@ import { useLobbyChat } from '../lib/useLobbyChat';
 import Leaderboard from './Leaderboard';
 
 export default function LobbyChat({ profile, sinceIso, activeMonster }) {
-  const { messages, sendMessage } = useLobbyChat(profile, sinceIso);
+  const { messages, sendMessage, onlineCount } = useLobbyChat(profile, sinceIso);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [subTab, setSubTab] = useState('chat');
@@ -27,7 +27,7 @@ export default function LobbyChat({ profile, sinceIso, activeMonster }) {
 
   return (
     <div className="lobby-chat-screen">
-      <h2>로비</h2>
+      <h2>로비 <span className="lobby-online-badge">🟢 {onlineCount}명 접속 중</span></h2>
       <div className="shop-tabs">
         <button className={`shop-tab ${subTab === 'chat' ? 'active' : ''}`} onClick={() => setSubTab('chat')}>💬 채팅</button>
         <button className={`shop-tab ${subTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setSubTab('leaderboard')}>🏆 랭킹</button>
