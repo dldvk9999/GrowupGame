@@ -20,6 +20,7 @@
 html, body, #root {
   min-height: 100%;
   margin: 0;
+  overflow-x: hidden; /* 그리드/캐러셀 등 내부 요소가 뷰포트보다 넓어질 때 페이지 전체가 가로로 밀리는 것 방지. 세로 스크롤에는 영향 없음 */
 }
 
 body {
@@ -526,7 +527,10 @@ button {
   padding: 4px;
   border-radius: var(--radius-md);
   overflow-x: auto;
+  scrollbar-width: none; /* Firefox: 스크롤은 되지만 스크롤바는 숨김 */
+  -ms-overflow-style: none; /* IE/Edge legacy */
 }
+.tab-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 .tab-btn {
   flex: 1;
   min-width: 74px;
@@ -586,7 +590,7 @@ button {
   position: fixed;
   right: 16px;
   bottom: 16px;
-  z-index: 900;
+  z-index: 180; /* 모바일 햄버거 메뉴 백드롭(190)/드로워(200)보다 뒤에 노출되도록 낮춤 */
   max-width: 280px;
   min-width: 220px;
   display: flex;
@@ -808,8 +812,10 @@ button {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   padding: 4px 4px 12px;
-  scrollbar-width: thin;
+  scrollbar-width: none; /* Firefox: 스크롤바 완전 숨김 */
+  -ms-overflow-style: none;
 }
+.chapter-carousel::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 .chapter-card {
   scroll-snap-align: center;
   flex: 0 0 220px;
