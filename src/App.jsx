@@ -130,11 +130,30 @@ export default function App() {
     setSession(newSession);
     if (!newSession) {
       setStage(STAGE.AUTH);
+      // 공유 기기에서 A 로그아웃 -> B 로그인 시, 새 세션 로드가 끝나기 전까지 A의 잔여 데이터가
+      // 화면에 잠깐 보이는 걸 막기 위해 게임 데이터 state를 전부 초기값으로 리셋함
+      // (todo.md에 있던 "로그아웃 시 상태 초기화 일부만 됨" 유지보수 항목 정리)
       setProfile(null);
       setActiveMonster(null);
-      setLoginAt(null);
+      setClearedStageIds(new Set());
+      setInventory([]);
+      setEquipmentDrawProgress({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
+      setUserSkills([]);
+      setCurrentStageIndex(1);
+      setPendingStage(null);
+      setActiveTab('battle');
+      setDungeonAttempts({ exp: 3, gold: 3 });
+      setDungeonProgress({ exp: 0, gold: 0 });
+      setDungeonBattle(null);
+      setJobDungeonBattle(null);
+      setWorldBoss(null);
+      setWorldBossProgress(null);
+      setEverParticipatedWorldBoss(false);
+      setWorldBossSession(null);
+      setMission(null);
       setHasUnreadMail(false);
       setAttendanceState(null);
+      setLoginAt(null);
       return;
     }
     try {
