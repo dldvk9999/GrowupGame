@@ -1515,6 +1515,7 @@ button {
 .achievement-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
@@ -1523,7 +1524,7 @@ button {
 }
 .achievement-row--claimed { opacity: 0.6; }
 .achievement-icon { font-size: 22px; flex-shrink: 0; }
-.achievement-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.achievement-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 140px; }
 .achievement-desc { font-size: 12px; color: var(--text-secondary); }
 .achievement-progress-track {
   position: relative;
