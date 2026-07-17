@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchMyCombatPower, startPvpBattle } from '../lib/pvp';
+import { fetchMyCombatPower, startPvpBattle, fetchPvpHistory } from '../lib/pvp';
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { showToast } from '../lib/toast';
 import PvPBattleScene from './PvPBattleScene';
@@ -10,10 +10,17 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
   const [pendingBattle, setPendingBattle] = useState(null); // 서버 결과는 받았지만 아직 연출 중
   const [lastResult, setLastResult] = useState(null);
   const [error, setError] = useState('');
+  const [history, setHistory] = useState(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     fetchMyCombatPower().then(setMyPower).catch(() => {});
   }, []);
+
+  function loadHistory() {
+    if (!profile?.id) return;
+    fetchPvpHistory(profile.id).then(setHistory).catch(() => setHistory([]));
+  }
 
   async function handleFight() {
     setError('');
@@ -36,6 +43,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     setMyPower(res.my_power);
     onBattleResolved(res);
     setFighting(false);
+    if (showHistory) loadHistory(); // 전적 목록이 열려있으면 방금 결과도 바로 반영
     if (res.result === 'win') {
       showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
     } else {
@@ -88,6 +96,34 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
           {lastResult.result === 'win' && (
             <p className="pvp-reward-line">💰 PvP 재화 +{lastResult.reward.toLocaleString()}</p>
           )}
+        </div>
+      )}
+
+      <button
+        className="btn btn-ghost pvp-history-toggle"
+        onClick={() => {
+          const next = !showHistory;
+          setShowHistory(next);
+          if (next && history === null) loadHistory();
+        }}
+      >
+        {showHistory ? '▲ 최근 전적 접기' : '▼ 최근 전적 보기'}
+      </button>
+
+      {showHistory && (
+        <div className="pvp-history-list">
+          {history === null && <p className="stage-select-hint">불러오는 중...</p>}
+          {history?.length === 0 && <p className="inventory-empty">아직 전적이 없어요.</p>}
+          {history?.map((h) => (
+            <div key={h.id} className={`pvp-history-row ${h.result === 'win' ? 'pvp-history-row--win' : 'pvp-history-row--lose'}`}>
+              <span className="pvp-history-result">{h.result === 'win' ? '승' : '패'}</span>
+              <span className="pvp-history-opponent">
+                {h.opponent_name}{!h.opponent_is_real && <span className="pvp-synthetic-tag">가상</span>}
+              </span>
+              <span className="pvp-history-power">{h.my_power.toLocaleString()} vs {h.opponent_power.toLocaleString()}</span>
+              {h.result === 'win' && <span className="pvp-history-reward">+{h.reward.toLocaleString()}</span>}
+            </div>
+          ))}
         </div>
       )}
     </div>

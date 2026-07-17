@@ -35,7 +35,7 @@
 ## PvP 재화/전적
 
 - 승리 시 `reward = max(20, 20 + 상대전투력/65)`을 획득(`profiles.pvp_currency`, migration 025에서 기존 `max(30, 30+상대전투력/50)`보다 약 30% 하향), 패배 시 없음
-- 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음
+- 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음. **`fetchPvpHistory()`가 진작에 구현돼있었는데 실제로는 어디서도 호출 안 되는 죽은 코드였음** — 이번에 `PvPArena.jsx`에 "▼ 최근 전적 보기" 토글 버튼으로 연결해서 최근 20전(승/패, 상대, 전투력, 획득 재화)을 볼 수 있게 함. 전투 직후 목록이 열려있으면 자동으로 최신화됨
 - ⚠️ **보안**: 미션 클레임과 동일하게 `profiles.last_pvp_battle_at` 기준 **최소 2초 쿨다운**을 서버에 걸어둠(원래 20초였으나 038 패치에서 단축, 무한 반복 파밍 방지 목적은 유지, 자세한 내용은 [`security.md`](./security.md))
 
 ### 버그 수정 이력
