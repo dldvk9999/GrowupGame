@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { SLOTS } from '../lib/itemCatalog';
+import { SLOTS, getItem } from '../lib/itemCatalog';
+import { getSkillDef } from '../lib/skillCatalog';
 import EquipmentGacha from './EquipmentGacha';
 import SkillGacha from './SkillGacha';
+import { fetchDailyFreeDrawState, hasUsedFreeDrawToday, claimDailyFreeDraw } from '../lib/dailyFreeDraw';
+import { showToast } from '../lib/toast';
 
 const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
 const ALL_TABS = [...EQUIP_TABS, 'skill'];
@@ -11,6 +14,13 @@ export default function Shop({
   onInventoryChange, onGoldChange, onSkillsRefresh,
 }) {
   const [tab, setTab] = useState('weapon');
+  const [freeDrawUsed, setFreeDrawUsed] = useState(null); // null=로딩중
+  const [claimingFree, setClaimingFree] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchDailyFreeDrawState(userId).then((s) => setFreeDrawUsed(hasUsedFreeDrawToday(s))).catch(() => setFreeDrawUsed(false));
+  }, [userId]);
 
   // Tab / Shift+Tab으로 뽑기 탭 순환
   useEffect(() => {
@@ -28,12 +38,42 @@ export default function Shop({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [tab]);
 
+  async function handleFreeDraw() {
+    setClaimingFree(true);
+    try {
+      const type = tab === 'skill' ? 'skill' : 'equipment';
+      const result = await claimDailyFreeDraw(type, type === 'equipment' ? tab : undefined);
+      setFreeDrawUsed(true);
+      if (type === 'skill') {
+        const def = getSkillDef(result.skill_key);
+        showToast(`🎁 무료뽑기! ${def?.name ?? result.skill_key} ${result.was_duplicate ? `(중복, Lv.${result.new_level})` : '(신규 획득!)'}`, 'success');
+        onSkillsRefresh?.();
+      } else {
+        const item = getItem(result.item_key);
+        showToast(`🎁 무료뽑기! ${item?.name ?? result.item_key} ${result.was_duplicate ? `(중복, +${result.new_level})` : '(신규 획득!)'}`, 'success');
+        onInventoryChange?.();
+      }
+    } catch (err) {
+      showToast(err.message ?? '무료 뽑기에 실패했어요.', 'error');
+    } finally {
+      setClaimingFree(false);
+    }
+  }
+
   return (
     <div className="shop-screen">
       <div className="shop-header">
         <h2>상점 - 뽑기</h2>
         <span className="gold-display">💰 {gold.toLocaleString()}</span>
       </div>
+
+      <button
+        className={`btn btn-challenge free-draw-btn ${freeDrawUsed ? 'btn-unaffordable' : ''}`}
+        disabled={freeDrawUsed !== false || claimingFree}
+        onClick={handleFreeDraw}
+      >
+        {freeDrawUsed === null ? '확인 중...' : freeDrawUsed ? '🎁 오늘의 무료뽑기 사용 완료' : claimingFree ? '뽑는 중...' : `🎁 오늘의 무료뽑기 (${tab === 'skill' ? '스킬' : SLOTS[tab].label}, 1회 공짜)`}
+      </button>
 
       <div className="shop-tabs">
         {EQUIP_TABS.map((slot) => (

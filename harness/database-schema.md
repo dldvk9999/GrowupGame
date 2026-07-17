@@ -201,6 +201,9 @@
 **048_leaderboard.sql**
 - `fetch_leaderboard()` / `fetch_my_rank()` RPC — 전투력 기준 전체 유저 랭킹(상위 50명), 기존 PvP 전투력 계산 함수(`calc_monster_stats`/`calc_combat_power`) 재사용. 읽기 전용, 새 테이블 없음. 자세한 내용은 [`social-chat.md`](./social-chat.md)
 
+**049_daily_free_draw.sql**
+- 신규 테이블 `daily_free_draw_state` + `claim_daily_free_draw(p_type, p_slot)` RPC — 하루 1회 스킬/장비 뽑기 중 하나를 무료로. 기존 `draw_skill`/`draw_equipment`를 그대로 호출한 뒤 잔액을 호출 전 상태로 되돌리는 방식으로 구현(확률 로직 중복 없음). 자세한 내용은 [`skills.md`](./skills.md#일일-무료-뽑기-migration-049)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -220,6 +223,7 @@
 | `pvp_costume_inventory` | ❌ | `buy_pvp_costume` RPC |
 | `attendance_state` | ❌ | `claim_attendance` RPC (046) |
 | `achievement_claims` | ❌ | `claim_achievement` RPC (047) |
+| `daily_free_draw_state` | ❌ | `claim_daily_free_draw` RPC (049) |
 | `profiles.equipped_costumes` | ❌ | `set_costume_loadout` RPC (본인 보유 코스튬인지, 슬롯당 1개인지 서버 검증, 042) |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
