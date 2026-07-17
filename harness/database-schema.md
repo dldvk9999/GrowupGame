@@ -222,6 +222,9 @@
 **055_gacha_lucky_bonus.sql**
 - `draw_skill`/`draw_skill_batch`/`draw_equipment`/`draw_equipment_batch` 재정의 — 중복(강화) 시 10% 확률로 강화량 2배("럭키 보너스"). 반환 컬럼 구성은 그대로라 DROP 불필요, 클라이언트 수정 없음. 자세한 내용은 [`skills.md`](./skills.md)
 
+**056_fix_attendance_ambiguous_column.sql** — 버그 수정
+- `claim_attendance()`의 `UPDATE ... SET total_claim_count = total_claim_count + 1`이 RETURNS TABLE의 동명 OUT 파라미터와 충돌해서 "column reference is ambiguous" 에러로 출석체크가 아예 안 되던 문제 수정(테이블 별칭 명시). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

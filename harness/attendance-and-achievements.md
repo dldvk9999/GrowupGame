@@ -39,7 +39,14 @@
 - `src/lib/attendance.js`: `fetchAttendanceState`, `claimAttendance`, `hasClaimedToday`(로컬에서 오늘 날짜와 `last_claim_date` 비교)
 - `src/components/AttendanceModal.jsx`: 7일 캘린더 그리드 모달. 이미 받은 날은 흐리게+체크, 다음 받을 날은 초록 테두리로 하이라이트, 7일차는 2칸 차지하는 보너스 카드로 강조
 - 헤더의 "📅 출석체크" 버튼(데스크톱 헤더 + 모바일 드로워 양쪽)에 오늘 미수령 시 빨간 점 뱃지(`.mail-unread-dot` 재사용) — 우편함 뱃지와 동일한 시각 언어로 통일
-- App.jsx가 로그인 시점에 `attendanceState`를 조회해서 뱃지 여부를 계산하고, 클레임 성공 시 로컬 state와 골드를 즉시 갱신(서버 재조회 없이 낙관적 업데이트)
+
+### 배포 후 실사용 중 발견된 버그: "column reference total_claim_count is ambiguous" (056)
+
+046 배포 이후 실제로 출석체크 버튼을 눌러보니 이 에러가 났음. 원인은 `claim_attendance()`가 `RETURNS TABLE(..., total_claim_count integer)`로 선언돼있어서 PL/pgSQL이 `total_claim_count`라는 OUT 파라미터(변수)를 암묵적으로 만드는데, `UPDATE ... SET total_claim_count = total_claim_count + 1`처럼 **테이블 별칭 없이** 쓰면 우변의 `total_claim_count`가 그 변수를 가리키는지 `attendance_state.total_claim_count` 컬럼을 가리키는지 PostgreSQL이 판단하지 못해서 실패함(harness/security.md·dev-guide.md에 있는 "column reference X is ambiguous" 버그 패턴과 동일 원인, 다른 여러 RPC에서 이미 여러 번 겪었던 실수인데 이번에 또 반복함).
+
+→ **수정(056)**: UPDATE에 `attendance_state as att` 별칭을 붙이고 `att.total_claim_count + 1`로 명시적으로 한정, `RETURNING * into v_updated`로 갱신 결과를 바로 받아서 반환하도록 재작성. 반환 컬럼 구성은 그대로라 DROP FUNCTION 불필요.
+
+**교훈**: 함수의 `RETURNS TABLE(...)` 컬럼명과 그 함수가 다루는 테이블의 컬럼명이 같으면(이번처럼 `total_claim_count`), 그 함수 본문 안의 모든 UPDATE/INSERT에서 반드시 테이블 별칭으로 명시 한정할 것 — 이 프로젝트에서 이미 여러 번(009 등) 겪은 패턴인데도 새 함수를 급하게 짤 때 또 놓쳤음. **새 RPC를 작성할 때 RETURNS TABLE의 컬럼명이 대상 테이블 컬럼명과 겹치는 게 하나라도 있으면, 본문의 모든 UPDATE/INSERT에 무조건 별칭을 붙이는 습관화가 필요함.**
 
 ### 출석체크 UI 표시 버그(자체 시뮬레이션으로 발견/수정)
 

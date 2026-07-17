@@ -32,7 +32,7 @@
 
 `RETURNS TABLE(..., X, ...)`로 정의한 함수는 그 컬럼명(X)이 함수 본문 내에서 암묵적으로 변수처럼도 취급됨. 함수 본문에서 실제 테이블의 동일한 이름 컬럼을 **테이블 별칭 없이 bare로** UPDATE/WHERE/INSERT-ON CONFLICT 등에 쓰면 "이게 리턴 컬럼이야 테이블 컬럼이야"하고 모호해져서 에러가 남.
 
-이 문제가 `draw_skill`(007에서 수정), `draw_equipment`/`draw_equipment_batch`(018/019에서 두 단계에 걸쳐 수정, `ON CONFLICT (user_id, slot)`의 컬럼 목록 표기까지 문제였음), `enter_world_boss`(034에서 수정, `WHERE week_key = ...`)에서 실제로 발생했음.
+이 문제가 `draw_skill`(007에서 수정), `draw_equipment`/`draw_equipment_batch`(018/019에서 두 단계에 걸쳐 수정, `ON CONFLICT (user_id, slot)`의 컬럼 목록 표기까지 문제였음), `enter_world_boss`(034에서 수정, `WHERE week_key = ...`), **`claim_attendance`(046에서 신설했다가 배포 후 실사용 중 발견, 056에서 수정)**에서 실제로 발생했음. **046은 이 harness 문서에 패턴이 이미 정리돼있던 이후에 짠 코드인데도 똑같은 실수를 반복했음** — 새 RPC를 작성할 때마다 이 섹션을 실제로 체크리스트처럼 대조하지 않으면 알고 있어도 또 틀릴 수 있다는 방증.
 
 **대응 원칙**: 새 RPC를 짤 때 `RETURNS TABLE`을 쓴다면, 함수 본문 내 모든 SQL 문(특히 UPDATE의 SET/WHERE, INSERT의 ON CONFLICT)에서 테이블 컬럼은 항상 별칭을 붙여서(`ui.slot`처럼) 참조할 것. ON CONFLICT의 컬럼 목록 표기가 불안하면 `ON CONFLICT ON CONSTRAINT 제약이름`처럼 제약 이름으로 지정하는 것도 안전한 대안.
 
