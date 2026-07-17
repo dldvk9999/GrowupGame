@@ -10,7 +10,7 @@ const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
 const ALL_TABS = [...EQUIP_TABS, 'skill'];
 
 export default function Shop({
-  userId, gold, equipmentDrawProgress, totalSkillDraws,
+  userId, gold, equipmentDrawProgress, totalSkillDraws, inventory,
   onInventoryChange, onGoldChange, onSkillsRefresh,
 }) {
   const [tab, setTab] = useState('weapon');
@@ -101,6 +101,7 @@ export default function Shop({
           totalDraws={equipmentDrawProgress?.[tab] ?? 0}
           onGoldChange={onGoldChange}
           onInventoryChange={onInventoryChange}
+          inventory={inventory}
         />
       )}
     </div>

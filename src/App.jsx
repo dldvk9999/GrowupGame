@@ -585,6 +585,7 @@ export default function App() {
                 gold={profile?.gold ?? 0}
                 equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
+                inventory={inventory}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}

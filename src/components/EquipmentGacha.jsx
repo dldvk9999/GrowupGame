@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { SLOTS, RARITIES, getItem } from '../lib/itemCatalog';
+import { SLOTS, RARITIES, getItem, getEnhancedStatBonus } from '../lib/itemCatalog';
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 
-export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, onInventoryChange }) {
+export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, onInventoryChange, inventory }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
@@ -12,6 +12,11 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
   const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
   const slotMeta = SLOTS[slot];
+
+  // 지금 이 슬롯에 장착 중인 아이템의 실제 스탯 보너스(장착 안 했으면 0) - 뽑은 결과와 비교해서 "장착 추천" 표시용
+  const equippedRow = (inventory ?? []).find((r) => r.slot === slot && r.equipped);
+  const equippedItem = equippedRow ? getItem(equippedRow.item_key) : null;
+  const equippedBonus = equippedItem ? getEnhancedStatBonus(equippedItem, equippedRow.enhance_level ?? 0) : 0;
 
   async function handleDraw(count) {
     setError('');
@@ -100,13 +105,17 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
               ))}
               <span className="gacha-summary-total">총 {lastResults.length}회</span>
             </div>
+            <p className="gacha-hint" style={{ marginTop: 0 }}>▲ 표시는 지금 장착 중인 아이템보다 강하다는 뜻이에요. 인벤토리에서 장착해보세요!</p>
             <div className="gacha-result-list">
               {lastResults.map((r, i) => {
                 const item = getItem(r.item_key);
+                const newBonus = item ? getEnhancedStatBonus(item, r.new_enhance_level ?? 0) : 0;
+                const strongerThanEquipped = item && newBonus > equippedBonus;
                 return (
                   <div key={i} className="gacha-result-item" style={{ borderColor: RARITIES[r.rarity].color }} title={item?.name}>
                     <span>{slotMeta.icon}</span>
                     {r.was_duplicate && <span className="gacha-result-dup">+{r.new_enhance_level}</span>}
+                    {strongerThanEquipped && <span className="gacha-result-upgrade" title="현재 장착 중인 아이템보다 강해요">▲</span>}
                   </div>
                 );
               })}

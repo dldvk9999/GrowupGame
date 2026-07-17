@@ -23,6 +23,7 @@
 - 클라이언트는 `equipmentDrawProgress`(`{weapon,armor,gloves,shoes}`) 객체를 `App.jsx`가 로드해서 `Shop`이 현재 탭에 맞는 값만 골라 `EquipmentGacha`에 전달
 - `G`/`Shift+G`/`Ctrl+G` 키보드 단축키로 1/10/100회 뽑기 가능
 - 상점 화면 상단의 "🎁 오늘의 무료뽑기" 버튼으로 하루 1회 무료로 뽑을 수도 있음(스킬뽑기와 공용 장치, 자세한 내용은 [`skills.md`](./skills.md#일일-무료-뽑기-migration-049))
+- 뽑기 결과 카드에 **▲ 장착 추천 배지** — 방금 뽑은 아이템의 실제 스탯 보너스(`getEnhancedStatBonus`)가 현재 그 슬롯에 장착 중인 아이템보다 높으면 표시됨. 서버 호출 없이 클라이언트가 `Shop`이 이미 들고 있는 `inventory`를 `EquipmentGacha`에 내려서 즉석 비교만 함(순수 UI 편의 기능)
 
 ## 뽑기 중복 시 자동 강화
 

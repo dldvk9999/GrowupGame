@@ -1186,6 +1186,14 @@ button {
   padding: 0 3px;
   font-weight: 700;
 }
+.gacha-result-upgrade {
+  position: absolute;
+  top: -5px; left: -5px;
+  font-size: 11px;
+  color: var(--accent-heal);
+  font-weight: 900;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+}
 
 .loadout-slots { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .loadout-slot {
