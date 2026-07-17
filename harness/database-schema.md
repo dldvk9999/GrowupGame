@@ -207,6 +207,9 @@
 **050_titles.sql**
 - `profiles.equipped_title` 신설 + `set_equipped_title(p_achievement_key)` RPC — 상위 업적 6종 달성 시 칭호 해금, 닉네임 옆에 장착 가능. `fetch_leaderboard()`도 칭호를 같이 반환하도록 재정의. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**051_pvp_leaderboard_equipment_bonus.sql**
+- `calc_equipped_stat_bonus(user_id)` 신설 — `itemCatalog.js`의 장비 스탯 공식을 SQL로 포팅해서 장착 장비 4슬롯 보너스를 계산. `start_pvp_battle`/`fetch_leaderboard`/`fetch_my_rank`/`fetch_my_combat_power` 전부 이 보너스를 포함하도록 재정의 — 기존엔 강화 장비를 낀 유저와 안 낀 유저가 PvP/랭킹에서 똑같이 취급되던 불공정 문제 수정. 자세한 내용은 [`pvp.md`](./pvp.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

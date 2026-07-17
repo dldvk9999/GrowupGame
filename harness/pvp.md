@@ -22,7 +22,11 @@
 
 `calc_monster_stats()`가 종족 base 스탯 + 레벨 성장 + 전직 배율(1~5차)로 "만피 기준" atk/def/maxHp를 다시 계산하고, `calc_combat_power()` = `atk*4.5+def*3.2+maxHp*0.6`(클라이언트 `combat.js`의 공식과 동일하게 맞춤).
 
-⚠️ **장비/스킬 보유효과는 PvP 전투력 계산에 포함되지 않음** — 서버에서 매번 인벤토리를 조인해서 계산하는 부담을 피하려는 의도적 단순화. 장비/스킬 비중이 커지면 나중에 반영 검토 필요(자세한 내용은 [`todo.md`](./todo.md)).
+**장착 장비 보너스 반영 (migration 051)**: `calc_equipped_stat_bonus(user_id)`가 `user_inventory`에서 장착 중인 4슬롯을 조회해서 `itemCatalog.js`와 동일한 공식(슬롯 base × 등급 배율 × (1+강화수치×0.08))으로 atk/def/hp 보너스를 계산하고, `calc_monster_stats()` 결과에 더한 뒤 `calc_combat_power()`에 넣음. **장비 강화가 실제 전투 체감을 압도적으로 좌우하는 게임 설계상**, 원래 종족+레벨+전직만 보던 방식은 강화 안 한 유저와 신화 풀강 유저를 똑같이 취급하는 심각한 불공정이었음 — 051에서 수정됨. `start_pvp_battle`(매칭/승패판정), `fetch_leaderboard`/`fetch_my_rank`(랭킹), `fetch_my_combat_power`(PvP 화면에 보이는 내 전투력 숫자) 전부 동일 기준으로 통일됨.
+
+**스킬 보유효과는 여전히 미반영** — 스킬 카탈로그가 50종이라 SQL로 포팅하려면 계산식을 통째로 옮겨야 해서 장비보다 범위가 큼. 스킬 비중이 더 커지면 다음 후보로 검토(자세한 내용은 [`todo.md`](./todo.md)).
+
+⚠️ `calc_equipped_stat_bonus`는 `itemCatalog.js`의 `SLOTS.base`/`RARITIES.statMultiplier`를 SQL에 그대로 하드코딩해서 포팅한 것이라, **클라이언트 쪽 장비 밸런스 수치가 바뀌면 이 SQL 함수도 반드시 같이 고쳐야 함**(안 그러면 PvP/랭킹 전투력과 실제 인벤토리 화면에 보이는 스탯이 어긋남).
 
 ## 승패 판정
 
