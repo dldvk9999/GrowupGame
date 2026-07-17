@@ -182,7 +182,7 @@
 - `profiles.equipped_costumes`(text[]) 신설 + `set_costume_loadout` RPC — PvP 코스튬을 "보유"만이 아니라 슬롯별로 실제 "착용"할 수 있게 됨(서버가 보유여부/슬롯당 1개 제한 검증). 인벤토리 탭에 "코스튬" 서브탭 추가, 착용하면 캐릭터 스프라이트 주위에 등급색 배지로 표시됨(자세한 내용은 [`pvp.md`](./pvp.md))
 
 **043_dynamic_spend_gold_mission.sql**
-- `claim_mission_reward`가 다음 `spend_gold` 미션 목표치를 10000 고정 대신 **스킬+장비 종합 뽑기레벨**(1~20)에 따라 10만~50만 골드로 동적 상향(10만 단위 계단식), 보상도 목표치의 1%로 같이 스케일링. 자세한 내용은 [`guide-missions.md`](./guide-missions.md)
+- `claim_mission_reward`가 다음 `spend_gold` 미션 목표치를 10000 고정 대신 **스킬+장비 종합 뽑기레벨**(1~20, 045에서 1~50으로 확장됨)에 따라 10만~50만 골드로 동적 상향(10만 단위 계단식), 보상도 목표치의 1%로 같이 스케일링. 자세한 내용은 [`guide-missions.md`](./guide-missions.md)
 
 **044_fix_equipment_gacha_progress_column.sql** — 버그 수정
 - 043이 `equipment_gacha_progress` 조회 시 실제 컬럼명(`total_draws`) 대신 존재하지 않는 `draws`를 참조해서, 가이드미션 완료 클레임 시 `column "draws" does not exist` 에러로 `claim_mission_reward` 전체가 실패하던 문제 수정
