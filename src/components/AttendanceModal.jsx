@@ -15,8 +15,19 @@ export default function AttendanceModal({ attendanceState, onClose, onClaimed })
 
   const currentCycleDay = attendanceState?.cycle_day ?? 0; // 마지막으로 받은 날 (0=아직 없음)
   const alreadyClaimedToday = attendanceState?._claimedToday ?? false;
-  // 다음에 받을 날: 오늘 이미 받았으면 currentCycleDay 그대로 표시(완료 상태), 아니면 다음 날
-  const nextDay = alreadyClaimedToday ? currentCycleDay : (currentCycleDay % 7) + 1;
+
+  // 어제 받았는지 확인해서 스트릭이 이어질지 미리 예측(서버 claim_attendance와 동일한 판정 기준).
+  // last_claim_date가 없으면(첫 방문) 스트릭 개념 자체가 없으므로 항상 이어지는 것으로 취급.
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const willContinueStreak = !attendanceState?.last_claim_date || attendanceState.last_claim_date === yesterday || alreadyClaimedToday;
+
+  // 다음에 받을 날: 오늘 이미 받았으면 currentCycleDay 그대로 표시(완료 상태),
+  // 스트릭이 끊길 예정이면 1일차로 리셋, 아니면 다음 날로 이어짐
+  const nextDay = alreadyClaimedToday ? currentCycleDay : willContinueStreak ? (currentCycleDay % 7) + 1 : 1;
+  // 화면상 체크 표시 기준일 - 스트릭이 끊길 예정이거나(리셋), 지난 사이클을 다 채우고 아직 오늘 안 받았으면(새 사이클 시작)
+  // 0부터 다시 보여줌. 실제로는 서버가 claim 시점에만 cycle_day를 갱신하므로 그 전까지는 이전 값이 남아있어서
+  // 그대로 쓰면 이미 끝난/끊긴 사이클의 완료 표시가 계속 남아있는 것처럼 보임
+  const displayCycleDay = !alreadyClaimedToday && (!willContinueStreak || currentCycleDay === 7) ? 0 : currentCycleDay;
 
   async function handleClaim() {
     setError('');
@@ -55,7 +66,8 @@ export default function AttendanceModal({ attendanceState, onClose, onClaimed })
         <div className="attendance-grid">
           {DAY_REWARDS.map((reward, i) => {
             const day = i + 1;
-            const claimed = day <= currentCycleDay && (day < currentCycleDay || alreadyClaimedToday);
+            // cycle_day는 "마지막으로 받은 날"이므로 그 이하 날짜는 (오늘 받았든 이전에 받았든) 전부 이미 받은 상태
+            const claimed = day <= displayCycleDay;
             const isNext = day === nextDay && !alreadyClaimedToday;
             const isBonus = day === 7;
             return (
