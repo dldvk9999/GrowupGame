@@ -3,7 +3,7 @@ import { TOTAL_CHAPTERS, STAGES_PER_CHAPTER, toStageIndex, getChapterName, getCh
 import { getChapterStory } from '../lib/stageStory';
 import MonsterSprite from './MonsterSprite';
 
-const ELEMENT_LABEL = { fire: '화속성', water: '수속성', grass: '초속성' };
+const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 
 export default function StageSelect({ clearedStageIds, onSelectStage, currentStageIndex }) {
   const currentChapter = Math.floor((currentStageIndex - 1) / STAGES_PER_CHAPTER) + 1;
@@ -99,7 +99,7 @@ export default function StageSelect({ clearedStageIds, onSelectStage, currentSta
       {selectedUnlocked && (
         <div className="selected-chapter-panel">
           <div className="selected-chapter-header">
-            <span className={`chapter-tag element-${selectedElement}`}>{ELEMENT_LABEL[selectedElement]}</span>
+            <span className={`chapter-tag element-${selectedElement}`} title={`${selectedElement} 속성`}>{ELEMENT_ICON[selectedElement]}</span>
             <div>
               <div className="selected-chapter-title">{selectedChapter}. {getChapterName(selectedChapter)}</div>
               <div className="selected-chapter-sub">{selectedStory.title} · {selectedCleared}/{STAGES_PER_CHAPTER} 클리어</div>

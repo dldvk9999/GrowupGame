@@ -36,7 +36,7 @@
 - **`haste`**: `base` = 쿨타임 감소 비율(예 0.3=-30%), `duration`만큼 지속. 즉시 발동 중인 다른 스킬의 타이머를 되돌리진 않고, **헤이스트가 켜진 상태에서 스킬을 쓸 때마다 그 스킬의 쿨타임 자체가 줄어서 적용**되는 방식(구현 단순화 - "앞으로 쓰는 스킬들이 더 빨리 도는" 개념)
 
 부가 UI:
-- 버프/기절 상태는 `BuffStatusRow` 컴포넌트가 HP바 아래에 배지로 표시함(⚔️공격력상승/🛡️방어력상승/⚡쿨감/💫적기절중)
+- 버프/기절 상태는 `BuffStatusRow` 컴포넌트가 HP바 아래에 배지로 표시함(⚔️공격력상승/🛡️방어력상승/💫적기절중). 헤이스트(쿨타임 감소)는 HP바 아래 배지는 없애고 캐릭터 위 아이콘으로만 표시함(아래 참고, 배지가 중복 정보라 정리함)
 - 헤이스트로 실제 쿨타임이 줄어든 경우, `SkillButton`에는 `skill.cooldown` 대신 그때 계산된 `effectiveCooldowns[skill.id]`를 넘겨서 링 애니메이션도 정확한 시간에 맞춰 돎
 - **캐릭터 위 상태 아이콘**: 헤이스트(⚡, 지속시간 동안 빙글빙글 회전)와 회복(💚, 사용 시 1.3초짜리 팝업 애니메이션) 스킬은 HP바 아래 배지뿐 아니라 **플레이어 스프라이트 바로 위**에도 아이콘이 뜨도록 4개 전투화면(스테이지/일반던전/전직던전/월드보스) 전부에 `player-status-fx` 오버레이를 추가함 — 캐릭터를 안 보고 로그/배지만 봐도 알 수 있던 것을, 캐릭터 쪽만 봐도 바로 알 수 있게 보강
 - **전직(각성) 스킬 전용 강화 이펙트**: `getJobSkillTier(skillId)`(`jobAdvancement.js`)로 지금 쓴 스킬이 `${element}_job${1~5}` 패턴의 전직 스킬인지 판별하고, 맞으면 **차수가 높을수록 파티클 개수·크기가 커지고**(`spawnParticles`에 `sizeMult` 파라미터 추가), **3차 이상부터는 타격 순간 화면 전체에 등급별 색상의 짧은 플래시**(`job-skill-flash`, `mix-blend-mode: screen`)가 번쩍임. 1차~5차 색상은 각각 노랑→주황→빨강→핑크→보라로 점점 화려해짐
@@ -47,6 +47,8 @@
 
 ## 스킬 편성
 
+- **뽑기 화면과 완전히 분리된 별도 탭**(상점 안 "🧩 스킬 편성", `SkillLoadout.jsx`) — 원래는 스킬 뽑기 화면 하단에 같이 있었지만, 보유 스킬이 많아지면서 편성 UI만 따로 뺌
+- 편성 슬롯 + 저장 버튼 영역이 **`position: sticky`로 화면 상단에 고정**됨(`loadout-sticky-bar`) — 스킬 목록이 길어서 아래로 스크롤해도 슬롯이 항상 보이고 바로 편성/저장할 수 있음. 모바일에서도 동일하게 동작(부모 요소들에 `overflow` 제약이 없어서 sticky가 문제없이 걸림)
 - 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점)
 - `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증
 - `BattleScreen`은 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직 스킬은 `jobAdvancement.js`의 `getAvailableSkills`가 이 목록에 추가로 붙여줌
@@ -58,6 +60,7 @@
 - **1/10/100연차 뽑기** 지원(`draw_skill_batch` RPC) — 골드 부족하면 그 시점까지만 뽑고 부분 성공 반환
 - 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음(`create_starter_monster` RPC)
 - `G`/`Shift+G`/`Ctrl+G` 키보드 단축키로 1/10/100회 뽑기 가능 (자세한 내용은 [`ui-and-ux.md`](./ui-and-ux.md))
+- ⚠️ **버그 수정 이력**: 뽑을 때마다 서버는 `profiles.total_skill_draws`를 정상적으로 증가시키는데, **클라이언트가 뽑은 뒤 그 값을 다시 안 불러와서** 뽑기레벨/진행바가 새로고침 전까지 그대로 멈춰있던 버그가 있었음(장비뽑기 쪽은 `refreshInventory`가 `equipmentDrawProgress`까지 같이 재조회하도록 이미 고쳐져 있었는데, 스킬뽑기의 `refreshSkills`는 `user_skills`만 재조회하고 `profile`은 빠뜨렸던 게 원인). `App.jsx`의 `refreshSkills`가 `fetchUserSkills`와 `getMyProfile`을 함께 호출해서 `profile.total_skill_draws`까지 갱신하도록 수정함
 
 ## 스킬 보유효과
 

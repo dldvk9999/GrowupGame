@@ -188,8 +188,9 @@ export default function App() {
 
   const refreshSkills = useCallback(async () => {
     if (!session) return;
-    const skills = await fetchUserSkills(session.user.id);
+    const [skills, p] = await Promise.all([fetchUserSkills(session.user.id), getMyProfile()]);
     setUserSkills(skills);
+    setProfile(p);
   }, [session]);
 
   function handleLoadoutChange(newEquippedKeys) {

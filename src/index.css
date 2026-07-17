@@ -863,8 +863,9 @@ button {
   width: 22px; height: 22px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; color: #fff;
+  font-size: 13px; font-weight: 700; color: #fff;
   flex-shrink: 0;
+  line-height: 1;
 }
 .chapter-tag.element-fire { background: var(--accent-fire); }
 .chapter-tag.element-water { background: #3aa8e0; }
@@ -1096,7 +1097,7 @@ button {
   font-weight: 700;
 }
 
-.loadout-slots { display: flex; gap: 10px; margin-bottom: 14px; }
+.loadout-slots { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .loadout-slot {
   width: 56px; height: 56px;
   border: 2px dashed var(--border-soft);
@@ -1106,6 +1107,20 @@ button {
 }
 .loadout-slot.filled { border-style: solid; }
 .loadout-slot-empty { color: var(--text-muted); font-size: 20px; }
+
+.skill-loadout-screen { position: relative; }
+.loadout-sticky-bar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  background: rgba(15, 18, 32, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px 16px;
+  margin-bottom: 16px;
+}
+.loadout-save-btn { width: 100%; margin-top: 4px; }
 
 .owned-skill-grid {
   display: grid;

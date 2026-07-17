@@ -301,7 +301,6 @@ function BuffStatusRow({ buffs, enemyStunnedUntil }) {
   const tags = [];
   if (buffs.atkUntil > now) tags.push({ key: 'atk', label: '⚔️ 공격력 상승', cls: 'buff-atk' });
   if (buffs.defUntil > now) tags.push({ key: 'def', label: '🛡️ 방어력 상승', cls: 'buff-def' });
-  if (buffs.hasteUntil > now) tags.push({ key: 'haste', label: '⚡ 쿨타임 감소', cls: 'buff-haste' });
   if (enemyStunnedUntil > now) tags.push({ key: 'stun', label: '💫 적 기절중', cls: 'buff-stun' });
   if (tags.length === 0) return null;
   return (
