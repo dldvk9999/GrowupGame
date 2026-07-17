@@ -19,6 +19,7 @@ import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
+import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import AttendanceModal from './components/AttendanceModal';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
@@ -88,6 +89,7 @@ export default function App() {
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
+  const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
 
@@ -485,6 +487,7 @@ export default function App() {
               profile={profile}
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
+              hasNewPatchNote={hasNewPatchNote}
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={setActiveTab}
@@ -515,6 +518,7 @@ export default function App() {
               profile={profile}
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
+              hasNewPatchNote={hasNewPatchNote}
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={(tab) => { setActiveTab(tab); setMobileMenuOpen(false); }}
@@ -718,6 +722,7 @@ export default function App() {
                 gold={profile?.gold ?? 0}
                 onGoldChange={handleGoldChange}
                 onUnreadMailChange={setHasUnreadMail}
+                onPatchNoteSeen={() => setHasNewPatchNote(false)}
                 achievementStats={{
                   level: activeMonster?.level ?? 0,
                   jobTier: activeMonster?.unlockedJobTier ?? 0,
@@ -739,7 +744,7 @@ export default function App() {
   );
 }
 
-function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, attendanceClaimedToday, onOpenAttendance, onNavigate, onLogout }) {
+function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, hasNewPatchNote, attendanceClaimedToday, onOpenAttendance, onNavigate, onLogout }) {
   return (
     <>
       {canInstall && (
@@ -756,7 +761,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
       </button>
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
       <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
-        ⚙️ 설정{hasUnreadMail && <span className="mail-unread-dot" aria-label="미수령 우편 있음" />}
+        ⚙️ 설정{(hasUnreadMail || hasNewPatchNote) && <span className="mail-unread-dot" aria-label="미수령 우편 또는 새 패치노트 있음" />}
       </button>
       <button className="btn btn-ghost" onClick={onLogout}>로그아웃</button>
     </>

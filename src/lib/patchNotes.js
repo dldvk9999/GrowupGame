@@ -25,3 +25,23 @@ export const PATCH_NOTES = [
     ],
   },
 ];
+
+const SEEN_KEY = 'growupgame-patchnotes-seen-date';
+
+/** 가장 최근 패치노트를 이미 확인했는지(localStorage 기준, 계정과 무관하게 이 브라우저 기준) */
+export function hasSeenLatestPatchNote() {
+  try {
+    return localStorage.getItem(SEEN_KEY) === PATCH_NOTES[0]?.date;
+  } catch {
+    return true; // localStorage 접근 실패 시 뱃지를 계속 띄우지 않도록 안전하게 "봤음" 처리
+  }
+}
+
+/** 패치노트 화면을 열었을 때 호출 - 최신 날짜를 확인한 것으로 기록 */
+export function markLatestPatchNoteSeen() {
+  try {
+    localStorage.setItem(SEEN_KEY, PATCH_NOTES[0]?.date ?? '');
+  } catch {
+    // localStorage 없는 환경(시크릿모드 등)이면 조용히 무시
+  }
+}

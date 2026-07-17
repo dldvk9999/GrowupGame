@@ -1095,6 +1095,7 @@ button {
 .patch-note-header strong { font-size: 14px; }
 .patch-note-date { font-size: 11px; color: var(--text-muted); }
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
+.patch-note-tab-btn { position: relative; }
 
 /* ---------- 마이페이지 능력치 상세 ---------- */
 .stat-breakdown-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
