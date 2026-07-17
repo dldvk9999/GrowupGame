@@ -219,6 +219,9 @@
 **054_update_event_coupon.sql**
 - `UPDATE2026` 쿠폰 시딩(골드8000+레어장갑, 무제한 사용, 2026-12-31 만료) — 출석체크/업적/랭킹/무료뽑기/칭호 출시 기념
 
+**055_gacha_lucky_bonus.sql**
+- `draw_skill`/`draw_skill_batch`/`draw_equipment`/`draw_equipment_batch` 재정의 — 중복(강화) 시 10% 확률로 강화량 2배("럭키 보너스"). 반환 컬럼 구성은 그대로라 DROP 불필요, 클라이언트 수정 없음. 자세한 내용은 [`skills.md`](./skills.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

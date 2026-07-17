@@ -63,6 +63,7 @@
 - 신규 유저는 스타터 생성 시 `basic_strike` 1개를 무료로 자동 지급+장착받음(`create_starter_monster` RPC)
 - `G`/`Shift+G`/`Ctrl+G` 키보드 단축키로 1/10/100회 뽑기 가능 (자세한 내용은 [`ui-and-ux.md`](./ui-and-ux.md))
 - ⚠️ **버그 수정 이력**: 뽑을 때마다 서버는 `profiles.total_skill_draws`를 정상적으로 증가시키는데, **클라이언트가 뽑은 뒤 그 값을 다시 안 불러와서** 뽑기레벨/진행바가 새로고침 전까지 그대로 멈춰있던 버그가 있었음(장비뽑기 쪽은 `refreshInventory`가 `equipmentDrawProgress`까지 같이 재조회하도록 이미 고쳐져 있었는데, 스킬뽑기의 `refreshSkills`는 `user_skills`만 재조회하고 `profile`은 빠뜨렸던 게 원인). `App.jsx`의 `refreshSkills`가 `fetchUserSkills`와 `getMyProfile`을 함께 호출해서 `profile.total_skill_draws`까지 갱신하도록 수정함
+- **중복(강화) 시 10% 확률 럭키 보너스**(055) — 평소 +3인 스킬 강화량이 10% 확률로 +6(2배)이 됨. 장비도 동일 원리(055, [`equipment.md`](./equipment.md) 참고). 반환 컬럼 구성은 안 바뀌므로 클라이언트 수정 없이 `new_skill_level`/`new_enhance_level`에 자연스럽게 큰 값이 찍힘 — 별도의 "럭키!" 팝업은 없고 결과 배지 숫자가 평소보다 크게 나오는 것으로만 체감됨(변동성 있는 보상 자체가 목적)
 
 ## 일일 무료 뽑기 (migration 049)
 
