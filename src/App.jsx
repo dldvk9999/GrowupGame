@@ -675,7 +675,7 @@ export default function App() {
               />
             )}
             {activeTab === 'chat' && (
-              <LobbyChat profile={profile} sinceIso={loginAt} />
+              <LobbyChat profile={profile} sinceIso={loginAt} activeMonster={activeMonster} />
             )}
             {activeTab === 'mypage' && (
               <MyPage

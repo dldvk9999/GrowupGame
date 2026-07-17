@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLobbyChat } from '../lib/useLobbyChat';
 import Leaderboard from './Leaderboard';
 
-export default function LobbyChat({ profile, sinceIso }) {
+export default function LobbyChat({ profile, sinceIso, activeMonster }) {
   const { messages, sendMessage } = useLobbyChat(profile, sinceIso);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
@@ -34,7 +34,7 @@ export default function LobbyChat({ profile, sinceIso }) {
       </div>
 
       {subTab === 'leaderboard' ? (
-        <Leaderboard />
+        <Leaderboard profile={profile} activeMonster={activeMonster} />
       ) : (
         <>
       <p className="stage-select-hint">모든 유저가 함께 보는 채팅이에요. 닉네임은 자동으로 붙고, 지금 로그인한 시점부터의 대화만 보여요(로그아웃하면 화면에서 사라져요).</p>

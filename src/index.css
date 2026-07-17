@@ -1609,6 +1609,14 @@ button {
 .leaderboard-nickname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .leaderboard-tier, .leaderboard-level { color: var(--text-secondary); font-size: 12px; }
 .leaderboard-power { color: var(--accent-gold); font-weight: 700; text-align: right; font-size: 12px; }
+.leaderboard-divider {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 6px 0 2px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-soft);
+}
 
 /* ---------- 칭호 ---------- */
 .app-title-badge { color: var(--accent-gold); font-weight: 700; margin-right: 3px; }
