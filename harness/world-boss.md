@@ -75,6 +75,14 @@
 
 `add_gold` 내부 호출 + 우편함으로 안내 메일 발송(`source_key`로 중복 지급 방지).
 
+## 이번 주 기여자 TOP 10 (052)
+
+`DungeonSelect.jsx`의 월드보스 패널 하단에 이번 주 피해량 상위 10명을 보여줌(`fetchWorldBossTopContributors`, `worldBoss.js`).
+
+- `world_boss_contributions`와 `profiles` 둘 다 이미 "누구나 조회 가능" RLS라, 별도 RPC 없이 **클라이언트가 Supabase JS의 PostgREST 관계 임베딩**(`.select('total_damage, profiles(nickname)')`, `world_boss_contributions.user_id → profiles.id` FK 자동 인식)으로 직접 조회함 — `fetch_leaderboard`처럼 security definer 함수를 새로 만들 필요가 없었음(둘 다 원래 공개 데이터라 RLS 우회가 애초에 불필요)
+- 조회 실패해도 `.catch(() => setTopContributors([]))`로 조용히 숨겨지고 나머지 화면은 정상 동작(부분 장애가 전체 화면을 깨뜨리지 않도록 방어)
+- ⚠️ **배포 전 자체 검토로 발견/수정한 버그**: 처음엔 랭킹 화면의 `.leaderboard-row`(6컬럼 CSS Grid, rank/element/nickname/tier/level/power용)를 그대로 재사용해서 3개 자식(순위/닉네임/피해량)만 넣었더니, 그리드가 각 자식을 앞의 3개 트랙(36px/24px/1fr)에 순서대로 욱여넣어서 닉네임이 24px 칸에 짜부러지는 레이아웃 붕괴가 있었음 → 전용 flex 클래스(`worldboss-contributor-row`)로 분리해서 해결. **다른 화면의 grid 기반 row 클래스를 자식 개수가 다른 곳에 재사용하지 말 것** — 컬럼 수가 안 맞으면 이런 식으로 조용히 깨짐(에러 없이 레이아웃만 이상해져서 발견하기 까다로움)
+
 ## 지연 생성 패턴
 
 우편함/PvP상점과 동일하게 **cron 없이 지연 생성**됨 — `sync_world_boss()`가 월드보스 화면 진입 시 호출되어, "이번 주(일요일 기준) 보스가 아직 없으면 그때 생성 + 지난 주 정산"을 처리함. 아무도 접속하지 않는 주가 있으면 그 사이 정산이 미뤄질 수 있음(다음 접속자가 트리거).

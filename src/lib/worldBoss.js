@@ -19,6 +19,26 @@ export async function fetchWorldBoss() {
   };
 }
 
+/**
+ * 이번 주 월드보스 기여도 TOP 10 (닉네임 + 누적 피해량).
+ * world_boss_contributions/profiles 둘 다 "누구나 조회 가능" RLS라 RPC 없이 직접 조회 가능하고,
+ * user_id -> profiles(id) FK 관계를 PostgREST가 자동으로 조인해줌.
+ */
+export async function fetchWorldBossTopContributors(weekKey) {
+  if (!weekKey) return [];
+  const { data, error } = await supabase
+    .from('world_boss_contributions')
+    .select('total_damage, profiles(nickname)')
+    .eq('week_key', weekKey)
+    .order('total_damage', { ascending: false })
+    .limit(10);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    nickname: row.profiles?.nickname ?? '알 수 없음',
+    damage: Number(row.total_damage),
+  }));
+}
+
 /** 내 오늘 도전 횟수 / 이번 주 누적 데미지 */
 export async function fetchMyWorldBossProgress() {
   const { data, error } = await supabase.rpc('fetch_my_world_boss_progress');

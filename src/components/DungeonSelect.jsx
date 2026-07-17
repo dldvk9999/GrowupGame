@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
+import { fetchWorldBossTopContributors } from '../lib/worldBoss';
 import { showToast } from '../lib/toast';
 
 const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss'];
@@ -176,6 +177,13 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
 }
 
 function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
+  const [topContributors, setTopContributors] = useState(null);
+
+  useEffect(() => {
+    if (!boss?.weekKey) return;
+    fetchWorldBossTopContributors(boss.weekKey).then(setTopContributors).catch(() => setTopContributors([]));
+  }, [boss?.weekKey]);
+
   if (!boss) return <p className="app-loading">월드보스를 불러오는 중...</p>;
 
   const pct = Math.max(0, Math.min(100, (boss.currentHp / boss.maxHp) * 100));
@@ -222,6 +230,21 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
         클리어하면 이번 주 참여자 전원에게 <strong>7일간 공격력·방어력 20배</strong>의 "용의 버프"가 붙고, 닉네임이 화려하게 반짝여요.
         피해량에 비례한 골드 보상도 우편함으로 도착해요. 못 잡고 주가 끝나도, 그동안 입힌 피해량만큼 골드를 우편으로 보내드려요.
       </p>
+
+      {topContributors && topContributors.length > 0 && (
+        <div className="worldboss-top-contributors">
+          <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 이번 주 기여자 TOP {topContributors.length}</h4>
+          <div className="worldboss-contributor-list">
+            {topContributors.map((c, i) => (
+              <div key={i} className="worldboss-contributor-row">
+                <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][i] ?? i + 1}</span>
+                <span className="worldboss-contributor-nickname">{c.nickname}</span>
+                <span className="worldboss-contributor-damage">🐉{c.damage.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

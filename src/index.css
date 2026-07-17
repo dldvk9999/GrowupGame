@@ -780,6 +780,21 @@ button {
 .worldboss-my-damage { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 .worldboss-fight-btn { width: 100%; padding: 14px; font-size: 15px; }
 .worldboss-reward-hint { font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+.worldboss-top-contributors { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+.worldboss-contributor-list { display: flex; flex-direction: column; gap: 6px; }
+.worldboss-contributor-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-panel-2);
+  font-size: 13px;
+}
+.worldboss-contributor-rank { width: 24px; text-align: center; font-weight: 700; flex-shrink: 0; }
+.worldboss-contributor-nickname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.worldboss-contributor-damage { color: var(--accent-gold); font-weight: 700; font-size: 12px; flex-shrink: 0; }
 
 .worldboss-arena {
   aspect-ratio: 16 / 11;
