@@ -78,6 +78,8 @@ export default function App() {
   const [worldBossEntering, setWorldBossEntering] = useState(false);
   const [worldBossError, setWorldBossError] = useState('');
   const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loginAt, setLoginAt] = useState(null); // 로비 채팅을 "이 시점 이후"로만 보여주기 위한 기준시각
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
 
@@ -122,6 +124,7 @@ export default function App() {
       setStage(STAGE.AUTH);
       setProfile(null);
       setActiveMonster(null);
+      setLoginAt(null);
       return;
     }
     try {
@@ -149,6 +152,7 @@ export default function App() {
       setMission(missionState);
       setWorldBoss(worldBossState);
       setWorldBossProgress(worldBossProg);
+      setLoginAt(new Date().toISOString());
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -421,20 +425,43 @@ export default function App() {
         <header className="app-header">
           <span className="app-title">GrowupGame</span>
           <div className="app-header-right">
-            {canInstall && (
-              <button className="btn btn-neutral" onClick={promptInstall}>⬇️ 앱 다운로드</button>
-            )}
-            {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
-            {profile && (
-              <span className={`app-nickname ${dragonBuffActive ? 'app-nickname--dragon' : ''}`}>
-                {dragonBuffActive && '🐉 '}{profile.nickname}
-              </span>
-            )}
-            <button className="btn btn-ghost" onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
-            <button className="btn btn-ghost" onClick={() => setActiveTab('settings')}>⚙️ 설정</button>
-            <button className="btn btn-ghost" onClick={handleLogout}>로그아웃</button>
+            <HeaderActions
+              canInstall={canInstall}
+              promptInstall={promptInstall}
+              profile={profile}
+              dragonBuffActive={dragonBuffActive}
+              onNavigate={setActiveTab}
+              onLogout={handleLogout}
+            />
           </div>
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="메뉴 열기"
+          >
+            ☰
+          </button>
         </header>
+      )}
+
+      {mobileMenuOpen && (
+        <div className="mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)} />
+      )}
+      {stage === STAGE.GAME && (
+        <div className={`mobile-menu-drawer ${mobileMenuOpen ? 'open' : ''}`}>
+          <button type="button" className="mobile-menu-close" onClick={() => setMobileMenuOpen(false)} aria-label="메뉴 닫기">✕</button>
+          <div className="mobile-menu-content">
+            <HeaderActions
+              canInstall={canInstall}
+              promptInstall={promptInstall}
+              profile={profile}
+              dragonBuffActive={dragonBuffActive}
+              onNavigate={(tab) => { setActiveTab(tab); setMobileMenuOpen(false); }}
+              onLogout={() => { setMobileMenuOpen(false); handleLogout(); }}
+            />
+          </div>
+        </div>
       )}
 
       {error && <p className="app-error">{error}</p>}
@@ -598,7 +625,7 @@ export default function App() {
               />
             )}
             {activeTab === 'chat' && (
-              <LobbyChat profile={profile} />
+              <LobbyChat profile={profile} sinceIso={loginAt} />
             )}
             {activeTab === 'mypage' && (
               <MyPage
@@ -621,5 +648,24 @@ export default function App() {
         )}
       </main>
     </div>
+  );
+}
+
+function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, onNavigate, onLogout }) {
+  return (
+    <>
+      {canInstall && (
+        <button className="btn btn-neutral" onClick={promptInstall}>⬇️ 앱 다운로드</button>
+      )}
+      {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
+      {profile && (
+        <span className={`app-nickname ${dragonBuffActive ? 'app-nickname--dragon' : ''}`}>
+          {dragonBuffActive && '🐉 '}{profile.nickname}
+        </span>
+      )}
+      <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
+      <button className="btn btn-ghost" onClick={() => onNavigate('settings')}>⚙️ 설정</button>
+      <button className="btn btn-ghost" onClick={onLogout}>로그아웃</button>
+    </>
   );
 }

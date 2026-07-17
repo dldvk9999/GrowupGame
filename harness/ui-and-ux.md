@@ -53,3 +53,15 @@
 ## 스토리 팝업 중앙정렬
 
 `StoryIntro`, `ChapterStory` 팝업은 `.center-viewport` 래퍼로 화면 중앙에 표시됨(로그인 화면과 동일한 유틸 클래스).
+
+## 모바일 헤더 - 햄버거 메뉴
+
+`App.jsx`의 `HeaderActions` 컴포넌트(골드/닉네임/앱다운로드/마이페이지/설정/로그아웃 버튼)를 데스크톱에선 헤더에 그대로 인라인으로, **모바일(≤640px)에선 숨기고 대신 헤더 우측에 햄버거 버튼(☰)**을 노출함.
+
+- 햄버거 클릭 → `mobileMenuOpen` state가 true가 되며 오른쪽에서 슬라이드인되는 드로어(`mobile-menu-drawer`)가 열림 — 같은 `HeaderActions` 컴포넌트를 드로어 안에도 재사용해서 두 군데 UI가 어긋나지 않게 함(탭 이동/로그아웃 시 드로어도 같이 닫히도록 `onNavigate`/`onLogout` 콜백에서 `setMobileMenuOpen(false)`도 함께 호출)
+- 반투명 백드롭(`mobile-menu-backdrop`)을 클릭해도 닫힘
+- 데스크톱 화면에서는 `mobile-menu-btn`/`mobile-menu-drawer`/`mobile-menu-backdrop`이 CSS로 완전히 숨겨짐(상태값과 무관하게 `display:none`) — 리사이즈 등으로 상태가 꼬여도 데스크톱에서 드로어가 뜨는 일은 없음
+
+## 헤더가 sticky임 (자주 잊어버리는 부분)
+
+`.app-header`는 `position: sticky; top: 0; z-index: 10;`로 이미 고정돼 있음. 다른 화면에서 "헤더 아래 몇 px" 같은 sticky 오프셋을 계산할 때는 이 헤더가 계속 보인다는 전제로 값을 잡아야 함(스킬 편성의 `loadout-sticky-bar`가 이 패턴의 예시, [`skills.md`](./skills.md) 참고).
