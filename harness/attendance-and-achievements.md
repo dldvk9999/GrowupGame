@@ -60,7 +60,7 @@
 
 ### 카탈로그 (client, `src/lib/achievements.js`)
 
-`ACHIEVEMENT_CATALOG`는 정적 배열로 20개 업적을 6개 카테고리(성장/전직/스테이지/뽑기/PvP/출석)로 분류함. 서버 RPC의 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적을 추가할 때는 반드시 카탈로그와 `claim_achievement` RPC 양쪽을 같이 수정**해야 함(한쪽만 고치면 클라 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치가 생김).
+`ACHIEVEMENT_CATALOG`는 정적 배열로 22개 업적을 7개 카테고리(성장/전직/스테이지/뽑기/PvP/월드보스/출석)로 분류함. 서버 RPC의 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적을 추가할 때는 반드시 카탈로그와 `claim_achievement` RPC 양쪽을 같이 수정**해야 함(한쪽만 고치면 클라 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치가 생김).
 
 | 카테고리 | 업적 예시 | 기준 |
 |---|---|---|
