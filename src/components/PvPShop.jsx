@@ -1,7 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { getItem, RARITIES } from '../lib/itemCatalog';
 import { fetchPvpShop, fetchMyCostumes, buyPvpCostume } from '../lib/pvp';
 import { showToast } from '../lib/toast';
+
+/** 다음 정시(HH:00:00)까지 남은 시간을 "MM:SS" 형태로, 정시가 되면 onRefresh 콜백 1회 호출 */
+function useCountdownToNextHour(onRefresh) {
+  const [remaining, setRemaining] = useState('');
+  useEffect(() => {
+    let firedRefresh = false;
+    function tick() {
+      const now = new Date();
+      const next = new Date(now);
+      next.setMinutes(0, 0, 0);
+      next.setHours(now.getHours() + 1);
+      const diffSec = Math.max(0, Math.floor((next - now) / 1000));
+      const mm = String(Math.floor(diffSec / 60)).padStart(2, '0');
+      const ss = String(diffSec % 60).padStart(2, '0');
+      setRemaining(`${mm}:${ss}`);
+      if (diffSec <= 1 && !firedRefresh) {
+        firedRefresh = true;
+        setTimeout(() => { onRefresh?.(); firedRefresh = false; }, 1200); // 정시 직후 서버가 갱신할 여유(1.2초)를 두고 재조회
+      }
+    }
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [onRefresh]);
+  return remaining;
+}
 
 export default function PvPShop({ userId, currency, onCurrencyChange }) {
   const [listings, setListings] = useState([]);
@@ -10,20 +36,25 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
   const [buyingId, setBuyingId] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const [shopList, mine] = await Promise.all([fetchPvpShop(), fetchMyCostumes(userId)]);
-        setListings(shopList);
-        setOwned(mine);
-      } catch (err) {
-        setError(err.message ?? '상점을 불러오지 못했어요.');
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const loadShop = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [shopList, mine] = await Promise.all([fetchPvpShop(), fetchMyCostumes(userId)]);
+      setListings(shopList);
+      setOwned(mine);
+      setError('');
+    } catch (err) {
+      setError(err.message ?? '상점을 불러오지 못했어요.');
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
+
+  const nextRefreshIn = useCountdownToNextHour(loadShop);
+
+  useEffect(() => {
+    loadShop();
+  }, [loadShop]);
 
   async function handleBuy(listing) {
     setError('');
@@ -54,7 +85,7 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
         <span className="gold-display">🎖️ {currency.toLocaleString()}</span>
       </div>
       <p className="stage-select-hint">
-        진열대는 매시 정각에 10개로 새로 갱신돼요. 등급이 높을수록 나올 확률이 낮아요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요.
+        진열대는 매시 정각에 10개로 새로 갱신돼요(<strong style={{ color: 'var(--accent-gold)' }}>{nextRefreshIn}</strong> 후 갱신). 등급이 높을수록 나올 확률이 낮아요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요.
       </p>
 
       {error && <p className="shop-error">{error}</p>}
