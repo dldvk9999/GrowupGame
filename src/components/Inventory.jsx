@@ -117,8 +117,15 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
                     return (
                       <div key={row.id} className={`inventory-row ${row.equipped ? 'inventory-row--equipped' : ''}`}>
                         <span className="inventory-icon" style={{ color: item.color }}>{item.icon}</span>
-                        <span className="inventory-name">
-                          {item.name} {level > 0 && <span className="enhance-badge">+{level}</span>}
+                        <span className="inventory-name-col">
+                          <span className="inventory-name">
+                            {item.name} {level > 0 && <span className="enhance-badge">+{level}</span>}
+                          </span>
+                          {level > 0 && (
+                            <span className="enhance-progress-track" title={`강화 ${level} / ${MAX_ENHANCE_LEVEL}`}>
+                              <span className="enhance-progress-fill" style={{ width: `${Math.min(100, (level / MAX_ENHANCE_LEVEL) * 100)}%` }} />
+                            </span>
+                          )}
                         </span>
                         <span className="inventory-stat-group">
                           <span className="inventory-stat">
