@@ -225,6 +225,9 @@
 **056_fix_attendance_ambiguous_column.sql** — 버그 수정
 - `claim_attendance()`의 `UPDATE ... SET total_claim_count = total_claim_count + 1`이 RETURNS TABLE의 동명 OUT 파라미터와 충돌해서 "column reference is ambiguous" 에러로 출석체크가 아예 안 되던 문제 수정(테이블 별칭 명시). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**057_equipment_set_bonus.sql**
+- `calc_equipped_stat_bonus` 재정의 — 4슬롯을 전부 같은 등급으로 장착하면 최종 스탯 +5% 세트 효과 추가. 클라이언트(`lib/inventory.js`)와 서버 양쪽에 동일 로직 포팅해서 PvP/랭킹에도 정확히 반영됨. 반환타입 그대로라 DROP 불필요. 자세한 내용은 [`equipment.md`](./equipment.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

@@ -45,6 +45,15 @@
 
 ⚠️ **구현상 트레이드오프 설명**: 원래 요청은 "장비 10개를 합성하면 1개의 상위등급"이었지만, 이 게임은 뽑기 중복이 별도 인벤토리 행(재고)이 아니라 `enhance_level` 누적으로만 반영되는 구조(`user_inventory`에 `unique(user_id, item_key)` 제약)라 애초에 "같은 아이템 10개를 따로 보유"하는 개념 자체가 없음. 그래서 "강화수치 10 = 그동안 모은 재료 10개"로 치환해서 매핑함 — "합성할수록 보유효과도 반영"이라는 요구사항은 상위 등급 아이템의 `enhance_level`이 실제로 오르니까 자연히 충족됨(보유효과 공식이 `enhance_level`에 비례하므로 별도 로직 불필요).
 
+## 세트 효과 (migration 057)
+
+4슬롯(무기/방어구/장갑/신발)을 **전부 장착**하고 **등급이 모두 같으면**(예: 신화 4종 풀세트) 최종 장착 보너스에 **+5%**가 추가로 붙음. 등급이 하나라도 다르거나 4슬롯 중 하나라도 비어있으면 보너스 없음.
+
+- **장착 보너스에만 적용**되고 보유효과(`sumPossessionBonus`)에는 적용 안 됨 — "실제로 다 갖춰 입어야" 받는 혜택으로 의도함
+- `lib/inventory.js`의 `isFullSetEquipped(equippedRarities)`가 판정 로직, `sumEquippedBonus`가 합산 후 조건 충족 시 5% 곱연산으로 반영
+- **서버(`calc_equipped_stat_bonus`, 051/057)에도 동일 로직을 SQL로 포팅**해서 PvP/랭킹/`fetch_my_combat_power`에도 세트효과가 정확히 반영됨 — `user_inventory_one_equipped_per_slot`(003의 부분 유니크 인덱스, `where equipped`)가 "슬롯당 최대 1개 장착"을 DB 레벨에서 보장하므로 `count(distinct slot) = 4`가 "4슬롯 전부 장착"과 정확히 동치임을 이용해 판정
+- 인벤토리 화면(장비 서브탭)에 세트가 활성화되면 "✨ 세트 효과 활성화! 최종 ATK/DEF/HP +5%" 배너가 뜸. 마이페이지 능력치 상세 카드도 `equipmentOnlyBonus`(= `sumEquippedBonus` 결과)를 그대로 쓰므로 별도 수정 없이 세트효과가 반영된 숫자가 자동으로 보임
+
 ## 인벤토리 화면
 
 `Inventory.jsx`, 상점과 분리된 별도 탭:
