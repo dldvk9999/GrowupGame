@@ -32,6 +32,8 @@ import Shop from './components/Shop';
 import Inventory from './components/Inventory';
 import MyPage from './components/MyPage';
 import DungeonSelect from './components/DungeonSelect';
+import WorldBossBattle from './components/WorldBossBattle';
+import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss } from './lib/worldBoss';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import Settings from './components/Settings';
@@ -70,6 +72,11 @@ export default function App() {
   const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
+  const [worldBoss, setWorldBoss] = useState(null);
+  const [worldBossProgress, setWorldBossProgress] = useState(null);
+  const [worldBossSession, setWorldBossSession] = useState(null); // enterWorldBoss() 결과 | null
+  const [worldBossEntering, setWorldBossEntering] = useState(false);
+  const [worldBossError, setWorldBossError] = useState('');
   const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
@@ -119,7 +126,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -129,6 +136,8 @@ export default function App() {
         fetchDungeonProgress(userId),
         fetchEquipmentDrawProgress(userId),
         fetchOrInitMissionState(),
+        fetchWorldBoss(),
+        fetchMyWorldBossProgress(),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -138,6 +147,8 @@ export default function App() {
       setDungeonProgress(progress);
       setEquipmentDrawProgress(equipDraws);
       setMission(missionState);
+      setWorldBoss(worldBossState);
+      setWorldBossProgress(worldBossProg);
 
       if (!monster) {
         setStage(STAGE.STORY);
@@ -319,6 +330,40 @@ export default function App() {
     }
   }
 
+  async function refreshWorldBoss() {
+    try {
+      const [boss, progress] = await Promise.all([fetchWorldBoss(), fetchMyWorldBossProgress()]);
+      setWorldBoss(boss);
+      setWorldBossProgress(progress);
+    } catch (err) {
+      console.error('월드보스 정보 로드 실패', err);
+    }
+  }
+
+  async function handleEnterWorldBoss() {
+    setWorldBossError('');
+    setWorldBossEntering(true);
+    try {
+      const sessionData = await enterWorldBoss();
+      setWorldBossSession(sessionData);
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setWorldBossError(message);
+      showToast(message, 'error');
+    } finally {
+      setWorldBossEntering(false);
+    }
+  }
+
+  function handleWorldBossSettled(res) {
+    setWorldBoss((prev) => (prev ? { ...prev, currentHp: res.newCurrentHp, cleared: res.clearedNow } : prev));
+    if (res.clearedNow) {
+      setProfile((p) => ({ ...p, dragon_buff_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }));
+      showToast('🐉 월드보스 처치! 7일간 용의 버프(공격력·방어력 20배)가 적용돼요!', 'success');
+    }
+    refreshWorldBoss();
+  }
+
   async function handleLogout() {
     await signOut();
   }
@@ -342,9 +387,14 @@ export default function App() {
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
   const equipmentOnlyBonus = getTotalEquipmentBonus(inventory);
   const skillPossessionAtk = sumSkillPossessionBonus(userSkills);
+  const dragonBuffActive = !!(profile?.dragon_buff_until && new Date(profile.dragon_buff_until) > new Date());
+  const baseAtkWithBonus = (activeMonster?.atk ?? 0) + equipmentOnlyBonus.atk + skillPossessionAtk;
+  const baseDefWithBonus = (activeMonster?.def ?? 0) + equipmentOnlyBonus.def;
   const equipmentBonus = {
-    atk: equipmentOnlyBonus.atk + skillPossessionAtk,
-    def: equipmentOnlyBonus.def,
+    // 용의 버프(월드보스 클리어 보상)가 켜져 있으면 "지금의" 공격력/방어력이 그대로 20배가 되도록,
+    // 기존 보너스에 19배만큼을 추가로 얹어줌 (base + bonus*20 = base*20 + equipBonus*20)
+    atk: equipmentOnlyBonus.atk + skillPossessionAtk + (dragonBuffActive ? baseAtkWithBonus * 19 : 0),
+    def: equipmentOnlyBonus.def + (dragonBuffActive ? baseDefWithBonus * 19 : 0),
     hp: equipmentOnlyBonus.hp,
   };
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
@@ -374,7 +424,11 @@ export default function App() {
               <button className="btn btn-neutral" onClick={promptInstall}>⬇️ 앱 다운로드</button>
             )}
             {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
-            {profile && <span className="app-nickname">{profile.nickname}</span>}
+            {profile && (
+              <span className={`app-nickname ${dragonBuffActive ? 'app-nickname--dragon' : ''}`}>
+                {dragonBuffActive && '🐉 '}{profile.nickname}
+              </span>
+            )}
             <button className="btn btn-ghost" onClick={() => setActiveTab('mypage')}>👤 마이페이지</button>
             <button className="btn btn-ghost" onClick={() => setActiveTab('settings')}>⚙️ 설정</button>
             <button className="btn btn-ghost" onClick={handleLogout}>로그아웃</button>
@@ -494,6 +548,16 @@ export default function App() {
                   onClear={handleDungeonClear}
                   onExit={() => setDungeonBattle(null)}
                 />
+              ) : worldBossSession ? (
+                <WorldBossBattle
+                  key={worldBossSession.sessionId}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  session={worldBossSession}
+                  onSettled={handleWorldBossSettled}
+                  onExit={() => setWorldBossSession(null)}
+                />
               ) : (
                 <DungeonSelect
                   attemptsRemaining={dungeonAttempts}
@@ -506,7 +570,15 @@ export default function App() {
                   jobEntering={jobEntering}
                   jobError={jobError}
                   activeType={dungeonActiveType}
-                  onActiveTypeChange={setDungeonActiveType}
+                  onActiveTypeChange={(type) => {
+                    setDungeonActiveType(type);
+                    if (type === 'worldboss') refreshWorldBoss();
+                  }}
+                  worldBoss={worldBoss}
+                  worldBossProgress={worldBossProgress}
+                  onEnterWorldBoss={handleEnterWorldBoss}
+                  worldBossEntering={worldBossEntering}
+                  worldBossError={worldBossError}
                 />
               )
             )}

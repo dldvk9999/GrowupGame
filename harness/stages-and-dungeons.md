@@ -2,6 +2,8 @@
 
 관련 파일: `stages.js`, `stageStory.js`, `StageSelect.jsx`, `dungeonStages.js`, `dungeon.js`, `DungeonSelect.jsx`, `DungeonBattle.jsx`, `jobDungeon.js`, `jobDungeonApi.js`, `JobDungeonBattle.jsx`
 
+> 던전 탭에는 경험치/골드/전직 던전 외에 **월드보스** 서브탭도 있음 — 전체 유저 공용 주간 레이드 콘텐츠라 별도 문서 [`world-boss.md`](./world-boss.md)에 정리함.
+
 ## 스테이지 시스템
 
 - **100챕터 × 10스테이지 = 1000스테이지**, `stage_id`는 1~1000 순번(`toStageIndex(chapter, stage)`)

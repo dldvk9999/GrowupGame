@@ -3,12 +3,13 @@ import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { showToast } from '../lib/toast';
 
-const DUNGEON_TABS = ['exp', 'gold', 'job'];
+const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
   activeMonster, onEnterJobDungeon, jobEntering, jobError,
   activeType, onActiveTypeChange,
+  worldBoss, worldBossProgress, onEnterWorldBoss, worldBossEntering, worldBossError,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -40,10 +41,28 @@ export default function DungeonSelect({
         <button className={`shop-tab ${activeType === 'job' ? 'active' : ''}`} onClick={() => onActiveTypeChange('job')}>
           ⚔️ 전직 던전
         </button>
+        <button className={`shop-tab ${activeType === 'worldboss' ? 'active' : ''}`} onClick={() => onActiveTypeChange('worldboss')}>
+          🐉 월드보스
+        </button>
       </div>
       <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
-      {activeType !== 'job' ? (
+      {activeType === 'job' ? (
+        <JobDungeonPanel
+          activeMonster={activeMonster}
+          onEnter={onEnterJobDungeon}
+          entering={jobEntering}
+          error={jobError}
+        />
+      ) : activeType === 'worldboss' ? (
+        <WorldBossPanel
+          boss={worldBoss}
+          progress={worldBossProgress}
+          onEnter={onEnterWorldBoss}
+          entering={worldBossEntering}
+          error={worldBossError}
+        />
+      ) : (
         <ProgressiveDungeon
           type={activeType}
           remaining={attemptsRemaining?.[activeType] ?? 3}
@@ -51,13 +70,6 @@ export default function DungeonSelect({
           onEnter={onEnterDungeon}
           entering={entering}
           error={error}
-        />
-      ) : (
-        <JobDungeonPanel
-          activeMonster={activeMonster}
-          onEnter={onEnterJobDungeon}
-          entering={jobEntering}
-          error={jobError}
         />
       )}
     </div>
@@ -159,6 +171,56 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
+  if (!boss) return <p className="app-loading">월드보스를 불러오는 중...</p>;
+
+  const pct = Math.max(0, Math.min(100, (boss.currentHp / boss.maxHp) * 100));
+  const remaining = 3 - (progress?.attemptsUsed ?? 0);
+
+  return (
+    <div className="worldboss-panel">
+      <p className="stage-select-hint">
+        전체 유저가 함께 체력을 깎는 공용 보스예요. 매주 일요일 자정(서울시간)에 체력이 초기화돼요.
+        하루 3번까지 도전 가능(오늘 {Math.max(0, remaining)}/3회 남음, 매일 오전 8시 초기화).
+        4차 전직 정도는 해야 유효타가 들어갈 만큼 강력해요.
+      </p>
+      {error && <p className="shop-error">{error}</p>}
+
+      <div className="worldboss-hp-card">
+        <div className="worldboss-hp-title">🐉 태초의 용 {boss.cleared && <span className="worldboss-cleared-badge">처치 완료!</span>}</div>
+        <div className="bar-track worldboss-hp-track">
+          <div className="bar-fill worldboss-hp-fill" style={{ width: `${pct}%` }} />
+        </div>
+        <div className="worldboss-hp-numbers">{boss.currentHp.toLocaleString()} / {boss.maxHp.toLocaleString()}</div>
+        <div className="worldboss-my-damage">이번 주 내가 입힌 피해: {(progress?.myWeekDamage ?? 0).toLocaleString()}</div>
+      </div>
+
+      <button
+        className={`btn btn-challenge worldboss-fight-btn ${(remaining <= 0 || boss.cleared) ? 'btn-unaffordable' : ''}`}
+        disabled={entering}
+        onClick={() => {
+          if (boss.cleared) {
+            showToast('이번 주 월드보스는 이미 처치되었습니다.', 'error');
+            return;
+          }
+          if (remaining <= 0) {
+            showToast('오늘 하루 입장권을 모두 소진하셨습니다.', 'error');
+            return;
+          }
+          onEnter();
+        }}
+      >
+        {entering ? '입장 중...' : '⚔️ 월드보스에게 도전'}
+      </button>
+
+      <p className="worldboss-reward-hint">
+        클리어하면 이번 주 참여자 전원에게 <strong>7일간 공격력·방어력 20배</strong>의 "용의 버프"가 붙고, 닉네임이 화려하게 반짝여요.
+        못 잡고 주가 끝나면, 그동안 입힌 피해량만큼 골드로 환산해서 우편으로 보내드려요.
+      </p>
     </div>
   );
 }

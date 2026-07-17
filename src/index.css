@@ -627,6 +627,39 @@ button {
 .pvp-battle-scene { margin-top: 10px; }
 .pvp-opponent-icon { font-size: 64px; display: block; text-align: center; }
 
+/* ---------- 용의 버프 닉네임 ---------- */
+.app-nickname--dragon {
+  font-weight: 800;
+  background: linear-gradient(90deg, #ff5a1f, #ffcf4a, #d94aff, #3aa8e0, #ff5a1f);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: dragon-shimmer 3s linear infinite;
+}
+@keyframes dragon-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ---------- 월드보스 ---------- */
+.worldboss-hp-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin: 12px 0;
+}
+.worldboss-hp-title { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.worldboss-cleared-badge { font-size: 11px; color: var(--accent-heal); border: 1px solid var(--accent-heal); border-radius: 6px; padding: 1px 6px; }
+.worldboss-hp-track { height: 16px; }
+.worldboss-hp-fill { background: linear-gradient(90deg, #d94aff, #ff5a1f); }
+.worldboss-hp-numbers { text-align: center; font-size: 13px; font-weight: 700; margin-top: 6px; }
+.worldboss-my-damage { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.worldboss-fight-btn { width: 100%; padding: 14px; font-size: 15px; }
+.worldboss-reward-hint { font-size: 12px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; }
+.worldboss-icon { font-size: 72px; display: block; text-align: center; }
+
 /* ---------- 스테이지 선택 ---------- */
 .stage-select { width: 100%; }
 .stage-select h2 { margin-bottom: 4px; }

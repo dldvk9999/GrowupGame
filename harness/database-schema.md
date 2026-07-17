@@ -145,6 +145,11 @@
 **032_pvp_shop_cleanup_old_periods.sql** — 버그 수정
 - `sync_pvp_shop`이 새 시간대 진열대 생성 직전에 예전 시간대 데이터를 삭제하도록 변경 — 이전엔 매시간 추가만 하고 안 지워서, 시간이 지날수록 지난 진열대까지 계속 섞여서 표시되던 문제가 있었음. 클라이언트(`fetchPvpShop`)도 최신 `period_key`만 필터링하도록 이중 방어 추가
 
+**033_world_boss_system.sql**
+- `profiles.dragon_buff_until` 컬럼 추가 (용의 버프 만료시각)
+- `world_boss_state`(주간 공유체력, 일요일 리셋), `world_boss_attempts`(하루3회), `world_boss_contributions`(유저별 주간 누적 데미지) 테이블 신설
+- `sync_world_boss()`(지연생성+미클리어 정산), `get_world_boss_state()`, `fetch_my_world_boss_progress()`, `enter_world_boss()`, `report_world_boss_damage()` RPC 신설 — 자세한 내용은 [`world-boss.md`](./world-boss.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -164,4 +169,7 @@
 | `pvp_costume_inventory` | ❌ | `buy_pvp_costume` RPC |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
+| `world_boss_state` | ❌ (누구나 조회는 가능) | `sync_world_boss` RPC 내부에서만 생성/갱신 |
+| `world_boss_attempts` | ❌ | `enter_world_boss` RPC (원자적 증가) |
+| `world_boss_contributions` | ❌ (누구나 조회는 가능) | `report_world_boss_damage` RPC 내부에서만 누적 |
 | `chat_messages` | insert 가능(닉네임은 트리거가 덮어씀, 속도제한 트리거 있음) | - |
