@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchLeaderboard, fetchMyRank } from '../lib/leaderboard';
 import { fetchMyCombatPower } from '../lib/pvp';
+import { showToast } from '../lib/toast';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -10,12 +11,30 @@ export default function Leaderboard({ profile, activeMonster }) {
   const [myRank, setMyRank] = useState(null);
   const [myPower, setMyPower] = useState(null);
   const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    Promise.all([fetchLeaderboard(), fetchMyRank(), fetchMyCombatPower()])
-      .then(([lb, rank, power]) => { setRows(lb); setMyRank(rank); setMyPower(power); })
-      .catch((err) => setError(err.message ?? '랭킹을 불러오지 못했어요.'));
-  }, []);
+  async function load({ isRefresh = false } = {}) {
+    try {
+      const [lb, rank, power] = await Promise.all([fetchLeaderboard(), fetchMyRank(), fetchMyCombatPower()]);
+      setRows(lb); setMyRank(rank); setMyPower(power); setError('');
+    } catch (err) {
+      const message = err.message ?? '랭킹을 불러오지 못했어요.';
+      if (isRefresh) {
+        // 새로고침 실패 시엔 기존에 보이던 목록을 지우지 않고 토스트로만 알림
+        showToast(message, 'error');
+      } else {
+        setError(message);
+      }
+    }
+  }
+
+  useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await load({ isRefresh: true });
+    setRefreshing(false);
+  }
 
   if (error) return <p className="shop-error">{error}</p>;
   if (rows === null) return <p className="stage-select-hint">랭킹을 불러오는 중...</p>;
@@ -26,10 +45,15 @@ export default function Leaderboard({ profile, activeMonster }) {
 
   return (
     <div className="leaderboard-screen">
-      <p className="stage-select-hint">
-        전체 유저 전투력 상위 50명이에요. 30초마다 자동 갱신되진 않으니, 새로고침하려면 화면을 다시 들어와주세요.
-        {myRank != null && <> 내 순위는 <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong>예요.</>}
-      </p>
+      <div className="leaderboard-header-row">
+        <p className="stage-select-hint" style={{ margin: 0 }}>
+          전체 유저 전투력 상위 50명이에요.
+          {myRank != null && <> 내 순위는 <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong>예요.</>}
+        </p>
+        <button className="btn btn-ghost leaderboard-refresh-btn" disabled={refreshing} onClick={handleRefresh}>
+          {refreshing ? '갱신 중...' : '🔄 새로고침'}
+        </button>
+      </div>
       <div className="leaderboard-list">
         {rows.map((row) => (
           <div key={row.rank} className={`leaderboard-row ${row.is_me ? 'leaderboard-row--me' : ''}`}>
