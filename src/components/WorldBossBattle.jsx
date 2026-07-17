@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
-import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier } from '../lib/jobAdvancement';
+import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
 import { reportWorldBossDamage } from '../lib/worldBoss';
@@ -40,9 +40,18 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
     atk: session.bossAtk,
     def: session.bossDef,
   }));
-  const [cooldowns, setCooldowns] = useState({});
-  const [cooldownStarts, setCooldownStarts] = useState({});
-  const [effectiveCooldowns, setEffectiveCooldowns] = useState({});
+  const [initialJobCooldowns] = useState(() => buildInitialJobSkillCooldowns(availableSkills));
+  const [cooldowns, setCooldowns] = useState(() => initialJobCooldowns.cooldowns);
+  const [cooldownStarts, setCooldownStarts] = useState(() => initialJobCooldowns.cooldownStarts);
+  const [effectiveCooldowns, setEffectiveCooldowns] = useState(() => initialJobCooldowns.effectiveCooldowns);
+
+  useEffect(() => {
+    const timers = Object.entries(initialJobCooldowns.effectiveCooldowns).map(([skillId, delay]) =>
+      setTimeout(() => setCooldowns((prev) => ({ ...prev, [skillId]: false })), delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [enemyStunnedUntil, setEnemyStunnedUntil] = useState(0);
   const [playerBuffs, setPlayerBuffs] = useState({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
   const [log, setLog] = useState('월드보스가 그 거대한 모습을 드러냈다!');

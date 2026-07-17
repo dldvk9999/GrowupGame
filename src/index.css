@@ -166,6 +166,20 @@ button {
   color: var(--text-secondary);
 }
 
+/* 설정 버튼 우편 미수령 빨간 점 뱃지 */
+.mail-badge-btn { position: relative; }
+.mail-unread-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b3b;
+  border: 1.5px solid var(--bg-panel);
+  pointer-events: none;
+}
+
 .app-error {
   color: var(--danger);
   text-align: center;

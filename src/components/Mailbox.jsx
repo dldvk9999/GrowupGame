@@ -3,7 +3,7 @@ import { syncDailyMails, fetchMails, claimMail, deleteMail } from '../lib/mail';
 import { getItem } from '../lib/itemCatalog';
 import { showToast } from '../lib/toast';
 
-export default function Mailbox({ userId, onGoldChange, gold }) {
+export default function Mailbox({ userId, onGoldChange, gold, onUnreadChange }) {
   const [mails, setMails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState(null);
@@ -17,12 +17,13 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
       await syncDailyMails();
       const list = await fetchMails(userId);
       setMails(list);
+      onUnreadChange?.(list.some((m) => !m.claimed));
     } catch (err) {
       setError(err.message ?? '우편함을 불러오지 못했어요.');
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
 
@@ -32,7 +33,11 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
     try {
       await claimMail(mail.id);
       if (mail.gold_amount > 0) onGoldChange(gold + mail.gold_amount);
-      setMails((prev) => prev.map((m) => (m.id === mail.id ? { ...m, claimed: true } : m)));
+      setMails((prev) => {
+        const next = prev.map((m) => (m.id === mail.id ? { ...m, claimed: true } : m));
+        onUnreadChange?.(next.some((m) => !m.claimed));
+        return next;
+      });
     } catch (err) {
       setError(err.message ?? '수령에 실패했어요.');
     } finally {
@@ -47,6 +52,7 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
     setClaimingAll(true);
     let gained = 0;
     let failed = 0;
+    let stillUnread = false;
     for (const mail of targets) {
       try {
         await claimMail(mail.id);
@@ -54,12 +60,14 @@ export default function Mailbox({ userId, onGoldChange, gold }) {
         setMails((prev) => prev.map((m) => (m.id === mail.id ? { ...m, claimed: true } : m)));
       } catch {
         failed += 1;
+        stillUnread = true;
       }
     }
     setClaimingAll(false);
     if (gained > 0) showToast(`우편 일괄수령! 💰 ${gained.toLocaleString()} 획득`, 'success');
     if (failed > 0) showToast(`${failed}개 우편은 수령에 실패했어요.`, 'error');
-  }, [mails, claimingAll, gold, onGoldChange]);
+    onUnreadChange?.(stillUnread);
+  }, [mails, claimingAll, gold, onGoldChange, onUnreadChange]);
 
   // Enter로 미수령 우편 일괄수령
   useEffect(() => {

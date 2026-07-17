@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Mailbox from './Mailbox';
 import CouponRedeem from './CouponRedeem';
 
-export default function Settings({ userId, gold, onGoldChange }) {
+export default function Settings({ userId, gold, onGoldChange, onUnreadMailChange }) {
   const [tab, setTab] = useState('mailbox');
 
   return (
@@ -13,7 +13,7 @@ export default function Settings({ userId, gold, onGoldChange }) {
         <button className={`shop-tab ${tab === 'coupon' ? 'active' : ''}`} onClick={() => setTab('coupon')}>🎟️ 쿠폰 입력</button>
       </div>
 
-      {tab === 'mailbox' && <Mailbox userId={userId} gold={gold} onGoldChange={onGoldChange} />}
+      {tab === 'mailbox' && <Mailbox userId={userId} gold={gold} onGoldChange={onGoldChange} onUnreadChange={onUnreadMailChange} />}
       {tab === 'coupon' && <CouponRedeem />}
     </div>
   );

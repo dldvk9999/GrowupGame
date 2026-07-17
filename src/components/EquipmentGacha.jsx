@@ -9,7 +9,7 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
 
-  const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 1000));
+  const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
   const slotMeta = SLOTS[slot];
 
@@ -65,7 +65,7 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
     <div className="skillgacha-screen">
       <div className="gacha-panel">
         <div className="gacha-level-row">
-          <span>뽑기 레벨 <strong>{drawLevel}</strong> / 20</span>
+          <span>뽑기 레벨 <strong>{drawLevel}</strong> / 50</span>
           <span className="gold-display">💰 {gold.toLocaleString()}</span>
         </div>
         <div className="bar-track exp-track">

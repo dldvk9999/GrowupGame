@@ -8,6 +8,38 @@ export function getJobSkillTier(skillId) {
   return m ? Number(m[1]) : 0;
 }
 
+/**
+ * 전직 스킬일수록(강할수록) 전투 시작 직후 바로 쏘지 못하도록 초기 사용대기시간을 줌.
+ * 1차 0.5초, 2차 1.5초, 3차 2.5초, 4차 3.5초, 5차 4.5초 (tier*1000 - 500ms).
+ * 전직 스킬이 아니면 0(대기시간 없음).
+ */
+export function getInitialJobSkillDelayMs(skillId) {
+  const tier = getJobSkillTier(skillId);
+  return tier > 0 ? tier * 1000 - 500 : 0;
+}
+
+/**
+ * 전투 시작 시점의 초기 쿨다운 state를 만들어줌 - 전직 스킬은 getInitialJobSkillDelayMs만큼
+ * 미리 "쿨다운 중"으로 세팅해서 즉시 사용을 못 하게 하고, 그 시간이 지나면 자동으로 풀림.
+ * 반환값을 setCooldowns/setCooldownStarts/setEffectiveCooldowns 세 state에 그대로 써주고,
+ * 호출부가 각 스킬마다 setTimeout으로 실제 해제를 걸어줘야 함(아래 applyInitialJobSkillDelays 참고).
+ */
+export function buildInitialJobSkillCooldowns(availableSkills) {
+  const cooldowns = {};
+  const cooldownStarts = {};
+  const effectiveCooldowns = {};
+  const now = Date.now();
+  for (const skill of availableSkills ?? []) {
+    const delay = getInitialJobSkillDelayMs(skill.id);
+    if (delay > 0) {
+      cooldowns[skill.id] = true;
+      cooldownStarts[skill.id] = now;
+      effectiveCooldowns[skill.id] = delay;
+    }
+  }
+  return { cooldowns, cooldownStarts, effectiveCooldowns };
+}
+
 export const JOB_TIERS = {
   fire: [
     { tier: 1, level: 30, title: '작열의 전사', statMultiplier: 2.0,

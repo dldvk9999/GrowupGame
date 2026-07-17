@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
-import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier } from '../lib/jobAdvancement';
+import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -31,9 +31,19 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({ ...dungeonEnemy }));
-  const [cooldowns, setCooldowns] = useState({});
-  const [cooldownStarts, setCooldownStarts] = useState({});
-  const [effectiveCooldowns, setEffectiveCooldowns] = useState({});
+  const [initialJobCooldowns] = useState(() => buildInitialJobSkillCooldowns(availableSkills));
+  const [cooldowns, setCooldowns] = useState(() => initialJobCooldowns.cooldowns);
+  const [cooldownStarts, setCooldownStarts] = useState(() => initialJobCooldowns.cooldownStarts);
+  const [effectiveCooldowns, setEffectiveCooldowns] = useState(() => initialJobCooldowns.effectiveCooldowns);
+
+  // 전투 시작 시 세팅해둔 전직스킬 초기 대기시간을 실제로 해제
+  useEffect(() => {
+    const timers = Object.entries(initialJobCooldowns.effectiveCooldowns).map(([skillId, delay]) =>
+      setTimeout(() => setCooldowns((prev) => ({ ...prev, [skillId]: false })), delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [enemyStunnedUntil, setEnemyStunnedUntil] = useState(0);
   const [playerBuffs, setPlayerBuffs] = useState({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
   const [log, setLog] = useState(`${dungeonEnemy.name} 등장!`);

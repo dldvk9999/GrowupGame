@@ -9,8 +9,8 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
   const [lastResults, setLastResults] = useState([]); // 항상 배열로 통일 (1회도 배열 1개)
   const [error, setError] = useState('');
 
-  const drawLevel = Math.min(20, 1 + Math.floor((totalDraws ?? 0) / 1000));
-  const cost = 300; // 뽑기레벨과 무관하게 1회당 정가 300골드
+  const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
+  const cost = 300 + (drawLevel - 1) * 90;
 
   async function handleDraw(count) {
     setError('');
@@ -64,13 +64,13 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
 
       <div className="gacha-panel">
         <div className="gacha-level-row">
-          <span>뽑기 레벨 <strong>{drawLevel}</strong> / 20</span>
+          <span>뽑기 레벨 <strong>{drawLevel}</strong> / 50</span>
           <span className="gold-display">💰 {gold.toLocaleString()}</span>
         </div>
         <div className="bar-track exp-track">
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
-        <p className="gacha-hint">뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.20)</p>
+        <p className="gacha-hint">뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.50)</p>
 
         {error && <p className="shop-error">{error}</p>}
 
@@ -86,7 +86,7 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
           </button>
         </div>
         <p className="gacha-hint" style={{ marginTop: 6 }}>
-          1회당 정가 💰{cost.toLocaleString()}로 고정이에요. 뽑기 레벨은 등급 확률에만 영향을 줘요.
+          뽑기 레벨이 오를수록 비용도 증가해요 (Lv.1=300골드, Lv.50=4,710골드). 레벨이 높을수록 고등급 확률도 올라가요.
         </p>
 
         {lastResults.length > 0 && (

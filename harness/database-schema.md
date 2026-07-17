@@ -187,6 +187,11 @@
 **044_fix_equipment_gacha_progress_column.sql** — 버그 수정
 - 043이 `equipment_gacha_progress` 조회 시 실제 컬럼명(`total_draws`) 대신 존재하지 않는 `draws`를 참조해서, 가이드미션 완료 클레임 시 `column "draws" does not exist` 에러로 `claim_mission_reward` 전체가 실패하던 문제 수정
 
+**045_gacha_level_cap_50_skill_cost.sql**
+- 스킬/장비 4슬롯 전 뽑기레벨 최대치 **20 → 50**으로 확장, 확률 구간 경계도 비례 확장(8/18/28/38/48)
+- 스킬뽑기 비용을 300 고정에서 **300+(lv-1)×90** 동적 산정으로 변경(장비뽑기 `100+(lv-1)×30`과 동일 패턴, lv1=300/lv50=4710골드)
+- `claim_mission_reward`의 종합 뽑기레벨 상한도 50으로 동기화, spend_gold 경계값도 50레벨 기준(8/20/30/43)으로 재조정
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

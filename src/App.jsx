@@ -17,6 +17,7 @@ import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { usePwaInstall } from './lib/usePwaInstall';
 import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
+import { fetchMails } from './lib/mail';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
@@ -83,6 +84,7 @@ export default function App() {
   const [loginAt, setLoginAt] = useState(null); // 로비 채팅을 "이 시점 이후"로만 보여주기 위한 기준시각
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
+  const [hasUnreadMail, setHasUnreadMail] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -130,7 +132,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -142,6 +144,7 @@ export default function App() {
         fetchOrInitMissionState(),
         fetchWorldBoss(),
         fetchMyWorldBossProgress(),
+        fetchMails(userId).catch(() => []),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -153,6 +156,7 @@ export default function App() {
       setMission(missionState);
       setWorldBoss(worldBossState);
       setWorldBossProgress(worldBossProg);
+      setHasUnreadMail(mails.some((m) => !m.claimed));
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -435,6 +439,7 @@ export default function App() {
               promptInstall={promptInstall}
               profile={profile}
               dragonBuffActive={dragonBuffActive}
+              hasUnreadMail={hasUnreadMail}
               onNavigate={setActiveTab}
               onLogout={handleLogout}
             />
@@ -462,6 +467,7 @@ export default function App() {
               promptInstall={promptInstall}
               profile={profile}
               dragonBuffActive={dragonBuffActive}
+              hasUnreadMail={hasUnreadMail}
               onNavigate={(tab) => { setActiveTab(tab); setMobileMenuOpen(false); }}
               onLogout={() => { setMobileMenuOpen(false); handleLogout(); }}
             />
@@ -658,6 +664,7 @@ export default function App() {
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
                 onGoldChange={handleGoldChange}
+                onUnreadMailChange={setHasUnreadMail}
               />
             )}
           </div>
@@ -667,7 +674,7 @@ export default function App() {
   );
 }
 
-function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, onNavigate, onLogout }) {
+function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, onNavigate, onLogout }) {
   return (
     <>
       {canInstall && (
@@ -680,7 +687,9 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, o
         </span>
       )}
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
-      <button className="btn btn-ghost" onClick={() => onNavigate('settings')}>⚙️ 설정</button>
+      <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
+        ⚙️ 설정{hasUnreadMail && <span className="mail-unread-dot" aria-label="미수령 우편 있음" />}
+      </button>
       <button className="btn btn-ghost" onClick={onLogout}>로그아웃</button>
     </>
   );

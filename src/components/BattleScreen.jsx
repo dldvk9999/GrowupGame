@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
-import { getDisplaySpriteKey, getJobSkillTier } from '../lib/jobAdvancement';
+import { getDisplaySpriteKey, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
@@ -175,7 +175,14 @@ export default function BattleScreen({
     setEnemy({ ...stageEnemyTemplate });
     setPlayer((prev) => ({ ...prev, hp: prev.maxHp })); // 도전 시작 시 풀피로
     setResult(null);
-    setCooldowns({});
+    // 전직 스킬은 강할수록(차수가 높을수록) 전투 시작 직후 바로 못 쏘게 초기 대기시간을 줌
+    const initial = buildInitialJobSkillCooldowns(availableSkills);
+    setCooldowns(initial.cooldowns);
+    setCooldownStarts(initial.cooldownStarts);
+    setEffectiveCooldowns((prev) => ({ ...prev, ...initial.effectiveCooldowns }));
+    Object.entries(initial.effectiveCooldowns).forEach(([skillId, delay]) => {
+      setTimeout(() => setCooldowns((prev) => ({ ...prev, [skillId]: false })), delay);
+    });
     setEnemyStunnedUntil(0);
     setPlayerBuffs({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
     setLog(flavor);
