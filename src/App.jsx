@@ -18,7 +18,9 @@ import { usePwaInstall } from './lib/usePwaInstall';
 import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';
+import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
 import MissionFloatingButton from './components/MissionFloatingButton';
+import AttendanceModal from './components/AttendanceModal';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
 
@@ -85,6 +87,8 @@ export default function App() {
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
+  const [attendanceState, setAttendanceState] = useState(null);
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -132,7 +136,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -145,6 +149,7 @@ export default function App() {
         fetchWorldBoss(),
         fetchMyWorldBossProgress(),
         fetchMails(userId).catch(() => []),
+        fetchAttendanceState(userId).catch(() => null),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -157,6 +162,7 @@ export default function App() {
       setWorldBoss(worldBossState);
       setWorldBossProgress(worldBossProg);
       setHasUnreadMail(mails.some((m) => !m.claimed));
+      setAttendanceState(attendance);
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -427,6 +433,21 @@ export default function App() {
   return (
     <div className="app-shell">
       <ToastContainer />
+      {showAttendanceModal && (
+        <AttendanceModal
+          attendanceState={attendanceState ? { ...attendanceState, _claimedToday: hasClaimedToday(attendanceState) } : null}
+          onClose={() => setShowAttendanceModal(false)}
+          onClaimed={(result) => {
+            setAttendanceState((prev) => ({
+              ...(prev ?? {}),
+              cycle_day: result.cycle_day,
+              last_claim_date: new Date().toISOString().slice(0, 10),
+              total_claim_count: result.total_claim_count,
+            }));
+            setProfile((p) => (p ? { ...p, gold: (p.gold ?? 0) + result.reward_gold } : p));
+          }}
+        />
+      )}
       {stage === STAGE.GAME && (
         <MissionFloatingButton mission={mission} completed={missionCompleted} onClaim={handleClaimMission} claiming={claimingMission} />
       )}
@@ -440,6 +461,8 @@ export default function App() {
               profile={profile}
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
+              attendanceClaimedToday={hasClaimedToday(attendanceState)}
+              onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={setActiveTab}
               onLogout={handleLogout}
             />
@@ -468,6 +491,8 @@ export default function App() {
               profile={profile}
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
+              attendanceClaimedToday={hasClaimedToday(attendanceState)}
+              onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={(tab) => { setActiveTab(tab); setMobileMenuOpen(false); }}
               onLogout={() => { setMobileMenuOpen(false); handleLogout(); }}
             />
@@ -674,7 +699,7 @@ export default function App() {
   );
 }
 
-function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, onNavigate, onLogout }) {
+function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, attendanceClaimedToday, onOpenAttendance, onNavigate, onLogout }) {
   return (
     <>
       {canInstall && (
@@ -686,6 +711,9 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
           {dragonBuffActive && '🐉 '}{profile.nickname}
         </span>
       )}
+      <button className="btn btn-ghost attendance-badge-btn" onClick={onOpenAttendance}>
+        📅 출석체크{!attendanceClaimedToday && <span className="mail-unread-dot" aria-label="오늘 출석 안 함" />}
+      </button>
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
       <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
         ⚙️ 설정{hasUnreadMail && <span className="mail-unread-dot" aria-label="미수령 우편 있음" />}

@@ -20,6 +20,7 @@
 | [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅 |
 | [`mailbox-and-coupons.md`](./mailbox-and-coupons.md) | 정기 우편함, 쿠폰 시스템 |
 | [`guide-missions.md`](./guide-missions.md) | 가이드 미션(반복형+온보딩 우선순위) |
+| [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상), 업적 시스템 |
 | [`account-and-settings.md`](./account-and-settings.md) | 인증(자동로그인 포함), 마이페이지, 설정 화면 |
 | [`ui-and-ux.md`](./ui-and-ux.md) | 키보드 단축키, 토스트 알림, PWA, 모바일 레이아웃 주의사항 |
 | [`database-schema.md`](./database-schema.md) | migration 001~029 전체 히스토리, 클라이언트 쓰기권한 요약표 |
