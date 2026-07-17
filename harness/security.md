@@ -82,6 +82,20 @@
 
 **교훈**: 다른 테이블의 컬럼을 참조하는 새 로직을 짤 때는 해당 테이블을 처음 만든 마이그레이션(`create table`)을 직접 열어서 컬럼명을 대조할 것 — 이름을 추정하거나 비슷한 다른 컬럼명(`profiles.total_skill_draws`)에서 유추하면 이런 오타가 재발함. 가능하면 로컬에서 실제 쿼리를 실행해보고 배포하는 습관이 필요함.
 
+### 046~051 정기 보안점검 (게임빌드업 세션, push 3회 이후 정례 점검)
+
+이번 세션에서 새로 추가한 6개 마이그레이션(출석체크/업적/랭킹/무료뽑기/칭호/PvP장비보너스)을 전수 재점검함:
+
+- **RLS/권한**: 새로 생긴 테이블 3개(`attendance_state`/`achievement_claims`/`daily_free_draw_state`) 전부 RLS 활성화 + 본인만 SELECT 정책 + insert/update/delete는 authenticated로부터 revoke — 기존 패턴과 동일하게 RPC(security definer)로만 변경 가능함을 확인
+- **`auth.uid()` 검증**: 모든 상태변경 RPC가 `auth.uid() is null` 체크로 시작하고, 대상 유저를 파라미터로 안 받고 항상 `auth.uid()` 자기 자신만 조작함(권한 상승/타인 계정 조작 경로 없음)
+- **SQL 인젝션**: 동적 SQL(`EXECUTE format(...)`) 사용 없음, 전부 파라미터화된 비교/CASE문
+- **`claim_daily_free_draw`의 "임시버퍼→원상복구" 방식 재검증**: 시작 시점 잔액을 `for update`로 잠근 채 캡처 → 큰 버퍼 지급 → 실제 뽑기(정상 비용 차감) → 캡처해둔 잔액으로 강제 리셋. 중간에 뽑기 RPC가 예외를 던지면 트랜잭션 전체가 롤백되어 무료뽑기가 소모되지 않고 되돌아감(부분 상태 남지 않음) — 안전. `for update` 락 덕분에 동시 중복호출도 직렬화되어 이중 무료뽑기 불가능
+- **`fetch_leaderboard`/`fetch_my_rank`**: 전체 유저를 조회하는 security definer 함수지만 닉네임/레벨/전직단계/속성/전투력/칭호만 반환하고 골드·이메일 등 민감정보 노출 없음
+- **`calc_equipped_stat_bonus`**: security definer가 아닌 일반 함수라 클라이언트가 임의로 `p_user_id`(타인)를 넣어 직접 호출해도, `user_inventory`의 RLS(본인만 조회)가 SECURITY INVOKER 컨텍스트에 그대로 적용되어 타인 데이터는 0으로 나옴 — 정보 노출 없음(security definer 함수들 내부에서 호출될 때만 그 함수의 상승된 권한으로 실제 데이터를 읽음)
+- **함수 반환타입 배포 오류**: 위에서 이미 다룬 `fetch_leaderboard` DROP FUNCTION 이슈 외에, 이번 세션에서 재정의한 `draw_skill`/`draw_equipment`/`claim_mission_reward`/`start_pvp_battle`/`set_skill_loadout` 등은 전부 이전 버전과 반환 컬럼 구성이 동일한지 diff로 전수 확인 완료(문제 없음)
+
+**결론**: 이번 점검에서 새로 발견된 취약점은 없음(위 배포 오류는 보안이 아닌 배포 안정성 이슈였고 이미 패치 완료).
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(그리고 이 프로젝트에서 가장 큰) 구조적 한계임.
