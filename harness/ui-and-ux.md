@@ -50,6 +50,14 @@
 
 `html, body, #root`에 `height: 100%`(고정값)를 주면 콘텐츠가 뷰포트보다 길어질 때(예: 상점 화면) 하단이 스크롤되지 않고 잘리는 문제가 있었음. `min-height: 100%`로 바꿔서 해결함 — 비슷한 "화면 하단 짤림" 이슈 재발 시 이 부분부터 의심할 것.
 
+### `html/body/#root`에 `overflow-x: hidden`을 걸었다가 `position: sticky`가 전부 깨졌던 회귀
+
+모바일 가로스크롤을 막으려고 `html, body, #root`에 전역으로 `overflow-x: hidden`을 추가했었는데, 이게 `.loadout-sticky-bar`(스킬 편성 화면의 편성 슬롯 영역)를 포함한 `position: sticky` 요소들을 전부 깨뜨렸음. **overflow를 하나라도 지정한 조상 요소가 있으면 그 요소가 sticky의 기준 스크롤 컨테이너가 되어버려서, 뷰포트 기준으로 붙어있어야 할 sticky가 더 이상 안 붙음**(CSS sticky positioning의 잘 알려진 함정).
+
+→ **수정**: `html/body/#root`의 `overflow-x: hidden`을 제거함. 모바일 가로스크롤이 실제로 필요했던 곳(전투/스테이지 탭의 `.tab-nav`, 스테이지 화면의 `.chapter-carousel`)은 이미 각 요소에 로컬로 `overflow-x: auto` + `scrollbar-width: none`/`::-webkit-scrollbar { display: none }`가 걸려있어서, 전역 처리 없이도 스크롤은 되지만 스크롤바만 안 보이는 원래 의도가 그대로 유지됨.
+
+**교훈**: 가로스크롤/오버플로우를 막고 싶을 때 `html`/`body`/`#root`처럼 최상위 조상에 `overflow-x: hidden`을 거는 건 하위에 `position: sticky`를 쓰는 요소가 하나라도 있으면 전부 깨뜨리는 광범위한 부작용이 있음. 오버플로우가 실제로 발생하는 구체적인 요소(캐러셀, 탭 네비게이션 등)에 국소적으로 `overflow-x: auto` + 스크롤바 숨김을 적용하는 쪽이 안전함.
+
 ## 스토리 팝업 중앙정렬
 
 `StoryIntro`, `ChapterStory` 팝업은 `.center-viewport` 래퍼로 화면 중앙에 표시됨(로그인 화면과 동일한 유틸 클래스).
