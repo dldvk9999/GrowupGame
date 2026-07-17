@@ -160,6 +160,12 @@
 **036_security_world_boss_session_verification.sql** ⚠️ **보안 패치, 필수 적용 (치명적 취약점)**
 - `world_boss_sessions` 테이블 신설, `enter_world_boss`/`report_world_boss_damage`를 세션 검증 구조로 재작성 — 이전엔 입장(하루3회 제한)과 데미지 보고 사이에 아무 연결고리가 없어서, `report_world_boss_damage`를 devtools로 무한 반복 호출하면 하루 3회 제한을 완전히 무시하고 보스 체력을 순식간에 소진시킬 수 있었음(자세한 내용은 [`security.md`](./security.md))
 
+**037_security_reaudit_patch.sql** ⚠️ **보안 패치, 필수 적용 (치명적 취약점 포함, 프로젝트 전체 재점검)**
+- `grant_idle_reward`가 chapter/player_level을 client가 보낸 값 그대로 신뢰하던 문제 수정 — 서버가 `owned_monsters`/`stage_progress`에서 직접 계산하도록 변경(무제한 골드 파밍 가능했던 치명적 취약점)
+- `claim_dungeon_reward`/`claim_job_dungeon`에 "세션 생성 후 최소 시간 경과" 게이트 추가(각 2초/3초) — 전투 없이 세션만 발급받고 바로 클레임해서 보상을 받던 문제의 부분적 완화(완전한 해결은 아님, [`security.md`](./security.md) 알려진 한계 참고)
+- `claim_mail`에 `for update` 락 추가(레이스컨디션으로 골드 이중지급 방지) + 이미 보유한 아이템이 든 우편을 받으면 통째로 실패하던 버그를 `ON CONFLICT DO UPDATE`(강화 병합)로 수정
+- `redeem_coupon`의 `max_uses` 체크를 원자적 UPDATE로 재작성(동시요청 시 소량 초과 가능하던 레이스컨디션 수정)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

@@ -54,6 +54,7 @@ goldReward = max(5, round(hp*0.15)*5*8)
 - 챕터/레벨 가중치를 대폭 올려서(기존 0.6/0.8 → 2.0/3.0) **레벨이 높거나 진행 챕터가 높을수록 자동사냥 보상이 눈에 띄게 커짐**
 - 자동사냥 처치 텀은 **1.5초**
 - 서버 `calc_idle_gold`도 동일 공식 반영
+- ⚠️ **버그 수정 이력(037)**: `grant_idle_reward(p_chapter, p_player_level)`가 이 두 파라미터를 client가 보낸 값 그대로 신뢰해서, devtools로 과장된 값을 반복 호출하면 실제 진행도와 무관하게 골드를 무제한 파밍할 수 있었음. 서버가 `owned_monsters`(실제 레벨)/`stage_progress`(실제 클리어한 최고 챕터)에서 직접 계산하도록 수정 — 함수 시그니처는 그대로라 클라이언트 코드 변경은 불필요했음
 
 ⚠️ 난이도 상향으로 최후반 챕터(100) 보스 골드가 `add_gold` 기존 상한(100000)을 넘어설 수 있어서, 상한을 **400000**으로 재상향함(migration 012).
 
@@ -72,6 +73,7 @@ goldReward = max(5, round(hp*0.15)*5*8)
 - 경험치 던전은 EXP 위주(`hp*3.2`) + 골드 소량(`hp*0.6`), 골드 던전은 반대
 - 전투는 `DungeonBattle.jsx`가 담당 — `BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전(자동사냥 없음), 승리 시 `activeMonster`와 동일한 성장 저장 경로(`persistMonsterGrowth`) 사용
 - 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회만 지급, 보안 이력은 [`security.md`](./security.md)). 클리어 시 `dungeon_progress.cleared_stage`도 같은 RPC가 함께 갱신
+- ⚠️ `claim_dungeon_reward`는 "세션 생성 후 최소 2초"가 지나야 클레임 가능함(037 보안패치) — 다만 이건 "전투를 실제로 이겼는지" 자체를 검증하는 건 아니고, devtools로 입장 직후 바로 클레임하는 가장 단순한 우회만 막는 부분적 완화책임. 자세한 내용/한계는 [`security.md`](./security.md)
 - 입장은 전투 시작 "전에" 소모됨(패배해도 복구 안 됨)
 - 던전 탭 안의 서브탭(경험치/골드/전직) 선택 상태는 `App.jsx`의 `dungeonActiveType`으로 끌어올려져 있음 — 전투 후 목록으로 돌아와도 마지막에 보던 서브탭이 유지됨
 - `Tab`/`Shift+Tab` 키보드 단축키로 경험치→골드→전직 던전 순환 이동 가능
@@ -83,6 +85,7 @@ goldReward = max(5, round(hp*0.15)*5*8)
 - 전직(Lv.30/60/100/140/180)은 레벨업만으로 자동 적용되지 않고 **전직 던전을 클리어해야** 실제로 스탯 배율/전용 스킬/외형이 적용됨(자세한 전직 시스템은 [`character-and-growth.md`](./character-and-growth.md))
 - 전직 던전은 순차적으로만 진행 가능(전 단계 안 깨면 다음 단계 도전 불가, `start_job_dungeon` RPC가 레벨+이전단계 완료 여부 검증), **하루 횟수 제한은 없음**(일일 던전과 다름)
 - 승리하면 경험치는 얻지만, **전직 자체(외형/스탯/스킬 적용)는 별도로 `claim_job_dungeon` RPC를 호출**해야 반영됨(`job_dungeon_sessions`로 "진짜 입장→클리어"를 서버가 검증, 세션 위조 불가)
+- ⚠️ "세션 생성 후 최소 3초"가 지나야 `claim_job_dungeon` 클레임 가능함(037 보안패치) — 전직 던전은 하루 입장 횟수 제한이 없어서, 이 시간 게이트가 없으면 레벨 조건만 채우고 전투 없이 1~5차 전직을 전부 즉시 완료할 수 있었음. 다만 이것도 "실제로 이겼는지"를 완전히 검증하는 건 아닌 부분적 완화책([`security.md`](./security.md) 알려진 한계 참고)
 
 ### 전직 던전 보스 스탯
 
