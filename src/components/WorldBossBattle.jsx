@@ -8,6 +8,7 @@ import { reportWorldBossDamage } from '../lib/worldBoss';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900;
+const TIME_LIMIT_MS = 60000; // 1분 제한시간
 
 function withEquipment(monster, bonus) {
   const b = bonus ?? { atk: 0, def: 0, hp: 0 };
@@ -48,6 +49,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
   const [settling, setSettling] = useState(false);
+  const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS);
 
   const damageDealtRef = useRef(0);
   const canvasRef = useRef(null);
@@ -118,7 +120,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
     triggerShake();
   }, [spawnParticles, triggerShake, player.element]);
 
-  // 전투 종료(승/패) 시 실제 입힌 데미지를 서버에 보고하고 공식 결과를 받음
+  // 전투 종료(승/패/시간초과) 시 실제 입힌 데미지를 서버에 보고하고 공식 결과를 받음
   useEffect(() => {
     if (result || settling) return;
     if (enemy.hp <= 0 || player.hp <= 0) {
@@ -132,6 +134,34 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
         .finally(() => setSettling(false));
     }
   }, [enemy.hp, player.hp, result, settling]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 1분 제한시간 카운트다운 - 다 되면 그때까지 입힌 피해만 그대로 보고하고 전투 종료
+  useEffect(() => {
+    if (result) return;
+    const startedAt = Date.now();
+    const timer = setInterval(() => {
+      const left = TIME_LIMIT_MS - (Date.now() - startedAt);
+      if (left <= 0) {
+        clearInterval(timer);
+        setTimeLeftMs(0);
+        setResult((prev) => prev ?? 'timeout');
+      } else {
+        setTimeLeftMs(left);
+      }
+    }, 250);
+    return () => clearInterval(timer);
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 시간초과로 result가 'timeout'이 된 경우도 동일하게 서버에 데미지 보고
+  useEffect(() => {
+    if (result !== 'timeout' || settling) return;
+    setSettling(true);
+    setLog('제한시간 종료! 그동안 입힌 피해는 그대로 기록됐어요.');
+    reportWorldBossDamage(session.weekKey, Math.round(damageDealtRef.current))
+      .then((res) => onSettled?.(res))
+      .catch((err) => setLog(err.message ?? '결과 반영에 실패했어요.'))
+      .finally(() => setSettling(false));
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (result) return;
@@ -225,7 +255,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   return (
     <div className={`battle-screen worldboss-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
-        🐉 월드보스 · 남은 도전 {session.remainingAttempts}회
+        🐉 월드보스 · 남은 도전 {session.remainingAttempts}회 · ⏱️ {Math.ceil(timeLeftMs / 1000)}초 남음
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
 
@@ -251,7 +281,9 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
 
       {result ? (
         <div className="result-panel">
-          <p className="result-text">{result === 'win' ? '마지막 일격 성공!' : '퇴각...'}</p>
+          <p className="result-text">
+            {result === 'win' ? '마지막 일격 성공!' : result === 'timeout' ? '⏱️ 제한시간 종료' : '퇴각...'}
+          </p>
           <div className="result-actions">
             <button className="btn btn-neutral" disabled={settling} onClick={onExit}>
               {settling ? '결과 반영 중...' : '목록으로'} <span className="key-hint">Space</span>

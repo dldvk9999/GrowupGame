@@ -359,7 +359,7 @@ export default function App() {
     setWorldBoss((prev) => (prev ? { ...prev, currentHp: res.newCurrentHp, cleared: res.clearedNow } : prev));
     if (res.clearedNow) {
       setProfile((p) => ({ ...p, dragon_buff_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }));
-      showToast('🐉 월드보스 처치! 7일간 용의 버프(공격력·방어력 20배)가 적용돼요!', 'success');
+      showToast('🐉 월드보스 처치! 7일간 용의 버프(공격력·방어력 20배)가 적용됐어요. 골드 보상은 우편함에서 받아가세요!', 'success');
     }
     refreshWorldBoss();
   }

@@ -150,6 +150,13 @@
 - `world_boss_state`(주간 공유체력, 일요일 리셋), `world_boss_attempts`(하루3회), `world_boss_contributions`(유저별 주간 누적 데미지) 테이블 신설
 - `sync_world_boss()`(지연생성+미클리어 정산), `get_world_boss_state()`, `fetch_my_world_boss_progress()`, `enter_world_boss()`, `report_world_boss_damage()` RPC 신설 — 자세한 내용은 [`world-boss.md`](./world-boss.md)
 
+**034_fix_world_boss_week_key_ambiguous.sql** — 버그 수정
+- `enter_world_boss`의 "column reference week_key is ambiguous" 수정 (또 그 패턴, `security.md` 참고)
+
+**035_world_boss_mail_rewards_and_atk_boost.sql**
+- 월드보스 클리어 시에도 기여자 전원에게 골드 보상을 우편으로 발송하도록 추가(기존엔 용의 버프만 즉시 지급, 골드는 미클리어 때만 있었음)
+- 월드보스 공격력 4500→7000 상향, **이미 생성돼있는(진행 중인) 이번 주 데이터에도 즉시 반영**
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
