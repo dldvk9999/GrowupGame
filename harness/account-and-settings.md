@@ -10,6 +10,10 @@
 - 새 계정 첫 방문(플래그 없음)은 기본적으로 sessionStorage 취급(브라우저 재시작 시 로그아웃) — 명시적으로 체크해야 영구 유지되는, 흔한 "로그인 유지" UX 패턴
 - 닉네임 중복확인은 실시간(`is_nickname_taken` RPC), 회원가입 시 `options.data.nickname`으로 서버에 전달됨
 
+## 로그아웃 시 상태 초기화
+
+`App.jsx`의 `handleSession(null)` 분기가 로그아웃을 감지해서 `profile`/`activeMonster`/`loginAt`/`hasUnreadMail`/`attendanceState`를 초기화함(마지막 두 개는 049/046 작업 때 새로 추가하면서 초기화 목록에도 같이 넣음 — 안 넣으면 로그아웃 후 헤더에 이전 계정의 우편/출석 뱃지가 잠깐 남아있을 수 있었음). **다만 이 초기화 목록이 전체 상태를 커버하진 않음**(`inventory`/`userSkills`/`clearedStageIds`/`equipmentDrawProgress`/`mission`/`worldBoss` 등은 빠짐) — 새 로그인의 `Promise.all` 로드가 끝나는 즉시 전부 덮어써지므로 영구적인 버그는 아니지만, 로드되는 그 짧은 순간 이전 계정 데이터가 화면에 잠깐 보일 여지가 있음(자세한 내용/정리 필요성은 [`todo.md`](./todo.md) 참고).
+
 ## 마이페이지
 
 - 헤더의 "👤 마이페이지" 버튼(로그아웃 왼쪽)으로 진입. 하단 게임 탭에는 없음.

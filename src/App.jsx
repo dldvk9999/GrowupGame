@@ -132,6 +132,8 @@ export default function App() {
       setProfile(null);
       setActiveMonster(null);
       setLoginAt(null);
+      setHasUnreadMail(false);
+      setAttendanceState(null);
       return;
     }
     try {

@@ -9,3 +9,4 @@
 - ~~2·3단계 진화 스프라이트 없음~~ → 해결됨(9종 벡터 스프라이트 전부 완성)
 - ~~마이페이지/닉네임 수정~~ → 해결됨(닉네임 1회 수정)
 - ~~스킬 커스터마이징~~ → 해결됨(뽑기/합성/편성 시스템)
+- **로그아웃 시 상태 초기화가 일부만 됨** — `handleSession(null)` 분기가 `profile`/`activeMonster`/`loginAt`(+최근에 추가한 `hasUnreadMail`/`attendanceState`)만 초기화하고, `inventory`/`userSkills`/`clearedStageIds`/`equipmentDrawProgress`/`mission`/`worldBoss`/`dungeonAttempts`/`dungeonProgress` 등 나머지 로드 상태는 안 지워짐. 같은 브라우저에서 A로 로그아웃 후 B로 로그인할 때, 새 세션 데이터가 로드되는 그 짧은 순간 A의 잔여 데이터가 잠깐 보일 여지가 있음(로드 완료 즉시 전부 덮어써지므로 영구적 문제는 아님). 근본적으로 고치려면 `handleSession(null)`에서 모든 게임 상태를 한번에 초기값으로 리셋하는 헬퍼 함수로 정리하는 리팩토링이 필요함.
