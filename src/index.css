@@ -1421,6 +1421,8 @@ button {
   .monster-dex-silhouette { width: 40px; height: 40px; font-size: 16px; }
   .monster-dex { padding: 10px; }
   .monster-dex-grid { gap: 6px; }
+  .leaderboard-row { grid-template-columns: 28px 20px 1fr 44px 60px; font-size: 12px; padding: 6px 8px; }
+  .leaderboard-tier { display: none; }
   .worldboss-icon { font-size: clamp(160px, 62vw, 260px); }
   .loadout-sticky-bar { top: 76px; } /* 모바일 헤더(~61px) + 15px */
 }
@@ -1578,3 +1580,22 @@ button {
 }
 .monster-dex-name { font-size: 10px; color: var(--text-secondary); text-align: center; }
 .monster-dex-name--locked { color: var(--text-muted); }
+
+/* ---------- 랭킹(명예의 전당) ---------- */
+.leaderboard-list { display: flex; flex-direction: column; gap: 6px; }
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 36px 24px 1fr 40px 56px 72px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-panel-2);
+  font-size: 13px;
+}
+.leaderboard-row--me { border-color: var(--accent-gold); background: rgba(212, 175, 55, 0.08); }
+.leaderboard-rank { font-weight: 700; text-align: center; }
+.leaderboard-nickname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaderboard-tier, .leaderboard-level { color: var(--text-secondary); font-size: 12px; }
+.leaderboard-power { color: var(--accent-gold); font-weight: 700; text-align: right; font-size: 12px; }

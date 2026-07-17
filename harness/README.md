@@ -17,7 +17,7 @@
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드), 전직 던전 |
 | [`world-boss.md`](./world-boss.md) | 주간 공유체력 월드보스, 용의 버프 |
 | [`pvp.md`](./pvp.md) | PvP 비동기 매칭전투, PvP 재화/코스튬 상점 |
-| [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅 |
+| [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 전투력 랭킹(명예의 전당) |
 | [`mailbox-and-coupons.md`](./mailbox-and-coupons.md) | 정기 우편함, 쿠폰 시스템 |
 | [`guide-missions.md`](./guide-missions.md) | 가이드 미션(반복형+온보딩 우선순위) |
 | [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상), 업적 시스템 |

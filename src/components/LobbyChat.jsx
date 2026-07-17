@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLobbyChat } from '../lib/useLobbyChat';
+import Leaderboard from './Leaderboard';
 
 export default function LobbyChat({ profile, sinceIso }) {
   const { messages, sendMessage } = useLobbyChat(profile, sinceIso);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [subTab, setSubTab] = useState('chat');
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -25,7 +27,16 @@ export default function LobbyChat({ profile, sinceIso }) {
 
   return (
     <div className="lobby-chat-screen">
-      <h2>로비 채팅</h2>
+      <h2>로비</h2>
+      <div className="shop-tabs">
+        <button className={`shop-tab ${subTab === 'chat' ? 'active' : ''}`} onClick={() => setSubTab('chat')}>💬 채팅</button>
+        <button className={`shop-tab ${subTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setSubTab('leaderboard')}>🏆 랭킹</button>
+      </div>
+
+      {subTab === 'leaderboard' ? (
+        <Leaderboard />
+      ) : (
+        <>
       <p className="stage-select-hint">모든 유저가 함께 보는 채팅이에요. 닉네임은 자동으로 붙고, 지금 로그인한 시점부터의 대화만 보여요(로그아웃하면 화면에서 사라져요).</p>
 
       <div className="lobby-chat-list" ref={listRef}>
@@ -49,6 +60,8 @@ export default function LobbyChat({ profile, sinceIso }) {
         />
         <button type="submit" className="btn btn-challenge" disabled={!text.trim()}>전송</button>
       </form>
+        </>
+      )}
     </div>
   );
 }

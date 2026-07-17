@@ -198,6 +198,9 @@
 **047_achievements.sql**
 - 신규 테이블 `achievement_claims` + `claim_achievement(p_achievement_key)` RPC — 레벨/전직/스테이지클리어/뽑기횟수/PvP승수/출석 기준 20개 업적, 서버가 실제 게임 상태로 재검증 후 지급. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**048_leaderboard.sql**
+- `fetch_leaderboard()` / `fetch_my_rank()` RPC — 전투력 기준 전체 유저 랭킹(상위 50명), 기존 PvP 전투력 계산 함수(`calc_monster_stats`/`calc_combat_power`) 재사용. 읽기 전용, 새 테이블 없음. 자세한 내용은 [`social-chat.md`](./social-chat.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
