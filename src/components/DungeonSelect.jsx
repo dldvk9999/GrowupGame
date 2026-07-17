@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors } from '../lib/worldBoss';
-import { useCountdownToDaily8AM } from '../lib/countdown';
+import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 
 const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss'];
@@ -181,6 +181,7 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
 function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
   const [topContributors, setTopContributors] = useState(null);
   const resetIn = useCountdownToDaily8AM();
+  const weeklyResetIn = useCountdownToWeeklyReset();
 
   useEffect(() => {
     if (!boss?.weekKey) return;
@@ -195,7 +196,7 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
   return (
     <div className="worldboss-panel">
       <p className="stage-select-hint">
-        전체 유저가 함께 체력을 깎는 공용 보스예요. 매주 일요일 자정(서울시간)에 체력이 초기화돼요.
+        전체 유저가 함께 체력을 깎는 공용 보스예요. {weeklyResetIn} 후(매주 일요일 자정, 서울시간)에 체력이 초기화돼요.
         하루 3번까지 도전 가능(오늘 {Math.max(0, remaining)}/3회 남음, {resetIn} 후 초기화).
         한 판당 제한시간은 1분이고, 시간 안에 못 잡아도 그동안 입힌 피해는 그대로 남아요.
         4차 전직 정도는 해야 유효타가 들어갈 만큼 강력해요.
