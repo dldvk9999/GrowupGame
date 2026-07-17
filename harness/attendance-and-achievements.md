@@ -40,3 +40,30 @@
 - `src/components/AttendanceModal.jsx`: 7일 캘린더 그리드 모달. 이미 받은 날은 흐리게+체크, 다음 받을 날은 초록 테두리로 하이라이트, 7일차는 2칸 차지하는 보너스 카드로 강조
 - 헤더의 "📅 출석체크" 버튼(데스크톱 헤더 + 모바일 드로워 양쪽)에 오늘 미수령 시 빨간 점 뱃지(`.mail-unread-dot` 재사용) — 우편함 뱃지와 동일한 시각 언어로 통일
 - App.jsx가 로그인 시점에 `attendanceState`를 조회해서 뱃지 여부를 계산하고, 클레임 성공 시 로컬 state와 골드를 즉시 갱신(서버 재조회 없이 낙관적 업데이트)
+
+## 업적 시스템 (migration 047)
+
+레벨/전직/스테이지클리어/뽑기횟수/PvP승수/출석 등 장기 목표를 제시해서 플레이 동기를 계속 부여하는 장치. 설정 탭 안에 "🏆 업적" 서브탭으로 들어감.
+
+### 검증 방식
+
+미션 시스템(`claim_mission_reward`)과 동일한 철학 — **클라이언트가 진행도를 자체 신고하지 않고, 서버가 실제 게임 상태(레벨/전직단계/클리어한 스테이지 수/뽑기 횟수/PvP 승수/출석 통산 횟수)를 직접 조회해서 조건 충족 여부를 재검증**한 뒤에만 보상을 지급함. `claim_achievement(p_achievement_key)` RPC 안에 업적 키별로 CASE 분기된 검증 쿼리가 있고, 통과하면 `add_gold` + `achievement_claims`에 기록(중복 수령 방지, PK가 `(user_id, achievement_key)`).
+
+### 카탈로그 (client, `src/lib/achievements.js`)
+
+`ACHIEVEMENT_CATALOG`는 정적 배열로 20개 업적을 6개 카테고리(성장/전직/스테이지/뽑기/PvP/출석)로 분류함. 서버 RPC의 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적을 추가할 때는 반드시 카탈로그와 `claim_achievement` RPC 양쪽을 같이 수정**해야 함(한쪽만 고치면 클라 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치가 생김).
+
+| 카테고리 | 업적 예시 | 기준 |
+|---|---|---|
+| 🌱 성장 | 레벨 10/30/60/100/140/180 | 활성 몬스터 레벨 |
+| 🎖️ 전직 | 1차/3차/5차 전직 | `unlocked_job_tier` |
+| 🗺️ 스테이지 | 10/100/500/1000개 클리어 | `stage_progress`에서 `cleared=true` 카운트 |
+| 🎰 뽑기 | 통산 100/1000/5000회 | 스킬(`total_skill_draws`) + 장비 4슬롯(`equipment_gacha_progress.total_draws`) 합산 |
+| 🥊 PvP | 10승/50승 | `profiles.pvp_wins` |
+| 📅 출석 | 통산 7회/30회 | `attendance_state.total_claim_count` |
+
+### 프로그레스 표시 최적화
+
+업적 화면을 열 때마다 서버에 진행도를 새로 조회하지 않고, **App.jsx가 이미 들고 있는 값들(활성 몬스터 레벨/전직단계, `clearedStageIds.size`, `profile.total_skill_draws` + `equipmentDrawProgress` 합산, `profile.pvp_wins`, `attendanceState.total_claim_count`)을 `achievementStats`로 묶어서 그대로 내려줌** — 별도 API 호출 없이 프로그레스바를 그림. 실제 수령 가능 여부의 최종 판단은 어차피 서버가 재검증하므로, 이 클라이언트 계산은 순수 표시용이고 약간의 지연/오차가 있어도 보안엔 영향 없음.
+
+수령한 업적 목록(`achievement_claims`)만 로그인 후 최초 진입 시 별도로 조회해서 완료 뱃지를 표시함.

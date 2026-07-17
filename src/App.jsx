@@ -690,6 +690,15 @@ export default function App() {
                 gold={profile?.gold ?? 0}
                 onGoldChange={handleGoldChange}
                 onUnreadMailChange={setHasUnreadMail}
+                achievementStats={{
+                  level: activeMonster?.level ?? 0,
+                  jobTier: activeMonster?.unlockedJobTier ?? 0,
+                  stageCleared: clearedStageIds.size,
+                  gachaTotal: (profile?.total_skill_draws ?? 0)
+                    + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
+                  pvpWins: profile?.pvp_wins ?? 0,
+                  attendanceTotal: attendanceState?.total_claim_count ?? 0,
+                }}
               />
             )}
           </div>

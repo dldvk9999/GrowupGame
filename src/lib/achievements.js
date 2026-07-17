@@ -1,0 +1,55 @@
+import { supabase } from './supabaseClient';
+
+/**
+ * 업적 카탈로그 (정적 데이터, 서버 achievement_claims 테이블과 achievement_key로 매칭).
+ * checkProgress(stats)는 현재 진행도를 { current, target } 형태로 계산해서 프로그레스바에 씀.
+ * stats 구조: { level, jobTier, stageCleared, gachaTotal, pvpWins, attendanceTotal }
+ */
+export const ACHIEVEMENT_CATALOG = [
+  { key: 'level_10', category: 'growth', icon: '🌱', title: '첫걸음', desc: '몬스터 레벨 10 달성', reward: 500, target: 10, stat: 'level' },
+  { key: 'level_30', category: 'growth', icon: '🔥', title: '전직의 문턱', desc: '몬스터 레벨 30 달성', reward: 1500, target: 30, stat: 'level' },
+  { key: 'level_60', category: 'growth', icon: '⚔️', title: '숙련된 조련사', desc: '몬스터 레벨 60 달성', reward: 3000, target: 60, stat: 'level' },
+  { key: 'level_100', category: 'growth', icon: '💪', title: '백의 벽', desc: '몬스터 레벨 100 달성', reward: 6000, target: 100, stat: 'level' },
+  { key: 'level_140', category: 'growth', icon: '🌟', title: '초월의 시작', desc: '몬스터 레벨 140 달성', reward: 10000, target: 140, stat: 'level' },
+  { key: 'level_180', category: 'growth', icon: '👑', title: '정점에 서다', desc: '몬스터 레벨 180 달성', reward: 20000, target: 180, stat: 'level' },
+
+  { key: 'job_tier_1', category: 'job', icon: '🎖️', title: '1차 전직', desc: '1차 전직 달성', reward: 1000, target: 1, stat: 'jobTier' },
+  { key: 'job_tier_3', category: 'job', icon: '🏅', title: '3차 전직', desc: '3차 전직 달성', reward: 5000, target: 3, stat: 'jobTier' },
+  { key: 'job_tier_5', category: 'job', icon: '🏆', title: '5차 전직 (최종)', desc: '5차 전직 달성', reward: 15000, target: 5, stat: 'jobTier' },
+
+  { key: 'stage_clear_10', category: 'stage', icon: '🗺️', title: '초보 모험가', desc: '스테이지 10개 클리어', reward: 500, target: 10, stat: 'stageCleared' },
+  { key: 'stage_clear_100', category: 'stage', icon: '🧭', title: '숙련 모험가', desc: '스테이지 100개 클리어', reward: 3000, target: 100, stat: 'stageCleared' },
+  { key: 'stage_clear_500', category: 'stage', icon: '🏔️', title: '베테랑 모험가', desc: '스테이지 500개 클리어', reward: 15000, target: 500, stat: 'stageCleared' },
+  { key: 'stage_clear_1000', category: 'stage', icon: '🌌', title: '전설의 모험가', desc: '스테이지 1000개(전체) 클리어', reward: 40000, target: 1000, stat: 'stageCleared' },
+
+  { key: 'gacha_100', category: 'gacha', icon: '🎰', title: '뽑기 입문', desc: '스킬+장비 통산 뽑기 100회', reward: 1000, target: 100, stat: 'gachaTotal' },
+  { key: 'gacha_1000', category: 'gacha', icon: '🎲', title: '뽑기 중독', desc: '스킬+장비 통산 뽑기 1,000회', reward: 5000, target: 1000, stat: 'gachaTotal' },
+  { key: 'gacha_5000', category: 'gacha', icon: '💎', title: '뽑기의 화신', desc: '스킬+장비 통산 뽑기 5,000회', reward: 20000, target: 5000, stat: 'gachaTotal' },
+
+  { key: 'pvp_win_10', category: 'pvp', icon: '🥊', title: '투기장 신인', desc: 'PvP 10승 달성', reward: 1500, target: 10, stat: 'pvpWins' },
+  { key: 'pvp_win_50', category: 'pvp', icon: '⚡', title: '투기장 강자', desc: 'PvP 50승 달성', reward: 6000, target: 50, stat: 'pvpWins' },
+
+  { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
+  { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
+];
+
+export const ACHIEVEMENT_CATEGORY_LABEL = {
+  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', attendance: '📅 출석',
+};
+
+/** 내가 이미 수령한 업적 키 목록 */
+export async function fetchClaimedAchievements(userId) {
+  const { data, error } = await supabase
+    .from('achievement_claims')
+    .select('achievement_key')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.achievement_key));
+}
+
+/** 업적 보상 수령 (서버가 실제 상태로 재검증) */
+export async function claimAchievement(achievementKey) {
+  const { data, error } = await supabase.rpc('claim_achievement', { p_achievement_key: achievementKey });
+  if (error) throw new Error(error.message);
+  return data; // reward gold amount
+}

@@ -195,6 +195,9 @@
 **046_attendance_check.sql**
 - 신규 테이블 `attendance_state` + `claim_attendance()` RPC — 7일 주기 출석체크 시스템. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**047_achievements.sql**
+- 신규 테이블 `achievement_claims` + `claim_achievement(p_achievement_key)` RPC — 레벨/전직/스테이지클리어/뽑기횟수/PvP승수/출석 기준 20개 업적, 서버가 실제 게임 상태로 재검증 후 지급. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -213,6 +216,7 @@
 | `pvp_shop_listings` | ❌ (누구나 조회는 가능) | `sync_pvp_shop` RPC 내부에서만 생성 |
 | `pvp_costume_inventory` | ❌ | `buy_pvp_costume` RPC |
 | `attendance_state` | ❌ | `claim_attendance` RPC (046) |
+| `achievement_claims` | ❌ | `claim_achievement` RPC (047) |
 | `profiles.equipped_costumes` | ❌ | `set_costume_loadout` RPC (본인 보유 코스튬인지, 슬롯당 1개인지 서버 검증, 042) |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
