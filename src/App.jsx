@@ -37,7 +37,7 @@ import Inventory from './components/Inventory';
 import MyPage from './components/MyPage';
 import DungeonSelect from './components/DungeonSelect';
 import WorldBossBattle from './components/WorldBossBattle';
-import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss } from './lib/worldBoss';
+import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import Settings from './components/Settings';
@@ -78,6 +78,7 @@ export default function App() {
   const [jobError, setJobError] = useState('');
   const [worldBoss, setWorldBoss] = useState(null);
   const [worldBossProgress, setWorldBossProgress] = useState(null);
+  const [everParticipatedWorldBoss, setEverParticipatedWorldBoss] = useState(false);
   const [worldBossSession, setWorldBossSession] = useState(null); // enterWorldBoss() 결과 | null
   const [worldBossEntering, setWorldBossEntering] = useState(false);
   const [worldBossError, setWorldBossError] = useState('');
@@ -138,7 +139,7 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -152,6 +153,7 @@ export default function App() {
         fetchMyWorldBossProgress(),
         fetchMails(userId).catch(() => []),
         fetchAttendanceState(userId).catch(() => null),
+        hasEverParticipatedInWorldBoss(userId).catch(() => false),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -165,6 +167,7 @@ export default function App() {
       setWorldBossProgress(worldBossProg);
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
+      setEverParticipatedWorldBoss(everParticipated);
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -700,6 +703,7 @@ export default function App() {
                   gachaTotal: (profile?.total_skill_draws ?? 0)
                     + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
                   pvpWins: profile?.pvp_wins ?? 0,
+                  worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                 }}
                 equippedTitle={profile?.equipped_title}

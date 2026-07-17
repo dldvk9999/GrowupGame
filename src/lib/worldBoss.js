@@ -47,7 +47,23 @@ export async function fetchMyWorldBossProgress() {
   return { attemptsUsed: row?.attempts_used ?? 0, myWeekDamage: Number(row?.my_week_damage ?? 0) };
 }
 
-/** 입장 (하루 3회 제한) */
+/**
+ * 역대 월드보스 참여 여부(어떤 주든 피해를 입힌 적이 있는지) - 업적 진행도 표시용.
+ * world_boss_contributions RLS가 "누구나 조회 가능"이라 RPC 없이 직접 조회 가능.
+ * (fetchMyWorldBossProgress의 myWeekDamage는 "이번 주"만 보여줘서, 과거에 참여했지만
+ * 이번 주는 아직 안 한 유저의 업적 진행도가 0으로 잘못 보이는 문제가 있어 별도로 뺌)
+ */
+export async function hasEverParticipatedInWorldBoss(userId) {
+  if (!userId) return false;
+  const { data, error } = await supabase
+    .from('world_boss_contributions')
+    .select('user_id')
+    .eq('user_id', userId)
+    .gt('total_damage', 0)
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
 export async function enterWorldBoss() {
   const { data, error } = await supabase.rpc('enter_world_boss');
   if (error) throw new Error(error.message);

@@ -213,6 +213,9 @@
 **052_starter_welcome_pack.sql**
 - `create_starter_monster()`에 신규 유저 환영 우편(골드3000+레어무기) 자동 지급 추가, 반환타입 그대로라 DROP 불필요. 기존 `mails.source_key` unique 제약으로 중복 방지. 자세한 내용은 [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
 
+**053_achievements_early_game.sql**
+- `claim_achievement`에 업적 2종 추가: PvP 첫 승(`pvp_win_1`), 월드보스 첫 참여(`world_boss_participate`, `world_boss_contributions` 전체 주 대상 exists 체크). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

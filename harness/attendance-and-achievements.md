@@ -68,7 +68,8 @@
 | 🎖️ 전직 | 1차/3차/5차 전직 | `unlocked_job_tier` |
 | 🗺️ 스테이지 | 10/100/500/1000개 클리어 | `stage_progress`에서 `cleared=true` 카운트 |
 | 🎰 뽑기 | 통산 100/1000/5000회 | 스킬(`total_skill_draws`) + 장비 4슬롯(`equipment_gacha_progress.total_draws`) 합산 |
-| 🥊 PvP | 10승/50승 | `profiles.pvp_wins` |
+| 🥊 PvP | 첫 승/10승/50승 | `profiles.pvp_wins` (053에서 첫 승 추가) |
+| 🐉 월드보스 | 첫 참여 | `world_boss_contributions`에 피해량 1 이상인 행이 있는지(전체 주 대상, 053에서 추가) |
 | 📅 출석 | 통산 7회/30회 | `attendance_state.total_claim_count` |
 
 ### 프로그레스 표시 최적화
@@ -76,6 +77,12 @@
 업적 화면을 열 때마다 서버에 진행도를 새로 조회하지 않고, **App.jsx가 이미 들고 있는 값들(활성 몬스터 레벨/전직단계, `clearedStageIds.size`, `profile.total_skill_draws` + `equipmentDrawProgress` 합산, `profile.pvp_wins`, `attendanceState.total_claim_count`)을 `achievementStats`로 묶어서 그대로 내려줌** — 별도 API 호출 없이 프로그레스바를 그림. 실제 수령 가능 여부의 최종 판단은 어차피 서버가 재검증하므로, 이 클라이언트 계산은 순수 표시용이고 약간의 지연/오차가 있어도 보안엔 영향 없음.
 
 수령한 업적 목록(`achievement_claims`)만 로그인 후 최초 진입 시 별도로 조회해서 완료 뱃지를 표시함.
+
+### 배포 전 자체검토로 발견한 버그: 월드보스 참여 업적이 영구 잠길 뻔함
+
+053에서 "월드보스 첫 참여" 업적을 추가하면서, 처음엔 진행도 표시에 `worldBossProgress.myWeekDamage`(이번 주 피해량)를 그대로 썼음. 그런데 이 값은 **매주 리셋**되기 때문에, 과거 주에 월드보스에 참여했지만 이번 주는 아직 도전 안 한 유저는 `myWeekDamage=0`이라 클라이언트가 "미달성"으로 판단해서 **수령 버튼이 계속 비활성화**되는 문제가 있었음(서버는 전체 주 기준으로 정확히 판정하니 실제로는 수령 자격이 있는데도 버튼을 못 눌러서 사실상 영구히 막히는 셈).
+
+→ **수정**: `world_boss_contributions` 전체 주를 대상으로 "피해량 1 이상인 행이 하나라도 있는지"를 별도로 조회하는 `hasEverParticipatedInWorldBoss()`를 추가(RLS가 "누구나 조회 가능"이라 RPC 없이 직접 조회 가능, `world-boss.md` 참고)해서 로그인 시점에 한 번 확인하고, 여기에 이번 세션 중 방금 싸운 `myWeekDamage>0`도 OR 조건으로 더해 즉시 반영되게 함.
 
 ## 칭호(타이틀) 시스템 (migration 050)
 

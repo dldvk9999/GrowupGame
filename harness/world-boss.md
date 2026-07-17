@@ -83,6 +83,10 @@
 - 조회 실패해도 `.catch(() => setTopContributors([]))`로 조용히 숨겨지고 나머지 화면은 정상 동작(부분 장애가 전체 화면을 깨뜨리지 않도록 방어)
 - ⚠️ **배포 전 자체 검토로 발견/수정한 버그**: 처음엔 랭킹 화면의 `.leaderboard-row`(6컬럼 CSS Grid, rank/element/nickname/tier/level/power용)를 그대로 재사용해서 3개 자식(순위/닉네임/피해량)만 넣었더니, 그리드가 각 자식을 앞의 3개 트랙(36px/24px/1fr)에 순서대로 욱여넣어서 닉네임이 24px 칸에 짜부러지는 레이아웃 붕괴가 있었음 → 전용 flex 클래스(`worldboss-contributor-row`)로 분리해서 해결. **다른 화면의 grid 기반 row 클래스를 자식 개수가 다른 곳에 재사용하지 말 것** — 컬럼 수가 안 맞으면 이런 식으로 조용히 깨짐(에러 없이 레이아웃만 이상해져서 발견하기 까다로움)
 
+## 역대 참여 여부 조회 (`hasEverParticipatedInWorldBoss`, 053)
+
+`world_boss_contributions`가 "누구나 조회 가능" RLS라, 특정 유저가 **어떤 주든 상관없이 한 번이라도 피해를 입힌 적이 있는지**를 RPC 없이 클라이언트에서 직접 조회 가능(`worldBoss.js`). "월드보스 첫 참여" 업적(053, [`attendance-and-achievements.md`](./attendance-and-achievements.md))의 진행도 판정에 씀 — `fetchMyWorldBossProgress()`의 `myWeekDamage`는 이번 주만 보여줘서 과거 참여자의 진행도가 잘못 0으로 보이는 문제가 있었기 때문에 별도로 분리함.
+
 ## 지연 생성 패턴
 
 우편함/PvP상점과 동일하게 **cron 없이 지연 생성**됨 — `sync_world_boss()`가 월드보스 화면 진입 시 호출되어, "이번 주(일요일 기준) 보스가 아직 없으면 그때 생성 + 지난 주 정산"을 처리함. 아무도 접속하지 않는 주가 있으면 그 사이 정산이 미뤄질 수 있음(다음 접속자가 트리거).

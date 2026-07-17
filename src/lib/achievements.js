@@ -46,15 +46,18 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'gacha_1000', category: 'gacha', icon: '🎲', title: '뽑기 중독', desc: '스킬+장비 통산 뽑기 1,000회', reward: 5000, target: 1000, stat: 'gachaTotal' },
   { key: 'gacha_5000', category: 'gacha', icon: '💎', title: '뽑기의 화신', desc: '스킬+장비 통산 뽑기 5,000회', reward: 20000, target: 5000, stat: 'gachaTotal' },
 
+  { key: 'pvp_win_1', category: 'pvp', icon: '🎯', title: '첫 승리', desc: 'PvP 첫 승 달성', reward: 300, target: 1, stat: 'pvpWins' },
   { key: 'pvp_win_10', category: 'pvp', icon: '🥊', title: '투기장 신인', desc: 'PvP 10승 달성', reward: 1500, target: 10, stat: 'pvpWins' },
   { key: 'pvp_win_50', category: 'pvp', icon: '⚡', title: '투기장 강자', desc: 'PvP 50승 달성', reward: 6000, target: 50, stat: 'pvpWins' },
+
+  { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {
-  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', attendance: '📅 출석',
+  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', worldboss: '🐉 월드보스', attendance: '📅 출석',
 };
 
 /** 내가 이미 수령한 업적 키 목록 */
