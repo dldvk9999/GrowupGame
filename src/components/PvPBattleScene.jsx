@@ -21,7 +21,7 @@ const PROJECTILE_COLORS = ['#ffcf4a', '#ff5a5a', '#4ad9ff', '#c94aff', '#8fffb0'
  * - mySpeciesKey: 내 캐릭터 스프라이트 키
  * - onFinish(): 연출이 끝나면 호출 (결과 패널 표시 트리거)
  */
-export default function PvPBattleScene({ battle, mySpeciesKey, onFinish }) {
+export default function PvPBattleScene({ battle, mySpeciesKey, equippedCostumes, onFinish }) {
   const [myHp, setMyHp] = useState(100);
   const [oppHp, setOppHp] = useState(100);
   const [shake, setShake] = useState(false);
@@ -210,7 +210,7 @@ export default function PvPBattleScene({ battle, mySpeciesKey, onFinish }) {
         <canvas ref={canvasRef} className="arena-fx" />
         {screenFlash && <div className="job-skill-flash" style={{ background: screenFlash }} />}
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={mySpeciesKey} size={100} alt="나" />
+          <MonsterSprite speciesKey={mySpeciesKey} size={100} alt="나" costumeKeys={equippedCostumes} />
         </div>
         <div className="fighter-slot fighter-slot--enemy">
           <span className="pvp-opponent-icon">{battle.opponent_is_real ? '🧑‍🤝‍🧑' : '👻'}</span>

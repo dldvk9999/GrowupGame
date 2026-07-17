@@ -29,6 +29,7 @@ import StarterSelect from './components/StarterSelect';
 import BattleScreen from './components/BattleScreen';
 import StageSelect from './components/StageSelect';
 import Shop from './components/Shop';
+import SkillLoadout from './components/SkillLoadout';
 import Inventory from './components/Inventory';
 import MyPage from './components/MyPage';
 import DungeonSelect from './components/DungeonSelect';
@@ -199,6 +200,10 @@ export default function App() {
 
   function handleLoadoutChange(newEquippedKeys) {
     setProfile((p) => ({ ...p, equipped_skills: newEquippedKeys }));
+  }
+
+  function handleCostumeLoadoutChange(newEquippedKeys) {
+    setProfile((p) => ({ ...p, equipped_costumes: newEquippedKeys }));
   }
 
   const refreshInventory = useCallback(async () => {
@@ -505,6 +510,7 @@ export default function App() {
             <nav className="tab-nav">
               <button className={`tab-btn ${activeTab === 'battle' ? 'active' : ''}`} onClick={() => setActiveTab('battle')}>⚔️ 전투</button>
               <button className={`tab-btn ${activeTab === 'stage' ? 'active' : ''}`} onClick={() => setActiveTab('stage')}>🗺️ 스테이지</button>
+              <button className={`tab-btn ${activeTab === 'loadout' ? 'active' : ''}`} onClick={() => setActiveTab('loadout')}>🧩 스킬편성</button>
               <button className={`tab-btn ${activeTab === 'shop' ? 'active' : ''}`} onClick={() => setActiveTab('shop')}>🛒 상점</button>
               <button className={`tab-btn ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>🎒 인벤토리</button>
               <button className={`tab-btn ${activeTab === 'dungeon' ? 'active' : ''}`} onClick={() => setActiveTab('dungeon')}>🏰 던전</button>
@@ -520,6 +526,7 @@ export default function App() {
                 stage={stageNum}
                 equipmentBonus={equipmentBonus}
                 equippedSkills={equippedSkills}
+                equippedCostumes={profile?.equipped_costumes}
                 onClear={handleClear}
                 onIdleGain={handleIdleGain}
                 onAdvance={handleAdvance}
@@ -533,26 +540,32 @@ export default function App() {
                 onSelectStage={handleSelectStage}
               />
             )}
+            {activeTab === 'loadout' && (
+              <SkillLoadout
+                monsterLevel={activeMonster.level}
+                userSkills={userSkills}
+                equippedSkills={profile?.equipped_skills ?? []}
+                onLoadoutChange={handleLoadoutChange}
+              />
+            )}
             {activeTab === 'shop' && (
               <Shop
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
                 equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
-                monsterLevel={activeMonster.level}
-                userSkills={userSkills}
-                equippedSkills={profile?.equipped_skills ?? []}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}
-                onLoadoutChange={handleLoadoutChange}
               />
             )}
             {activeTab === 'inventory' && (
               <Inventory
                 userId={session.user.id}
                 inventory={inventory}
+                equippedCostumes={profile?.equipped_costumes}
                 onInventoryChange={refreshInventory}
+                onCostumeLoadoutChange={handleCostumeLoadoutChange}
               />
             )}
             {activeTab === 'dungeon' && (
@@ -562,6 +575,7 @@ export default function App() {
                   initialMonster={activeMonster}
                   equipmentBonus={equipmentBonus}
                   equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
                   jobBoss={getJobDungeonBoss(jobDungeonBattle.tier, activeMonster.element)}
                   onWin={handleJobDungeonWin}
                   onExit={() => setJobDungeonBattle(null)}
@@ -572,6 +586,7 @@ export default function App() {
                   initialMonster={activeMonster}
                   equipmentBonus={equipmentBonus}
                   equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
                   dungeonEnemy={getDungeonStage(dungeonBattle.type, dungeonBattle.stage)}
                   onClear={handleDungeonClear}
                   onExit={() => setDungeonBattle(null)}
@@ -582,6 +597,7 @@ export default function App() {
                   initialMonster={activeMonster}
                   equipmentBonus={equipmentBonus}
                   equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
                   session={worldBossSession}
                   onSettled={handleWorldBossSettled}
                   onExit={() => setWorldBossSession(null)}

@@ -175,6 +175,12 @@
 **040_normal_monster_boost.sql**
 - 일반(비보스) 스테이지 몬스터 hp/atk/def **1.8배** 추가 상향, `calc_stage_gold`도 동기화(보스는 변경 없음) — 실측 결과 후반 챕터로 갈수록 전직/장비 강화 대비 일반 몹만 상대적으로 너무 쉬워지는 문제 대응
 
+**041_skill_slot_limit_10.sql**
+- 스킬 편성 슬롯 최대치 5 → **10**으로 확장, `set_skill_loadout`의 레벨 구간을 Lv.100/130/160/190/220까지 연장(기존 10/25/50/75 페이스 그대로 이어감). 클라이언트 `getSkillSlotCount`와 동기화
+
+**042_pvp_costume_equip.sql**
+- `profiles.equipped_costumes`(text[]) 신설 + `set_costume_loadout` RPC — PvP 코스튬을 "보유"만이 아니라 슬롯별로 실제 "착용"할 수 있게 됨(서버가 보유여부/슬롯당 1개 제한 검증). 인벤토리 탭에 "코스튬" 서브탭 추가, 착용하면 캐릭터 스프라이트 주위에 등급색 배지로 표시됨(자세한 내용은 [`pvp.md`](./pvp.md))
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -192,6 +198,7 @@
 | `pvp_battle_log` | ❌ | `start_pvp_battle` RPC 내부에서만 기록 |
 | `pvp_shop_listings` | ❌ (누구나 조회는 가능) | `sync_pvp_shop` RPC 내부에서만 생성 |
 | `pvp_costume_inventory` | ❌ | `buy_pvp_costume` RPC |
+| `profiles.equipped_costumes` | ❌ | `set_costume_loadout` RPC (본인 보유 코스튬인지, 슬롯당 1개인지 서버 검증, 042) |
 | `coupons`/`coupon_redemptions` | ❌ | `redeem_coupon` RPC |
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
 | `world_boss_state` | ❌ (누구나 조회는 가능) | `sync_world_boss` RPC 내부에서만 생성/갱신 |

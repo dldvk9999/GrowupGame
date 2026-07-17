@@ -66,3 +66,9 @@ export async function buyPvpCostume(listingId) {
   const { error } = await supabase.rpc('buy_pvp_costume', { p_listing_id: listingId });
   if (error) throw error;
 }
+
+/** 코스튬 편성 저장(슬롯당 1개, 최대 4슬롯: weapon/armor/gloves/shoes) - 서버가 보유여부/슬롯중복 검증 */
+export async function setCostumeLoadout(itemKeys) {
+  const { error } = await supabase.rpc('set_costume_loadout', { p_item_keys: itemKeys });
+  if (error) throw new Error(error.message);
+}

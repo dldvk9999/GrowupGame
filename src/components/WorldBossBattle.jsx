@@ -28,7 +28,7 @@ function withEquipment(monster, bonus) {
  * - onSettled(result): 전투 종료(승/패 무관) 후 서버 응답 { newCurrentHp, bossMaxHp, clearedNow } 전달
  * - onExit(): 목록으로 돌아가기
  */
-export default function WorldBossBattle({ initialMonster, equipmentBonus, equippedSkills, session, onSettled, onExit }) {
+export default function WorldBossBattle({ initialMonster, equipmentBonus, equippedSkills, equippedCostumes, session, onSettled, onExit }) {
   const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({
@@ -280,7 +280,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
           <span className="worldboss-icon">🐉</span>
         </div>
         <div className="fighter-slot fighter-slot--player worldboss-player-slot">
-          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} />
           {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
             <div className="player-status-fx">
               {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}

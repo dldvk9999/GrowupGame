@@ -50,7 +50,7 @@ function growPlayer(effectivePlayer, exp, equipmentBonus) {
  * - onGoStageList(): "스테이지 목록" 버튼
  */
 export default function BattleScreen({
-  initialMonster, chapter, stage, equipmentBonus, equippedSkills,
+  initialMonster, chapter, stage, equipmentBonus, equippedSkills, equippedCostumes,
   onClear, onIdleGain, onAdvance, onGoStageList,
 }) {
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
@@ -334,7 +334,7 @@ export default function BattleScreen({
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} />
           {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
             <div className="player-status-fx">
               {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}

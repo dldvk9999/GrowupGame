@@ -62,7 +62,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
       {error && <p className="shop-error">{error}</p>}
 
       {pendingBattle ? (
-        <PvPBattleScene battle={pendingBattle} mySpeciesKey={mySpeciesKey} onFinish={handleSceneFinish} />
+        <PvPBattleScene battle={pendingBattle} mySpeciesKey={mySpeciesKey} equippedCostumes={profile?.equipped_costumes} onFinish={handleSceneFinish} />
       ) : (
         <button className="btn btn-challenge pvp-fight-btn" disabled={fighting} onClick={handleFight}>
           {fighting ? '상대를 찾는 중...' : '⚔️ 대결 시작'}

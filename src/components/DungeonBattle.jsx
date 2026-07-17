@@ -27,7 +27,7 @@ function withEquipment(monster, bonus) {
  * - onClear(grownBaseMonster, goldReward)
  * - onExit(): 던전 목록으로 돌아가기
  */
-export default function DungeonBattle({ initialMonster, equipmentBonus, equippedSkills, dungeonEnemy, onClear, onExit }) {
+export default function DungeonBattle({ initialMonster, equipmentBonus, equippedSkills, equippedCostumes, dungeonEnemy, onClear, onExit }) {
   const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({ ...dungeonEnemy }));
@@ -243,7 +243,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} />
           {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
             <div className="player-status-fx">
               {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}

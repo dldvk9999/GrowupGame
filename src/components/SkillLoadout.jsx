@@ -10,6 +10,7 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
 
   const slotLimit = getSkillSlotCount(monsterLevel ?? 1);
   const ownedMap = new Map((userSkills ?? []).map((s) => [s.skill_key, s.skill_level]));
+  const savedEquippedSet = new Set(equippedSkills ?? []); // 서버에 실제 저장된(현재 착용중) 스킬
 
   function toggleSlot(skillKey) {
     setPendingLoadout((prev) => {
@@ -52,10 +53,14 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
 
         {!collapsed && (
           <>
-            <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75마다 +1). 아래에서 원하는 스킬을 눌러 편성하세요.</p>
+            <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75/100/130/160/190/220마다 +1, 최대 10슬롯). 아래에서 원하는 스킬을 눌러 편성하세요.</p>
             <p className="gacha-hint">
               보유한 스킬은 장착 여부와 상관없이 <strong>상시 공격력 보너스</strong>를 줘요.
               현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
+            </p>
+            <p className="gacha-hint loadout-legend">
+              <span className="loadout-legend-dot loadout-legend-dot--equipped" /> 현재 착용 중
+              <span className="loadout-legend-dot loadout-legend-dot--pending" /> 편성 중(미저장)
             </p>
 
             <div className="loadout-slots">
@@ -83,17 +88,21 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
         {SKILL_CATALOG.map((def) => {
           const level = ownedMap.get(def.skillKey);
           const owned = level != null;
-          const equipped = pendingLoadout.includes(def.skillKey);
+          const isSavedEquipped = savedEquippedSet.has(def.skillKey);
+          const isPending = pendingLoadout.includes(def.skillKey);
+          // 저장된 착용중 스킬은 항상 금색으로, 아직 저장 안 한 편성중 선택은 청록색으로 구분
+          const cardStateClass = isSavedEquipped ? 'equipped' : isPending ? 'pending-equip' : '';
           const effective = owned ? getEffectiveSkillValue(def, level) : null;
           return (
             <button
               key={def.skillKey}
               type="button"
-              className={`owned-skill-card ${owned ? '' : 'not-owned'} ${equipped ? 'equipped' : ''}`}
+              className={`owned-skill-card ${owned ? '' : 'not-owned'} ${cardStateClass}`}
               style={{ borderColor: RARITY_COLOR[def.rarity] }}
               disabled={!owned}
               onClick={() => toggleSlot(def.skillKey)}
             >
+              {isSavedEquipped && <span className="owned-skill-equipped-badge">착용중</span>}
               <span className="owned-skill-icon">{def.icon}</span>
               <strong style={{ color: RARITY_COLOR[def.rarity] }}>{def.name}</strong>
               <span className="owned-skill-rarity">{RARITY_LABEL[def.rarity]}</span>

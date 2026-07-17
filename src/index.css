@@ -1224,7 +1224,24 @@ button {
   color: var(--text-primary);
 }
 .owned-skill-card.not-owned { opacity: 0.35; cursor: not-allowed; }
-.owned-skill-card.equipped { box-shadow: 0 0 0 2px var(--accent-gold) inset; }
+/* 현재 실제 착용중(서버 저장됨) - 금색 / 편성 화면에서 선택만 하고 아직 저장 안 함 - 청록색으로 구분 */
+.owned-skill-card.equipped { box-shadow: 0 0 0 2px var(--accent-gold) inset; position: relative; }
+.owned-skill-card.pending-equip { box-shadow: 0 0 0 2px #2dd4bf inset; }
+.owned-skill-equipped-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--accent-gold);
+  color: #1a1408;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+.loadout-legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.loadout-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 10px; margin-right: 2px; vertical-align: middle; }
+.loadout-legend-dot--equipped { background: var(--accent-gold); }
+.loadout-legend-dot--pending { background: #2dd4bf; }
 .owned-skill-icon { font-size: 22px; }
 .owned-skill-rarity { font-size: 10px; color: var(--text-muted); }
 .owned-skill-level { font-size: 11px; color: var(--text-secondary); }

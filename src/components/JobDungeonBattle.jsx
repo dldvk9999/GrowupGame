@@ -27,7 +27,7 @@ function withEquipment(monster, bonus) {
  * - onWin(grownBaseMonster): 승리 시 (전직 적용/세션 클레임은 상위에서 처리)
  * - onExit()
  */
-export default function JobDungeonBattle({ initialMonster, equipmentBonus, equippedSkills, jobBoss, onWin, onExit }) {
+export default function JobDungeonBattle({ initialMonster, equipmentBonus, equippedSkills, equippedCostumes, jobBoss, onWin, onExit }) {
   const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({ ...jobBoss }));
@@ -242,7 +242,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} />
           {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
             <div className="player-status-fx">
               {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}

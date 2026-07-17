@@ -105,8 +105,13 @@ export function getEffectiveSkillValue(skillDef, skillLevel) {
   return skillDef.base * (1 + (skillLevel - 1) * 0.003);
 }
 
-/** 몬스터 레벨에 따른 장착 가능 스킬 슬롯 수 (1~5) */
+/** 몬스터 레벨에 따른 장착 가능 스킬 슬롯 수 (1~10, Lv.10/25/50/75/100/130/160/190/220마다 +1) */
 export function getSkillSlotCount(monsterLevel) {
+  if (monsterLevel >= 220) return 10;
+  if (monsterLevel >= 190) return 9;
+  if (monsterLevel >= 160) return 8;
+  if (monsterLevel >= 130) return 7;
+  if (monsterLevel >= 100) return 6;
   if (monsterLevel >= 75) return 5;
   if (monsterLevel >= 50) return 4;
   if (monsterLevel >= 25) return 3;

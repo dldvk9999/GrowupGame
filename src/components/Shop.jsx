@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { SLOTS } from '../lib/itemCatalog';
 import EquipmentGacha from './EquipmentGacha';
 import SkillGacha from './SkillGacha';
-import SkillLoadout from './SkillLoadout';
 
 const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
-const ALL_TABS = [...EQUIP_TABS, 'skill', 'loadout'];
+const ALL_TABS = [...EQUIP_TABS, 'skill'];
 
 export default function Shop({
-  userId, gold, equipmentDrawProgress, totalSkillDraws, monsterLevel,
-  userSkills, equippedSkills, onInventoryChange, onGoldChange, onSkillsRefresh, onLoadoutChange,
+  userId, gold, equipmentDrawProgress, totalSkillDraws,
+  onInventoryChange, onGoldChange, onSkillsRefresh,
 }) {
   const [tab, setTab] = useState('weapon');
 
@@ -45,9 +44,6 @@ export default function Shop({
         <button className={`shop-tab ${tab === 'skill' ? 'active' : ''}`} onClick={() => setTab('skill')}>
           🎯 스킬 뽑기
         </button>
-        <button className={`shop-tab ${tab === 'loadout' ? 'active' : ''}`} onClick={() => setTab('loadout')}>
-          🧩 스킬 편성
-        </button>
       </div>
       <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
@@ -57,13 +53,6 @@ export default function Shop({
           totalDraws={totalSkillDraws}
           onGoldChange={onGoldChange}
           onSkillsRefresh={onSkillsRefresh}
-        />
-      ) : tab === 'loadout' ? (
-        <SkillLoadout
-          monsterLevel={monsterLevel}
-          userSkills={userSkills}
-          equippedSkills={equippedSkills}
-          onLoadoutChange={onLoadoutChange}
         />
       ) : (
         <EquipmentGacha
