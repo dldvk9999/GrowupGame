@@ -753,7 +753,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
       {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
       {profile && (
         <span className={`app-nickname ${dragonBuffActive ? 'app-nickname--dragon' : ''}`}>
-          {dragonBuffActive && '🐉 '}{profile.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}{profile.nickname}
+          {dragonBuffActive && <span title={profile.dragon_buff_until ? `${new Date(profile.dragon_buff_until).toLocaleString('ko-KR')}까지` : undefined}>🐉 </span>}{profile.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}{profile.nickname}
         </span>
       )}
       <button className="btn btn-ghost attendance-badge-btn" onClick={onOpenAttendance}>

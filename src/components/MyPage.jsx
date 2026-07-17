@@ -3,6 +3,9 @@ import { updateNickname, checkNicknameAvailable } from '../lib/auth';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive }) {
+  const dragonBuffRemaining = dragonBuffActive && profile?.dragon_buff_until
+    ? formatRemainingTime(new Date(profile.dragon_buff_until) - new Date())
+    : null;
   const [nickname, setNickname] = useState('');
   const [checkState, setCheckState] = useState(null); // 'checking' | 'ok' | 'taken' | null
   const [saving, setSaving] = useState(false);
@@ -112,7 +115,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           </table>
           {dragonBuffActive && (
             <p className="mypage-locked-hint" style={{ color: 'var(--accent-gold)' }}>
-              🐉 용의 버프 적용 중 — 전투 시 위 최종 공격력·방어력이 20배로 적용돼요.
+              🐉 용의 버프 적용 중{dragonBuffRemaining && ` (${dragonBuffRemaining} 남음)`} — 전투 시 위 최종 공격력·방어력이 20배로 적용돼요.
             </p>
           )}
         </div>
@@ -152,4 +155,14 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
       )}
     </div>
   );
+}
+
+/** 밀리초를 "N일 M시간" 형태로 변환 (하루 미만이면 "N시간") */
+function formatRemainingTime(ms) {
+  if (ms <= 0) return null;
+  const totalHours = Math.floor(ms / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (days > 0) return `${days}일 ${hours}시간`;
+  return `${hours}시간`;
 }
