@@ -63,7 +63,7 @@ goldReward = max(5, round(hp*0.15)*5*8)
 
 `DungeonSelect.jsx`, `DungeonBattle.jsx`, `dungeonStages.js`, `dungeon.js`:
 
-- **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 **오전 8시** 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증)
+- **경험치 던전**, **골드 던전** 두 종류, 각각 **하루 3회**만 입장 가능(서울시간 **오전 8시** 기준 초기화, `dungeon_attempts` 테이블 + `use_dungeon_attempt` RPC가 서버에서 검증). 화면 안내문에 다음 초기화까지 **실시간 카운트다운**(`useCountdownToDaily8AM`, `lib/countdown.js`)이 표시됨 — UTC 서버시각을 KST(UTC+9, 정수 오프셋)로 환산해서 계산하므로 타임존 라이브러리 없이도 정확함
 - **순차 진행형**: 1층부터 시작, 깨야 다음 층으로 이동. 실패하면 그 층에 그대로 머무름(계속 재도전 가능, 하루 3회 한도 내에서). `dungeon_progress` 테이블(유저별 `cleared_stage`)로 진행도 추적, `use_dungeon_attempt`가 진행도 기준으로 **몇 층인지 서버가 직접 결정**(클라이언트가 층을 선택하지 않음). 10층까지 다 깨면 10층을 반복 도전 가능
 - 각 던전 10층 구성, 층마다 고정 보스(`dungeonBoss(stage)`):
   ```
