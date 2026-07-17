@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { updateNickname, checkNicknameAvailable } from '../lib/auth';
+import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate }) {
   const [nickname, setNickname] = useState('');
@@ -64,6 +65,11 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
         )}
         <div className="mypage-row"><span>클리어한 스테이지</span><strong>{clearedCount} / {totalStages}</strong></div>
       </div>
+
+      <MonsterDex
+        myElement={activeMonster?.element}
+        myStage={activeMonster?.speciesId ? Number(activeMonster.speciesId.split('_')[1]) : 0}
+      />
 
       <h3 className="mypage-subtitle">닉네임 변경</h3>
       {alreadyEdited ? (
