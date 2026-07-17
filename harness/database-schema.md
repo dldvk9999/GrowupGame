@@ -157,6 +157,9 @@
 - 월드보스 클리어 시에도 기여자 전원에게 골드 보상을 우편으로 발송하도록 추가(기존엔 용의 버프만 즉시 지급, 골드는 미클리어 때만 있었음)
 - 월드보스 공격력 4500→7000 상향, **이미 생성돼있는(진행 중인) 이번 주 데이터에도 즉시 반영**
 
+**036_security_world_boss_session_verification.sql** ⚠️ **보안 패치, 필수 적용 (치명적 취약점)**
+- `world_boss_sessions` 테이블 신설, `enter_world_boss`/`report_world_boss_damage`를 세션 검증 구조로 재작성 — 이전엔 입장(하루3회 제한)과 데미지 보고 사이에 아무 연결고리가 없어서, `report_world_boss_damage`를 devtools로 무한 반복 호출하면 하루 3회 제한을 완전히 무시하고 보스 체력을 순식간에 소진시킬 수 있었음(자세한 내용은 [`security.md`](./security.md))
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -178,5 +181,6 @@
 | `equipment_gacha_progress` | ❌ | `draw_equipment`/`draw_equipment_batch` RPC 내부에서만 증가 |
 | `world_boss_state` | ❌ (누구나 조회는 가능) | `sync_world_boss` RPC 내부에서만 생성/갱신 |
 | `world_boss_attempts` | ❌ | `enter_world_boss` RPC (원자적 증가) |
+| `world_boss_sessions` | ❌ | `enter_world_boss`가 발급, `report_world_boss_damage`가 소모(claimed=true) 처리 |
 | `world_boss_contributions` | ❌ (누구나 조회는 가능) | `report_world_boss_damage` RPC 내부에서만 누적 |
 | `chat_messages` | insert 가능(닉네임은 트리거가 덮어씀, 속도제한 트리거 있음) | - |

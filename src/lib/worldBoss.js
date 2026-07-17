@@ -43,10 +43,10 @@ export async function enterWorldBoss() {
   };
 }
 
-/** 전투에서 실제로 입힌 데미지를 서버에 보고 (서버가 전투력 기준 상한으로 클램프 후 공유체력에 반영) */
-export async function reportWorldBossDamage(weekKey, damage) {
+/** 전투에서 실제로 입힌 데미지를 서버에 보고 (세션당 1회만 반영, 전투력 기준 상한으로 클램프) */
+export async function reportWorldBossDamage(sessionId, damage) {
   const { data, error } = await supabase.rpc('report_world_boss_damage', {
-    p_week_key: weekKey,
+    p_session_id: sessionId,
     p_damage: damage,
   });
   if (error) throw new Error(error.message);

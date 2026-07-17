@@ -130,7 +130,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
       setResult(outcome);
       setSettling(true);
       setLog(outcome === 'win' ? '월드보스에게 강력한 일격을 꽂아넣었다!' : `${player.name}가 쓰러졌다... 입힌 피해는 그대로 기록돼요.`);
-      reportWorldBossDamage(session.weekKey, Math.round(damageDealtRef.current))
+      reportWorldBossDamage(session.sessionId, Math.round(damageDealtRef.current))
         .then((res) => onSettled?.(res))
         .catch((err) => setLog(err.message ?? '결과 반영에 실패했어요.'))
         .finally(() => setSettling(false));
@@ -159,7 +159,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
     if (result !== 'timeout' || settling) return;
     setSettling(true);
     setLog('제한시간 종료! 그동안 입힌 피해는 그대로 기록됐어요.');
-    reportWorldBossDamage(session.weekKey, Math.round(damageDealtRef.current))
+    reportWorldBossDamage(session.sessionId, Math.round(damageDealtRef.current))
       .then((res) => onSettled?.(res))
       .catch((err) => setLog(err.message ?? '결과 반영에 실패했어요.'))
       .finally(() => setSettling(false));

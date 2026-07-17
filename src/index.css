@@ -1191,6 +1191,20 @@ button {
   margin-bottom: 16px;
 }
 .loadout-save-btn { width: 100%; margin-top: 4px; }
+.loadout-collapse-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 0 4px;
+}
+.loadout-sticky-bar.collapsed .loadout-collapse-toggle { padding-bottom: 0; }
+.loadout-collapse-icon { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
 .owned-skill-grid {
   display: grid;

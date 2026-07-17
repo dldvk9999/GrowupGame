@@ -49,6 +49,7 @@
 
 - **뽑기 화면과 완전히 분리된 별도 탭**(상점 안 "🧩 스킬 편성", `SkillLoadout.jsx`) — 원래는 스킬 뽑기 화면 하단에 같이 있었지만, 보유 스킬이 많아지면서 편성 UI만 따로 뺌
 - 편성 슬롯 + 저장 버튼 영역이 **`position: sticky`로 화면 상단에 고정**됨(`loadout-sticky-bar`) — 스킬 목록이 길어서 아래로 스크롤해도 슬롯이 항상 보이고 바로 편성/저장할 수 있음. 헤더(`app-header`)도 이미 sticky라서, 로딩바가 헤더에 바로 딱 붙지 않도록 `top` 값을 "헤더 높이 + 15px"로 잡음(데스크톱 84px, 모바일 76px — 헤더 padding/버튼 높이 기준 추정치라 실제 렌더 결과 보고 미세조정 가능)
+- 편성바 상단의 토글 버튼(`▲ 접기` / `▼ 펼치기`)으로 **슬롯 영역 자체를 접었다 펼 수 있음**(`collapsed` state) — 접으면 "편성 슬롯 (N/M)" 요약 한 줄만 남고 슬롯/안내문구/저장버튼이 다 숨겨져서, 스크롤 공간을 아낄 수 있음
 - 장착 슬롯 수는 활성 몬스터 레벨에 따라 1→5개로 증가 (`getSkillSlotCount`: Lv10/25/50/75가 기준점)
 - `profiles.equipped_skills`(text[])에 저장, RPC `set_skill_loadout`이 슬롯수/보유여부/중복을 서버에서 재검증
 - `BattleScreen`은 고정 스킬(`skills.js`의 SKILLS) 대신 **App.jsx가 계산해서 넘겨주는 `equippedSkills` prop**을 사용함. 장착 스킬이 0개인 예외 상황(마이그레이션 이전 계정 등)엔 `skills.js`의 첫 스킬로 안전 폴백함. 전직 스킬은 `jobAdvancement.js`의 `getAvailableSkills`가 이 목록에 추가로 붙여줌

@@ -6,6 +6,7 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
   const [pendingLoadout, setPendingLoadout] = useState(equippedSkills ?? []);
   const [savingLoadout, setSavingLoadout] = useState(false);
   const [error, setError] = useState('');
+  const [collapsed, setCollapsed] = useState(false);
 
   const slotLimit = getSkillSlotCount(monsterLevel ?? 1);
   const ownedMap = new Map((userSkills ?? []).map((s) => [s.skill_key, s.skill_level]));
@@ -37,31 +38,45 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
     <div className="skill-loadout-screen">
       <h2>스킬 편성</h2>
 
-      {/* 스크롤해도 항상 보이는 편성 슬롯 영역 */}
-      <div className="loadout-sticky-bar">
-        <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75마다 +1). 아래에서 원하는 스킬을 눌러 편성하세요.</p>
-        <p className="gacha-hint">
-          보유한 스킬은 장착 여부와 상관없이 <strong>상시 공격력 보너스</strong>를 줘요.
-          현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
-        </p>
-
-        <div className="loadout-slots">
-          {Array.from({ length: slotLimit }, (_, i) => {
-            const key = pendingLoadout[i];
-            const def = key ? getSkillDef(key) : null;
-            return (
-              <div key={i} className={`loadout-slot ${def ? 'filled' : ''}`} style={def ? { borderColor: RARITY_COLOR[def.rarity] } : undefined}>
-                {def ? <span style={{ fontSize: 22 }}>{def.icon}</span> : <span className="loadout-slot-empty">+</span>}
-              </div>
-            );
-          })}
-        </div>
-
-        {error && <p className="shop-error">{error}</p>}
-
-        <button className="btn btn-neutral loadout-save-btn" disabled={savingLoadout} onClick={handleSaveLoadout}>
-          {savingLoadout ? '저장 중...' : `편성 저장 (${pendingLoadout.length}/${slotLimit})`}
+      {/* 스크롤해도 항상 보이는 편성 슬롯 영역 - 접었다 펼 수 있음 */}
+      <div className={`loadout-sticky-bar ${collapsed ? 'collapsed' : ''}`}>
+        <button
+          type="button"
+          className="loadout-collapse-toggle"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-expanded={!collapsed}
+        >
+          <span>편성 슬롯 ({pendingLoadout.length}/{slotLimit})</span>
+          <span className="loadout-collapse-icon">{collapsed ? '▼ 펼치기' : '▲ 접기'}</span>
         </button>
+
+        {!collapsed && (
+          <>
+            <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75마다 +1). 아래에서 원하는 스킬을 눌러 편성하세요.</p>
+            <p className="gacha-hint">
+              보유한 스킬은 장착 여부와 상관없이 <strong>상시 공격력 보너스</strong>를 줘요.
+              현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
+            </p>
+
+            <div className="loadout-slots">
+              {Array.from({ length: slotLimit }, (_, i) => {
+                const key = pendingLoadout[i];
+                const def = key ? getSkillDef(key) : null;
+                return (
+                  <div key={i} className={`loadout-slot ${def ? 'filled' : ''}`} style={def ? { borderColor: RARITY_COLOR[def.rarity] } : undefined}>
+                    {def ? <span style={{ fontSize: 22 }}>{def.icon}</span> : <span className="loadout-slot-empty">+</span>}
+                  </div>
+                );
+              })}
+            </div>
+
+            {error && <p className="shop-error">{error}</p>}
+
+            <button className="btn btn-neutral loadout-save-btn" disabled={savingLoadout} onClick={handleSaveLoadout}>
+              {savingLoadout ? '저장 중...' : `편성 저장 (${pendingLoadout.length}/${slotLimit})`}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="owned-skill-grid">
