@@ -171,6 +171,8 @@ end;
 $$ language plpgsql stable security definer;
 
 -- fetch_leaderboard: 랭킹도 동일한 기준(장비 보너스 포함)으로 통일
+-- 050과 동일한 반환 컬럼 구성이라 원칙적으로 DROP 없이도 되지만, 부분 배포 상태 대비 방어적으로 DROP.
+drop function if exists public.fetch_leaderboard();
 create or replace function public.fetch_leaderboard()
 returns table(
   rank integer, nickname text, level integer, unlocked_job_tier integer,

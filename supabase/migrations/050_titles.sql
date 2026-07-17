@@ -4,7 +4,7 @@
 -- 다른 유저에게 자랑할 수 있는 "플렉스" 요소로 업적 시스템의 재방문 유인을 강화함.
 -- ============================================
 
-alter table public.profiles add column equipped_title text;
+alter table public.profiles add column if not exists equipped_title text;
 
 -- 칭호를 주는 업적 키 -> 칭호 텍스트 매핑 (서버가 유일한 기준, 클라이언트 TITLE_CATALOG와 반드시 동기화)
 create or replace function public.set_equipped_title(p_achievement_key text)
@@ -44,6 +44,9 @@ end;
 $$ language plpgsql security definer;
 
 -- 랭킹에도 칭호를 같이 보여주기 위해 fetch_leaderboard 재정의
+-- ⚠️ 반환 컬럼(equipped_title)을 추가하는 건 리턴 타입 변경이라 CREATE OR REPLACE로 안 되고
+-- 먼저 DROP 해야 함(PostgreSQL: "cannot change return type of existing function").
+drop function if exists public.fetch_leaderboard();
 create or replace function public.fetch_leaderboard()
 returns table(
   rank integer, nickname text, level integer, unlocked_job_tier integer,
