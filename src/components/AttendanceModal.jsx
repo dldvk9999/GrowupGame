@@ -90,7 +90,7 @@ export default function AttendanceModal({ attendanceState, onClose, onClaimed })
           disabled={claiming || alreadyClaimedToday}
           onClick={handleClaim}
         >
-          {alreadyClaimedToday ? '오늘은 이미 받았어요' : claiming ? '받는 중...' : `${nextDay}일차 출석하기`}
+          {alreadyClaimedToday ? '오늘은 이미 받았어요 (내일 초기화)' : claiming ? '받는 중...' : `${nextDay}일차 출석하기`}
         </button>
       </div>
     </div>

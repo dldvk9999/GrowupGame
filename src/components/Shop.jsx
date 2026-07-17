@@ -72,7 +72,7 @@ export default function Shop({
         disabled={freeDrawUsed !== false || claimingFree}
         onClick={handleFreeDraw}
       >
-        {freeDrawUsed === null ? '확인 중...' : freeDrawUsed ? '🎁 오늘의 무료뽑기 사용 완료' : claimingFree ? '뽑는 중...' : `🎁 오늘의 무료뽑기 (${tab === 'skill' ? '스킬' : SLOTS[tab].label}, 1회 공짜)`}
+        {freeDrawUsed === null ? '확인 중...' : freeDrawUsed ? '🎁 오늘의 무료뽑기 사용 완료 (내일 초기화)' : claimingFree ? '뽑는 중...' : `🎁 오늘의 무료뽑기 (${tab === 'skill' ? '스킬' : SLOTS[tab].label}, 1회 공짜)`}
       </button>
 
       <div className="shop-tabs">
