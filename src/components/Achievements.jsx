@@ -65,11 +65,17 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
 
       {error && <p className="shop-error">{error}</p>}
 
-      {categories.map((cat) => (
+      {categories.map((cat) => {
+        const catAchievements = ACHIEVEMENT_CATALOG.filter((a) => a.category === cat);
+        const catClaimed = catAchievements.filter((a) => claimedKeys.has(a.key)).length;
+        return (
         <div key={cat} className="inventory-section">
-          <h3 className="inventory-section-title">{ACHIEVEMENT_CATEGORY_LABEL[cat] ?? cat}</h3>
+          <h3 className="inventory-section-title">
+            {ACHIEVEMENT_CATEGORY_LABEL[cat] ?? cat}
+            <span className="achievement-category-count"> {catClaimed}/{catAchievements.length}</span>
+          </h3>
           <div className="achievement-list">
-            {ACHIEVEMENT_CATALOG.filter((a) => a.category === cat).map((a) => {
+            {catAchievements.map((a) => {
               const current = stats?.[a.stat] ?? 0;
               const claimed = claimedKeys.has(a.key);
               const eligible = current >= a.target;
@@ -117,7 +123,8 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
             })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

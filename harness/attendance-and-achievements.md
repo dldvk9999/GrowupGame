@@ -83,7 +83,7 @@
 
 업적 화면을 열 때마다 서버에 진행도를 새로 조회하지 않고, **App.jsx가 이미 들고 있는 값들(활성 몬스터 레벨/전직단계, `clearedStageIds.size`, `profile.total_skill_draws` + `equipmentDrawProgress` 합산, `profile.pvp_wins`, `attendanceState.total_claim_count`)을 `achievementStats`로 묶어서 그대로 내려줌** — 별도 API 호출 없이 프로그레스바를 그림. 실제 수령 가능 여부의 최종 판단은 어차피 서버가 재검증하므로, 이 클라이언트 계산은 순수 표시용이고 약간의 지연/오차가 있어도 보안엔 영향 없음.
 
-수령한 업적 목록(`achievement_claims`)만 로그인 후 최초 진입 시 별도로 조회해서 완료 뱃지를 표시함.
+수령한 업적 목록(`achievement_claims`)만 로그인 후 최초 진입 시 별도로 조회해서 완료 뱃지를 표시함. 각 카테고리 헤더 옆에도 "N/M" 형태로 그 카테고리 안에서 몇 개를 완료했는지 같이 보여줌(클라이언트에서 카탈로그 필터링만으로 계산, 추가 조회 없음).
 
 ### 배포 전 자체검토로 발견한 버그: 월드보스 참여 업적이 영구 잠길 뻔함
 
