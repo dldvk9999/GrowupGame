@@ -216,6 +216,9 @@
 **053_achievements_early_game.sql**
 - `claim_achievement`에 업적 2종 추가: PvP 첫 승(`pvp_win_1`), 월드보스 첫 참여(`world_boss_participate`, `world_boss_contributions` 전체 주 대상 exists 체크). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**054_update_event_coupon.sql**
+- `UPDATE2026` 쿠폰 시딩(골드8000+레어장갑, 무제한 사용, 2026-12-31 만료) — 출석체크/업적/랭킹/무료뽑기/칭호 출시 기념
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
