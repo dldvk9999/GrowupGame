@@ -29,7 +29,10 @@ export default function Leaderboard() {
           <div key={row.rank} className={`leaderboard-row ${row.is_me ? 'leaderboard-row--me' : ''}`}>
             <span className="leaderboard-rank">{MEDAL[row.rank] ?? row.rank}</span>
             <span className="leaderboard-element">{ELEMENT_ICON[row.element] ?? ''}</span>
-            <span className="leaderboard-nickname">{row.nickname}{row.is_me && ' (나)'}</span>
+            <span className="leaderboard-nickname">
+              {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
+              {row.nickname}{row.is_me && ' (나)'}
+            </span>
             <span className="leaderboard-tier">{row.unlocked_job_tier > 0 ? `${row.unlocked_job_tier}차` : '-'}</span>
             <span className="leaderboard-level">Lv.{row.level}</span>
             <span className="leaderboard-power">⚔️{row.combat_power.toLocaleString()}</span>

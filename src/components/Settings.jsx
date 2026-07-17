@@ -3,7 +3,7 @@ import Mailbox from './Mailbox';
 import CouponRedeem from './CouponRedeem';
 import Achievements from './Achievements';
 
-export default function Settings({ userId, gold, onGoldChange, onUnreadMailChange, achievementStats }) {
+export default function Settings({ userId, gold, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange }) {
   const [tab, setTab] = useState('mailbox');
 
   return (
@@ -16,7 +16,16 @@ export default function Settings({ userId, gold, onGoldChange, onUnreadMailChang
       </div>
 
       {tab === 'mailbox' && <Mailbox userId={userId} gold={gold} onGoldChange={onGoldChange} onUnreadChange={onUnreadMailChange} />}
-      {tab === 'achievements' && <Achievements userId={userId} gold={gold} onGoldChange={onGoldChange} stats={achievementStats} />}
+      {tab === 'achievements' && (
+        <Achievements
+          userId={userId}
+          gold={gold}
+          onGoldChange={onGoldChange}
+          stats={achievementStats}
+          equippedTitle={equippedTitle}
+          onTitleChange={onTitleChange}
+        />
+      )}
       {tab === 'coupon' && <CouponRedeem />}
     </div>
   );

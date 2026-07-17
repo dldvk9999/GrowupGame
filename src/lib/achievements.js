@@ -1,6 +1,26 @@
 import { supabase } from './supabaseClient';
 
 /**
+ * 칭호를 주는 업적 -> 칭호 텍스트 매핑. 서버 set_equipped_title RPC의 CASE문과
+ * 반드시 동기화되어야 함(한쪽만 고치면 클라 UI에 칭호 버튼이 안 뜨거나, 서버가 거부함).
+ */
+export const TITLE_BY_ACHIEVEMENT = {
+  level_180: '정점의 지배자',
+  job_tier_5: '전설의 전사',
+  stage_clear_1000: '차원의 정복자',
+  gacha_5000: '행운의 화신',
+  pvp_win_50: '투기장의 지배자',
+  attendance_month: '성실한 조련사',
+};
+
+/** 칭호 장착/해제 (p_achievement_key가 null이면 해제) */
+export async function setEquippedTitle(achievementKey) {
+  const { error } = await supabase.rpc('set_equipped_title', { p_achievement_key: achievementKey });
+  if (error) throw new Error(error.message);
+}
+
+
+/**
  * 업적 카탈로그 (정적 데이터, 서버 achievement_claims 테이블과 achievement_key로 매칭).
  * checkProgress(stats)는 현재 진행도를 { current, target } 형태로 계산해서 프로그레스바에 씀.
  * stats 구조: { level, jobTier, stageCleared, gachaTotal, pvpWins, attendanceTotal }

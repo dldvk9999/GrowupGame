@@ -76,3 +76,29 @@
 업적 화면을 열 때마다 서버에 진행도를 새로 조회하지 않고, **App.jsx가 이미 들고 있는 값들(활성 몬스터 레벨/전직단계, `clearedStageIds.size`, `profile.total_skill_draws` + `equipmentDrawProgress` 합산, `profile.pvp_wins`, `attendanceState.total_claim_count`)을 `achievementStats`로 묶어서 그대로 내려줌** — 별도 API 호출 없이 프로그레스바를 그림. 실제 수령 가능 여부의 최종 판단은 어차피 서버가 재검증하므로, 이 클라이언트 계산은 순수 표시용이고 약간의 지연/오차가 있어도 보안엔 영향 없음.
 
 수령한 업적 목록(`achievement_claims`)만 로그인 후 최초 진입 시 별도로 조회해서 완료 뱃지를 표시함.
+
+## 칭호(타이틀) 시스템 (migration 050)
+
+일부 상위 업적은 달성하면 **칭호**를 주고, 그 칭호를 닉네임 옆에 장착해서 헤더/랭킹에 자랑할 수 있음(다른 유저에게 보이는 "플렉스" 요소로 업적 시스템의 재방문 유인을 강화).
+
+### 칭호를 주는 업적
+
+| 업적 | 칭호 |
+|---|---|
+| `level_180` | 정점의 지배자 |
+| `job_tier_5` | 전설의 전사 |
+| `stage_clear_1000` | 차원의 정복자 |
+| `gacha_5000` | 행운의 화신 |
+| `pvp_win_50` | 투기장의 지배자 |
+| `attendance_month` | 성실한 조련사 |
+
+모든 업적이 칭호를 주는 건 아니고(위 6개만), 나머지 업적은 골드 보상만 있음.
+
+### 구현
+
+- `profiles.equipped_title`(text, nullable) — `set_equipped_title(p_achievement_key)` RPC로만 변경 가능(직접 UPDATE 불가, 004의 컬럼단위 revoke 패턴 그대로 적용됨)
+- RPC가 **해당 업적을 실제로 수령했는지(`achievement_claims`에 있는지) 재검증**한 뒤에만 칭호를 세팅함 — 클라이언트가 임의 문자열을 칭호로 박아넣는 것 방지
+- 칭호-업적 매핑은 서버 RPC의 CASE문과 클라이언트 `TITLE_BY_ACHIEVEMENT`(`src/lib/achievements.js`) 양쪽에 동일하게 정의되어 있음 — **새 칭호를 추가할 때는 반드시 양쪽 다 수정**해야 함(업적 카탈로그와 동일한 동기화 주의사항)
+- 업적 화면에서 칭호가 있는 완료된 업적에 "장착"/"해제" 버튼이 뜸(이미 장착 중이면 버튼이 "칭호 해제"로 바뀜)
+- `fetch_leaderboard()`(048)도 050에서 `equipped_title`을 함께 반환하도록 재정의해서, 랭킹 화면에도 다른 유저의 칭호가 그대로 보임
+- 헤더 닉네임 앞에 `[칭호]` 형태로 금색 텍스트 표시(`app-title-badge` 클래스, 랭킹 화면과 동일한 스타일 재사용)

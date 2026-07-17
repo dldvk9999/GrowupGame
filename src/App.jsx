@@ -699,6 +699,8 @@ export default function App() {
                   pvpWins: profile?.pvp_wins ?? 0,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                 }}
+                equippedTitle={profile?.equipped_title}
+                onTitleChange={(title) => setProfile((p) => (p ? { ...p, equipped_title: title } : p))}
               />
             )}
           </div>
@@ -717,7 +719,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
       {profile && <span className="gold-display">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
       {profile && (
         <span className={`app-nickname ${dragonBuffActive ? 'app-nickname--dragon' : ''}`}>
-          {dragonBuffActive && '🐉 '}{profile.nickname}
+          {dragonBuffActive && '🐉 '}{profile.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}{profile.nickname}
         </span>
       )}
       <button className="btn btn-ghost attendance-badge-btn" onClick={onOpenAttendance}>

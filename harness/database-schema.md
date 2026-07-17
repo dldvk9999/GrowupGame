@@ -204,6 +204,9 @@
 **049_daily_free_draw.sql**
 - 신규 테이블 `daily_free_draw_state` + `claim_daily_free_draw(p_type, p_slot)` RPC — 하루 1회 스킬/장비 뽑기 중 하나를 무료로. 기존 `draw_skill`/`draw_equipment`를 그대로 호출한 뒤 잔액을 호출 전 상태로 되돌리는 방식으로 구현(확률 로직 중복 없음). 자세한 내용은 [`skills.md`](./skills.md#일일-무료-뽑기-migration-049)
 
+**050_titles.sql**
+- `profiles.equipped_title` 신설 + `set_equipped_title(p_achievement_key)` RPC — 상위 업적 6종 달성 시 칭호 해금, 닉네임 옆에 장착 가능. `fetch_leaderboard()`도 칭호를 같이 반환하도록 재정의. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

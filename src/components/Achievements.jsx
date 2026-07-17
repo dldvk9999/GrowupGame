@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, fetchClaimedAchievements, claimAchievement } from '../lib/achievements';
+import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle } from '../lib/achievements';
 import { showToast } from '../lib/toast';
 
 /**
@@ -7,9 +7,10 @@ import { showToast } from '../lib/toast';
  * 그대로 내려받아서 별도 서버 호출 없이 프로그레스바를 계산한다.
  * 실제 수령 검증은 claim_achievement RPC가 서버에서 다시 하므로, 여기 계산은 표시용일 뿐.
  */
-export default function Achievements({ userId, stats, onGoldChange, gold }) {
+export default function Achievements({ userId, stats, onGoldChange, gold, equippedTitle, onTitleChange }) {
   const [claimedKeys, setClaimedKeys] = useState(null);
   const [claimingKey, setClaimingKey] = useState(null);
+  const [settingTitle, setSettingTitle] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -30,6 +31,20 @@ export default function Achievements({ userId, stats, onGoldChange, gold }) {
       showToast(err.message ?? '수령에 실패했어요.', 'error');
     } finally {
       setClaimingKey(null);
+    }
+  }
+
+  async function handleSetTitle(achievementKey, titleText) {
+    setSettingTitle(true);
+    try {
+      const isEquipping = equippedTitle !== titleText;
+      await setEquippedTitle(isEquipping ? achievementKey : null);
+      onTitleChange?.(isEquipping ? titleText : null);
+      showToast(isEquipping ? `칭호 "${titleText}"를 장착했어요.` : '칭호를 해제했어요.', 'success');
+    } catch (err) {
+      showToast(err.message ?? '칭호 설정에 실패했어요.', 'error');
+    } finally {
+      setSettingTitle(false);
     }
   }
 
@@ -75,7 +90,18 @@ export default function Achievements({ userId, stats, onGoldChange, gold }) {
                   <div className="achievement-actions">
                     <span className="achievement-reward">💰{a.reward.toLocaleString()}</span>
                     {claimed ? (
-                      <span className="achievement-done-badge">완료</span>
+                      <>
+                        <span className="achievement-done-badge">완료</span>
+                        {TITLE_BY_ACHIEVEMENT[a.key] && (
+                          <button
+                            className={`btn btn-ghost achievement-title-btn ${equippedTitle === TITLE_BY_ACHIEVEMENT[a.key] ? 'active' : ''}`}
+                            disabled={settingTitle}
+                            onClick={() => handleSetTitle(a.key, TITLE_BY_ACHIEVEMENT[a.key])}
+                          >
+                            {equippedTitle === TITLE_BY_ACHIEVEMENT[a.key] ? '칭호 해제' : `"${TITLE_BY_ACHIEVEMENT[a.key]}" 장착`}
+                          </button>
+                        )}
+                      </>
                     ) : (
                       <button
                         className={`btn btn-ghost ${!eligible ? 'btn-unaffordable' : 'btn-neutral'}`}
