@@ -26,4 +26,6 @@
 
 헤더의 "⚙️ 설정" 버튼으로 진입. 서브탭:
 - 우편함 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
+- 업적 — [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 - 쿠폰 입력 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
+- **패치노트**(`PatchNotes.jsx`, `lib/patchNotes.js`) — 최근 업데이트 내역을 보여주는 순수 정적 콘텐츠 화면. 서버 데이터가 아니라 클라이언트 코드에 하드코딩된 배열이라 마이그레이션 없이 새 항목을 배열 맨 앞에 추가하기만 하면 됨. "게임이 계속 활발히 업데이트되고 있다"는 인상을 줘서 재방문 동기를 높이는 목적
