@@ -60,19 +60,34 @@ export async function fetchOrInitMissionState() {
   return data;
 }
 
-/** 미션 진행도 증가 + 구독자(플로팅 버튼)에게 통지 - 실패해도 게임 진행엔 영향 없어서 에러를 조용히 삼킴 */
+const MISSION_BUMP_CHUNK = 1000; // increment_mission_progress의 1회 최대 반영치(서버 캡)와 동일하게 맞춤
+
+/**
+ * 미션 진행도 증가 + 구독자(플로팅 버튼)에게 통지 - 실패해도 게임 진행엔 영향 없어서 에러를 조용히 삼킴.
+ * 서버 RPC(increment_mission_progress)가 남용 방지를 위해 1회 호출당 최대 1000까지만 반영하므로,
+ * amount가 1000을 넘으면(예: 스킬/장비 100연차 뽑기로 골드 수만 소비) 여기서 1000 단위로 쪼개
+ * 여러 번 순차 호출해서 실제 소비량이 전부 반영되도록 함.
+ */
 export async function bumpMission(missionKey, amount) {
+  let remaining = amount;
+  let lastData = null;
   try {
-    const { data, error } = await supabase.rpc('increment_mission_progress', {
-      p_mission_key: missionKey,
-      p_amount: amount,
-    });
-    if (error) throw error;
-    notifyMissionUpdate(data);
-    return data;
+    while (remaining > 0) {
+      const chunk = Math.min(remaining, MISSION_BUMP_CHUNK);
+      const { data, error } = await supabase.rpc('increment_mission_progress', {
+        p_mission_key: missionKey,
+        p_amount: chunk,
+      });
+      if (error) throw error;
+      lastData = data;
+      remaining -= chunk;
+      if (!data || data.mission_key !== missionKey || data.progress >= data.target) break;
+    }
+    if (lastData) notifyMissionUpdate(lastData);
+    return lastData;
   } catch (err) {
     console.error('미션 진행도 갱신 실패', err);
-    return null;
+    return lastData;
   }
 }
 

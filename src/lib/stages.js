@@ -66,9 +66,15 @@ export function getStageEnemy(chapter, stage) {
   //  - chapterStep: 챕터(10스테이지) 단위로 계단식 상승 (챕터당 +5%, 10스테이지 넘어갈 때마다 체감)
   //  - midChapterStep: 같은 챕터 안에서도 5번째 스테이지부터 추가로 한 단계 더 강해짐 (5스테이지마다 체감)
   // 기본 스케일링/보스 배율 자체도 대폭 상향함 (전직을 거듭할수록 스테이지가 너무 쉬워지는 문제 대응)
+  //
+  // NORMAL_MONSTER_BOOST: 일반 몹(보스 아닌 스테이지)만 추가로 1.8배 상향.
+  // 실측 결과 보스 배율(hp×3.0/atk×2.6)에 비해 일반 몹이 상대적으로 너무 물렁해서
+  // (예: lv119·3차전직·신화4강 장비 기준 32-3 잡몹이 스킬 1방에 4타면 끝나고, 받는 피해는 체력의 2%도 안 됨)
+  // 보스는 그대로 두고 일반 몹만 별도로 올림.
+  const NORMAL_MONSTER_BOOST = 1.8;
   const chapterStep = 1 + (chapter - 1) * 0.05;
   const midChapterStep = stage >= 5 ? 1.15 : 1;
-  const stepMultiplier = chapterStep * midChapterStep;
+  const stepMultiplier = chapterStep * midChapterStep * (isBoss ? 1 : NORMAL_MONSTER_BOOST);
   const hp = Math.round((30 + index * 7.5 * (isBoss ? 3.0 : 1)) * stepMultiplier);
   const atk = Math.round((4 + index * 0.85 * (isBoss ? 2.6 : 1)) * stepMultiplier);
   const def = Math.round((3 + index * 0.4 * (isBoss ? 2.2 : 1)) * stepMultiplier);

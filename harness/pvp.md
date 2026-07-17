@@ -32,7 +32,7 @@
 
 - 승리 시 `reward = max(20, 20 + 상대전투력/65)`을 획득(`profiles.pvp_currency`, migration 025에서 기존 `max(30, 30+상대전투력/50)`보다 약 30% 하향), 패배 시 없음
 - 전적은 `profiles.pvp_wins`/`pvp_losses`에 누적, `pvp_battle_log`에 매 전투 기록 남음
-- ⚠️ **보안**: 미션 클레임과 동일하게 `profiles.last_pvp_battle_at` 기준 **최소 20초 쿨다운**을 서버에 걸어둠(무한 반복 파밍 방지, 자세한 내용은 [`security.md`](./security.md))
+- ⚠️ **보안**: 미션 클레임과 동일하게 `profiles.last_pvp_battle_at` 기준 **최소 2초 쿨다운**을 서버에 걸어둠(원래 20초였으나 038 패치에서 단축, 무한 반복 파밍 방지 목적은 유지, 자세한 내용은 [`security.md`](./security.md))
 
 ### 버그 수정 이력
 

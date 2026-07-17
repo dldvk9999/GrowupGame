@@ -166,6 +166,15 @@
 - `claim_mail`에 `for update` 락 추가(레이스컨디션으로 골드 이중지급 방지) + 이미 보유한 아이템이 든 우편을 받으면 통째로 실패하던 버그를 `ON CONFLICT DO UPDATE`(강화 병합)로 수정
 - `redeem_coupon`의 `max_uses` 체크를 원자적 UPDATE로 재작성(동시요청 시 소량 초과 가능하던 레이스컨디션 수정)
 
+**038_pvp_cooldown_shorten.sql**
+- `start_pvp_battle`의 재대전 쿨다운 20초 → **2초**로 단축(다른 RPC들의 최소 간격 게이트와 동일 수준, 사실상 즉시 재대전 가능). 완전 제거는 예전 무한 파밍 취약점을 다시 여는 것이라 최소한의 게이트만 남김
+
+**039_skill_level_cap_1000.sql**
+- `user_skills.skill_level` 체크 제약 1~100 → **1~1000**으로 상향, `draw_skill`/`draw_skill_batch`의 중복 뽑기 시 레벨 상한도 동일하게 조정. 성장 수식(`getEffectiveSkillValue`)은 그대로 유지 — 레벨1000 최대 성장폭이 ×1.297→×3.297까지 커지는 것은 의도된 변경
+
+**040_normal_monster_boost.sql**
+- 일반(비보스) 스테이지 몬스터 hp/atk/def **1.8배** 추가 상향, `calc_stage_gold`도 동기화(보스는 변경 없음) — 실측 결과 후반 챕터로 갈수록 전직/장비 강화 대비 일반 몹만 상대적으로 너무 쉬워지는 문제 대응
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
