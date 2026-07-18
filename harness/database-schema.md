@@ -228,6 +228,9 @@
 **057_equipment_set_bonus.sql**
 - `calc_equipped_stat_bonus` 재정의 — 4슬롯을 전부 같은 등급으로 장착하면 최종 스탯 +5% 세트 효과 추가. 클라이언트(`lib/inventory.js`)와 서버 양쪽에 동일 로직 포팅해서 PvP/랭킹에도 정확히 반영됨. 반환타입 그대로라 DROP 불필요. 자세한 내용은 [`equipment.md`](./equipment.md)
 
+**058_monster_nickname.sql**
+- `set_monster_nickname(p_nickname)` RPC 신설 — 001부터 있었지만 미사용이던 `owned_monsters.nickname` 컬럼을 마이페이지 애칭 기능으로 연결. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

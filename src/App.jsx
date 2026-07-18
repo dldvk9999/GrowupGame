@@ -732,6 +732,7 @@ export default function App() {
                 equipmentBonus={equipmentOnlyBonus}
                 skillPossessionAtk={skillPossessionAtk}
                 dragonBuffActive={dragonBuffActive}
+                onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}
             {activeTab === 'settings' && (

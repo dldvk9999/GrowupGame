@@ -26,7 +26,9 @@ export function hydrateMonster(row) {
     ownedMonsterId: row.id,
     speciesId,
     speciesDbId: species.dbId,
-    name: species.name,
+    name: row.nickname || species.name, // 애칭을 지어줬으면 애칭 우선, 없으면 종족 기본 이름
+    speciesName: species.name,
+    nickname: row.nickname ?? null,
     element: species.element,
     jobTitle: jobTier?.title ?? null,
     unlockedJobTier,
@@ -73,3 +75,8 @@ export async function getActiveMonster(userId) {
   return hydrateMonster(active);
 }
 
+/** 활성 몬스터에게 애칭 짓기(1~12자) / null이면 애칭 해제하고 종족 기본 이름으로 되돌림 */
+export async function setMonsterNickname(nickname) {
+  const { error } = await supabase.rpc('set_monster_nickname', { p_nickname: nickname || null });
+  if (error) throw new Error(error.message);
+}

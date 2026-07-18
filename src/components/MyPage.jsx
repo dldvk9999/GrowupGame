@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { updateNickname, checkNicknameAvailable } from '../lib/auth';
+import { setMonsterNickname } from '../lib/monsters';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, onMonsterNicknameChange }) {
   const dragonBuffRemaining = dragonBuffActive && profile?.dragon_buff_until
     ? formatRemainingTime(new Date(profile.dragon_buff_until) - new Date())
     : null;
@@ -10,6 +11,24 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const [checkState, setCheckState] = useState(null); // 'checking' | 'ok' | 'taken' | null
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [editingPetName, setEditingPetName] = useState(false);
+  const [petNameInput, setPetNameInput] = useState('');
+  const [petNameSaving, setPetNameSaving] = useState(false);
+  const [petNameError, setPetNameError] = useState('');
+
+  async function handleSavePetName() {
+    setPetNameError('');
+    setPetNameSaving(true);
+    try {
+      await setMonsterNickname(petNameInput.trim());
+      onMonsterNicknameChange?.(petNameInput.trim() || null);
+      setEditingPetName(false);
+    } catch (err) {
+      setPetNameError(err.message ?? '애칭 설정에 실패했어요.');
+    } finally {
+      setPetNameSaving(false);
+    }
+  }
   const [success, setSuccess] = useState('');
 
   const alreadyEdited = profile?.nickname_edited;
@@ -66,6 +85,36 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             <strong>{activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}</strong>
           </div>
         )}
+        {activeMonster && (
+          <div className="mypage-row mypage-row--petname">
+            <span>애칭</span>
+            {editingPetName ? (
+              <span className="petname-edit-row">
+                <input
+                  value={petNameInput}
+                  onChange={(e) => setPetNameInput(e.target.value)}
+                  maxLength={12}
+                  placeholder={activeMonster.speciesName}
+                />
+                <button className="btn btn-neutral" disabled={petNameSaving} onClick={handleSavePetName}>
+                  {petNameSaving ? '저장 중...' : '저장'}
+                </button>
+                <button className="btn btn-ghost" onClick={() => setEditingPetName(false)}>취소</button>
+              </span>
+            ) : (
+              <span className="petname-edit-row">
+                <strong>{activeMonster.nickname ?? `(없음 · ${activeMonster.speciesName})`}</strong>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => { setPetNameInput(activeMonster.nickname ?? ''); setEditingPetName(true); setPetNameError(''); }}
+                >
+                  {activeMonster.nickname ? '수정' : '애칭 짓기'}
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+        {petNameError && <p className="auth-error">{petNameError}</p>}
         <div className="mypage-row"><span>클리어한 스테이지</span><strong>{clearedCount} / {totalStages}</strong></div>
       </div>
 
