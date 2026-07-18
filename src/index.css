@@ -182,6 +182,11 @@ button {
   background: #ff3b3b;
   border: 1.5px solid var(--bg-panel);
   pointer-events: none;
+  animation: badge-pulse 1.8s ease-in-out infinite;
+}
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.5); }
+  50% { box-shadow: 0 0 0 4px rgba(255, 59, 59, 0); }
 }
 
 .app-error {
@@ -1642,9 +1647,10 @@ button {
   justify-content: center;
   z-index: 500;
   padding: 16px;
+  animation: modal-fade-in 0.2s var(--ease-soft);
 }
 .modal-panel {
-  background: var(--bg-panel);
+  background: linear-gradient(165deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -1652,7 +1658,11 @@ button {
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
+  box-shadow: var(--shadow-lift);
+  animation: modal-pop-in 0.25s var(--ease-soft);
 }
+@keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modal-pop-in { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .modal-header {
   display: flex;
   align-items: center;
