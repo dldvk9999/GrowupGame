@@ -137,3 +137,12 @@ PvP 코스튬 5종 이상 보유하면 달성. `pvp_costume_inventory` 개수를
 ### 칭호 미리보기 (목표 의식 강화)
 
 칭호를 주는 업적인데 아직 안 딴 경우, 설명 아래에 "🎖️ 칭호 "OO" 획득 가능"을 미리 보여줌(이전엔 완료한 업적에만 칭호 정보가 표시돼서, 아직 못 딴 유저는 그 업적이 칭호를 주는지조차 몰랐음). `TITLE_BY_ACHIEVEMENT` 매핑을 그대로 재사용, 추가 조회 없음.
+
+## 업적 달성 개수 랭킹 (migration 066, 신규 콘텐츠)
+
+업적 화면에 "🏅 업적 랭킹 보기" 토글을 추가해서, 업적을 가장 많이 달성한 유저 TOP20을 볼 수 있음. 전투력 랭킹(048/051)과는 완전히 별개의 경쟁 축 — 課금/그라인딩보다 "꾸준함과 다양한 콘텐츠 완주"를 반영하는 지표라 전투력이 낮아도 상위권에 들 수 있음.
+
+- `achievement_claims`가 "본인만 조회" RLS라 클라이언트가 직접 집계 불가능해서, `fetch_leaderboard`와 동일한 패턴으로 security definer RPC(`fetch_achievement_leaderboard`)가 전체 유저를 집계함
+- `achievement_claims`의 `primary key (user_id, achievement_key)`가 중복 카운트를 원천 차단하므로 집계가 항상 정확함
+- 20위 밖이면 `fetch_my_achievement_rank()`로 내 순위만 별도 표시(랭킹/월드보스와 동일한 아이디어)
+- UI는 월드보스 기여자 목록과 동일한 `.worldboss-contributor-row` 클래스를 재사용(닉네임 `ellipsis` 처리가 이미 되어있어 안전) — 재사용 전에 긴 닉네임+칭호 조합으로 모바일 넘침 여부를 Playwright로 재검증함(방금 발견한 인벤토리 버그를 계기로 습관화)

@@ -81,3 +81,17 @@ export async function claimAchievement(achievementKey) {
   if (error) throw new Error(error.message);
   return data; // reward gold amount
 }
+
+/** 업적 달성 개수 랭킹 TOP20 */
+export async function fetchAchievementLeaderboard() {
+  const { data, error } = await supabase.rpc('fetch_achievement_leaderboard');
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** 내 업적 랭킹 순위 (업적 하나도 없으면 null) */
+export async function fetchMyAchievementRank() {
+  const { data, error } = await supabase.rpc('fetch_my_achievement_rank');
+  if (error) throw error;
+  return data;
+}
