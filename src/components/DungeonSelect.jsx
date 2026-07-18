@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
-import { fetchWorldBossTopContributors } from '../lib/worldBoss';
+import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 
@@ -180,6 +180,7 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
 
 function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
   const [topContributors, setTopContributors] = useState(null);
+  const [myRank, setMyRank] = useState(null);
   const resetIn = useCountdownToDaily8AM();
   const weeklyResetIn = useCountdownToWeeklyReset();
 
@@ -187,6 +188,11 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
     if (!boss?.weekKey) return;
     fetchWorldBossTopContributors(boss.weekKey).then(setTopContributors).catch(() => setTopContributors([]));
   }, [boss?.weekKey]);
+
+  useEffect(() => {
+    if (!boss?.weekKey || !progress?.myWeekDamage) { setMyRank(null); return; }
+    fetchMyWorldBossRank(boss.weekKey, progress.myWeekDamage).then(setMyRank).catch(() => setMyRank(null));
+  }, [boss?.weekKey, progress?.myWeekDamage]);
 
   if (!boss) return <p className="app-loading">월드보스를 불러오는 중...</p>;
 
@@ -209,7 +215,10 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
           <div className="bar-fill worldboss-hp-fill" style={{ width: `${pct}%` }} />
         </div>
         <div className="worldboss-hp-numbers">{boss.currentHp.toLocaleString()} / {boss.maxHp.toLocaleString()}</div>
-        <div className="worldboss-my-damage">이번 주 내가 입힌 피해: {(progress?.myWeekDamage ?? 0).toLocaleString()}</div>
+        <div className="worldboss-my-damage">
+          이번 주 내가 입힌 피해: {(progress?.myWeekDamage ?? 0).toLocaleString()}
+          {myRank != null && <span className="worldboss-my-rank"> · 현재 {myRank}위</span>}
+        </div>
       </div>
 
       <button

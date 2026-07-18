@@ -64,6 +64,22 @@ export async function hasEverParticipatedInWorldBoss(userId) {
   if (error) throw error;
   return (data ?? []).length > 0;
 }
+
+/**
+ * 이번 주 월드보스 기여도 내 순위 (1위부터). 참가 안 했으면 null.
+ * world_boss_contributions가 "누구나 조회 가능" RLS라 count 쿼리만으로 순위를 셀 수 있음
+ * (나보다 데미지 높은 행 개수 + 1 = 내 순위, 랭킹 화면의 fetch_my_rank와 동일한 아이디어).
+ */
+export async function fetchMyWorldBossRank(weekKey, myDamage) {
+  if (!weekKey || !myDamage) return null;
+  const { count, error } = await supabase
+    .from('world_boss_contributions')
+    .select('user_id', { count: 'exact', head: true })
+    .eq('week_key', weekKey)
+    .gt('total_damage', myDamage);
+  if (error) throw error;
+  return (count ?? 0) + 1;
+}
 export async function enterWorldBoss() {
   const { data, error } = await supabase.rpc('enter_world_boss');
   if (error) throw new Error(error.message);

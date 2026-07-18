@@ -94,3 +94,10 @@
 우편함/PvP상점과 동일하게 **cron 없이 지연 생성**됨 — `sync_world_boss()`가 월드보스 화면 진입 시 호출되어, "이번 주(일요일 기준) 보스가 아직 없으면 그때 생성 + 지난 주 정산"을 처리함. 아무도 접속하지 않는 주가 있으면 그 사이 정산이 미뤄질 수 있음(다음 접속자가 트리거).
 
 주차 키(`week_key`)는 일요일 날짜(YYYY-MM-DD) 문자열이고, `date_trunc('week', ...)`가 기본적으로 월요일 기준이라 `+1일 후 truncate, -1일`로 일요일 기준으로 보정해서 계산함.
+
+## 내 순위 표시 (`fetchMyWorldBossRank`)
+
+이번 주 기여자 TOP10 위젯과 별개로, 화면 하단 "이번 주 내가 입힌 피해" 문구 옆에 "현재 N위"를 붙여줌.
+
+- `world_boss_contributions`가 "누구나 조회 가능" RLS라, **"나보다 데미지 높은 행 개수 + 1"을 count 쿼리 하나로** 계산함(랭킹 화면의 `fetch_my_rank`와 동일한 아이디어, 이건 RPC 없이 클라이언트에서 직접 `.select(..., {count:'exact', head:true}).gt('total_damage', myDamage)`로 처리)
+- 아직 이번 주 참여 안 했으면(`myWeekDamage`가 0/없음) 순위 표시 자체를 생략함
