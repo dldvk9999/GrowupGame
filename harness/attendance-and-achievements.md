@@ -146,3 +146,12 @@ PvP 코스튬 5종 이상 보유하면 달성. `pvp_costume_inventory` 개수를
 - `achievement_claims`의 `primary key (user_id, achievement_key)`가 중복 카운트를 원천 차단하므로 집계가 항상 정확함
 - 20위 밖이면 `fetch_my_achievement_rank()`로 내 순위만 별도 표시(랭킹/월드보스와 동일한 아이디어)
 - UI는 월드보스 기여자 목록과 동일한 `.worldboss-contributor-row` 클래스를 재사용(닉네임 `ellipsis` 처리가 이미 되어있어 안전) — 재사용 전에 긴 닉네임+칭호 조합으로 모바일 넘침 여부를 Playwright로 재검증함(방금 발견한 인벤토리 버그를 계기로 습관화)
+
+## 얼리버드(founder) 업적/칭호 (migration 070, 신규 콘텐츠)
+
+2026-08-01 이전에 가입한 유저 전용 특별 업적. `profiles.created_at`이 기준일 이전이면 자동으로 달성 자격이 생김(별도 서버 상태 추가 없이 이미 있는 가입일 컬럼만 확인). 칭호("얼리버드")도 함께 부여됨.
+
+- `claim_achievement`/`set_equipped_title` 둘 다 CASE 분기만 추가하는 재정의, 반환타입(integer/void) 그대로라 DROP FUNCTION 불필요
+- 배포 시점(2026-07-18)이 기준일(2026-08-01)보다 2주 앞서 있어서, 이 기간에 가입한 초기 유저들을 의미있게 커버하도록 설계함
+- 카테고리는 기존 8개(성장/전직/스테이지/뽑기/PvP/월드보스/장비/출석)와 별개로 `special`(🌟 특별) 신설
+- 클라이언트/서버 27개 업적 키 diff로 완전 일치 재검증 완료

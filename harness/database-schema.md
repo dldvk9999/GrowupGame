@@ -264,6 +264,9 @@
 **069_attendance_milestones.sql** — 신규 콘텐츠
 - `claim_achievement`에 업적 2종 추가: 출석 100회/200회 마일스톤. `claim_attendance`는 안 건드리고 이미 검증된 `claim_achievement` 패턴만 재사용. diff로 기존 26개 CASE 보존 확인
 
+**070_founder_title.sql** — 신규 콘텐츠
+- `claim_achievement`/`set_equipped_title`에 "얼리버드"(founder) 업적+칭호 추가 — 2026-08-01 이전 가입자 전용. 둘 다 반환타입 그대로라 DROP 불필요, 27개 업적키 diff 재검증 완료
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

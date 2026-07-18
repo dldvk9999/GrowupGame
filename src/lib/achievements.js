@@ -12,6 +12,7 @@ export const TITLE_BY_ACHIEVEMENT = {
   pvp_win_50: '투기장의 지배자',
   attendance_month: '성실한 조련사',
   full_set_equipped: '완벽주의자',
+  founder: '얼리버드',
 };
 
 /** 칭호 장착/해제 (p_achievement_key가 null이면 해제) */
@@ -61,10 +62,12 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
   { key: 'attendance_100', category: 'attendance', icon: '💯', title: '백일기도', desc: '누적 출석 100회', reward: 30000, target: 100, stat: 'attendanceTotal' },
   { key: 'attendance_200', category: 'attendance', icon: '🏵️', title: '영원한 동반자', desc: '누적 출석 200회', reward: 60000, target: 200, stat: 'attendanceTotal' },
+
+  { key: 'founder', category: 'special', icon: '🌟', title: '얼리버드', desc: '2026년 8월 1일 이전 가입', reward: 5000, target: 1, stat: 'isFounder' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {
-  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', worldboss: '🐉 월드보스', gear: '🎽 장비', attendance: '📅 출석',
+  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', worldboss: '🐉 월드보스', gear: '🎽 장비', attendance: '📅 출석', special: '🌟 특별',
 };
 
 /** 내가 이미 수령한 업적 키 목록 */
