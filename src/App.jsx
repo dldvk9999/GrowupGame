@@ -94,6 +94,7 @@ export default function App() {
   const [loginAt, setLoginAt] = useState(null); // 로비 채팅을 "이 시점 이후"로만 보여주기 위한 기준시각
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
+  const [hasClaimedMissionToday, setHasClaimedMissionToday] = useState(false);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
@@ -170,6 +171,7 @@ export default function App() {
       setAttendanceState(null);
       setFreeDrawUsedToday(null);
       setCostumeCount(0);
+      setHasClaimedMissionToday(false);
       setLoginAt(null);
       return;
     }
@@ -208,6 +210,7 @@ export default function App() {
       setEverParticipatedWorldBoss(everParticipated);
       setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
       setCostumeCount(costumes.size);
+      setHasClaimedMissionToday(false);
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -452,6 +455,7 @@ export default function App() {
       const nextMission = await claimMissionReward();
       setMission(nextMission);
       setProfile((p) => ({ ...p, gold: p.gold + reward }));
+      setHasClaimedMissionToday(true);
       showToast(`미션 완료! 💰 ${reward.toLocaleString()} 획득`, 'success');
     } catch (err) {
       showToast(err.message ?? '보상 수령에 실패했어요.', 'error');
@@ -600,7 +604,7 @@ export default function App() {
             <DailyChecklist
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
               freeDrawUsed={freeDrawUsedToday}
-              missionCompleted={missionCompleted}
+              missionCompleted={missionCompleted || hasClaimedMissionToday}
               worldBossAttempted={(worldBossProgress?.attemptsUsed ?? 0) > 0}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onOpenShop={() => setActiveTab('shop')}

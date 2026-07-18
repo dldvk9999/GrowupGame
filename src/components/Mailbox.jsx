@@ -165,7 +165,7 @@ function MailRow({ mail, onClaim, claiming, onDelete, deleting }) {
           </button>
         </div>
       ) : (
-        <button className="btn btn-challenge" disabled={claiming} onClick={() => onClaim(mail)}>
+        <button className="btn btn-challenge mail-claim-btn" disabled={claiming} onClick={() => onClaim(mail)}>
           {claiming ? '수령 중...' : '수령'}
         </button>
       )}

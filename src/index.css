@@ -1550,6 +1550,8 @@ button {
   border-radius: var(--radius-md);
   padding: 14px 16px;
 }
+.mail-row-main { flex: 1; min-width: 0; }
+.mail-claim-btn { width: auto; max-width: none; flex-shrink: 0; }
 .mail-row.claimed { opacity: 0.55; }
 .mail-row-main strong { font-size: 14px; }
 .mail-row-body { font-size: 12px; color: var(--text-muted); margin: 4px 0; }
