@@ -9,6 +9,7 @@ import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
 import { getTodaysQuoteIfNotShown } from './lib/dailyQuote';
+import { playGoldenMonsterSound, playNewRecordSound, startBgm } from './lib/audio';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -111,6 +112,17 @@ export default function App() {
   // 저장된 테마 컬러를 앱 시작 시 1회 적용(로그인 여부와 무관, 로그인 화면부터 바로 반영)
   useEffect(() => {
     applyTheme(getSavedTheme());
+  }, []);
+
+  // BGM은 브라우저 자동재생 정책상 반드시 사용자 상호작용(클릭 등) 안에서 시작해야 함 -
+  // 화면 어디든 처음 한 번 클릭하면(설정이 켜져있는 경우) 시작하고 리스너는 스스로 해제됨
+  useEffect(() => {
+    function handleFirstInteraction() {
+      startBgm();
+      document.removeEventListener('click', handleFirstInteraction);
+    }
+    document.addEventListener('click', handleFirstInteraction);
+    return () => document.removeEventListener('click', handleFirstInteraction);
   }, []);
 
   useEffect(() => {
@@ -349,6 +361,7 @@ export default function App() {
       setProfile((p) => ({ ...p, gold: p.gold + idleReward.gold }));
       bumpMission('kill_monsters', 1);
       if (idleReward.isGolden) {
+        playGoldenMonsterSound();
         showToast(`🌟 황금 몬스터 발견! 골드 3배 획득 (+${idleReward.gold.toLocaleString()})`, 'success');
       }
     } catch (err) {
@@ -422,9 +435,11 @@ export default function App() {
       setTowerHighestFloor(reward.newHighestFloor);
       bumpMission('kill_monsters', 1);
       if (reward.isNewRecord && reward.newHighestFloor % 10 === 0) {
+        playNewRecordSound();
         setHasUnreadMail(true);
         showToast(`🗼 ${reward.newHighestFloor}층 돌파! 축하 보너스가 우편함에 도착했어요.`, 'success');
       } else if (reward.isNewRecord) {
+        playNewRecordSound();
         showToast(`🗼 신기록! ${reward.newHighestFloor}층 달성!`, 'success');
       }
     } catch (err) {

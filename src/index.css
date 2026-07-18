@@ -1203,6 +1203,11 @@ button {
 }
 .theme-swatch:hover { transform: scale(1.08); }
 .theme-swatch.active { border-color: #fff; transform: scale(1.05); }
+.sound-settings-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.sound-toggle-btn { opacity: 0.6; }
+.sound-toggle-btn.active { opacity: 1; border-color: var(--accent-gold); }
+.sound-volume-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.sound-volume-slider { flex: 1; accent-color: var(--accent-gold); }
 
 /* ---------- 에러 바운더리 ---------- */
 .error-boundary-screen {

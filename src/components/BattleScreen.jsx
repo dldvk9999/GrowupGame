@@ -9,6 +9,7 @@ import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
 import { maybePickIdleFlavor } from '../lib/idleFlavor';
+import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
@@ -206,6 +207,10 @@ export default function BattleScreen({
       setPlayer(grownEffective);
       const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
       setLog(`${enemy.name} 처치! 경험치 +${enemy.expReward}, 골드 +${enemy.goldReward}${growthLog}`);
+      playVictorySound();
+      if (grownBase.events.some((e) => e.includes('레벨'))) {
+        setTimeout(() => playLevelUpSound(), 300);
+      }
       onClear?.(grownBase, enemy.goldReward);
     } else if (player.hp <= 0) {
       setResult('lose');
@@ -238,6 +243,7 @@ export default function BattleScreen({
     if (skill.type === 'damage') {
       const dmg = mitigateDamage(effAtk * skill.multiplier, enemy.def);
       setLog(`${player.name}의 ${skill.name}!`);
+      playAttackSound();
       damageEnemy(dmg);
       if (jobTier > 0) {
         // 전직(각성) 스킬일수록 이펙트가 더 크고 화려해짐
@@ -253,6 +259,7 @@ export default function BattleScreen({
       const healAmount = Math.round(player.maxHp * skill.multiplier);
       setPlayer((prev) => ({ ...prev, hp: Math.min(prev.hp + healAmount, prev.maxHp) }));
       setLog(`${player.name}의 ${skill.name}! 체력 +${healAmount}`);
+      playHealSound();
       spawnParticles(0.2, 0.7, '#8fffb0');
       setShowHealFx(true);
       setTimeout(() => setShowHealFx(false), 1300);
@@ -272,14 +279,17 @@ export default function BattleScreen({
     } else if (skill.type === 'buff_atk') {
       setPlayerBuffs((prev) => ({ ...prev, atkUntil: now + skill.duration, atkMult: 1 + skill.multiplier }));
       setLog(`${player.name}의 ${skill.name}! 공격력이 상승했다!`);
+      playBuffSound();
       spawnParticles(0.2, 0.7, '#ff8a4a');
     } else if (skill.type === 'buff_def') {
       setPlayerBuffs((prev) => ({ ...prev, defUntil: now + skill.duration, defMult: 1 + skill.multiplier }));
       setLog(`${player.name}의 ${skill.name}! 방어력이 상승했다!`);
+      playBuffSound();
       spawnParticles(0.2, 0.7, '#4aa8ff');
     } else if (skill.type === 'haste') {
       setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: skill.multiplier }));
       setLog(`${player.name}의 ${skill.name}! 재사용 대기시간이 감소한다!`);
+      playBuffSound();
       spawnParticles(0.2, 0.7, '#c9ff4a');
     }
 

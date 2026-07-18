@@ -3,6 +3,9 @@ import { SLOTS, RARITIES, getItem, getEnhancedStatBonus } from '../lib/itemCatal
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
+import { playGachaRevealSound } from '../lib/audio';
+
+const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
 export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, onInventoryChange, inventory }) {
   const [drawing, setDrawing] = useState(false);
@@ -37,6 +40,11 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
       onGoldChange(gold - totalSpent);
       onInventoryChange();
       bumpMission('spend_gold', totalSpent);
+      const bestRarity = results
+        .map((r) => getItem(r.item_key)?.rarity)
+        .filter(Boolean)
+        .sort((a, b) => RARITY_ORDER.indexOf(b) - RARITY_ORDER.indexOf(a))[0];
+      if (bestRarity) playGachaRevealSound(bestRarity);
       if (results.length < count) {
         setError(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`);
         showToast(`골드가 부족해서 ${results.length}회까지만 뽑았어요.`, 'error');
