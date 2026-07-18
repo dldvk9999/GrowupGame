@@ -252,6 +252,12 @@
 **065_referral_system.sql** — 신규 콘텐츠
 - `profiles.referred_by` 신설 + `set_referrer(p_referrer_nickname)` RPC — 가입 24시간 이내 1회 추천인 등록. `claim_achievement` 재정의(반환타입 그대로)로 레벨10 달성 시 추천인 보너스 지급 로직 추가. 자세한 내용은 [`referral-system.md`](./referral-system.md)
 
+**066_achievement_leaderboard.sql** — 신규 콘텐츠
+- `fetch_achievement_leaderboard`/`fetch_my_achievement_rank` 신설 — 업적 달성 개수 기준 별도 랭킹(전투력 무관). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**067_design_refresh_coupon.sql**
+- `REFRESH2026` 쿠폰 시딩(골드10000+에픽방어구, 무제한 사용, 2027-03-31 만료) — 디자인 리프레시/친구추천/업적랭킹 등 신규 콘텐츠 기념
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
