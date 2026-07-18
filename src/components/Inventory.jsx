@@ -3,6 +3,7 @@ import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionB
 import { equipItem, unequipItem, isFullSetEquipped } from '../lib/inventory';
 import { synthesizeEquipment, synthesizeEquipmentBatch } from '../lib/equipmentGacha';
 import { fetchMyCostumes, setCostumeLoadout } from '../lib/pvp';
+import { playBuffSound } from '../lib/audio';
 import { showToast } from '../lib/toast';
 
 const SLOT_ORDER = Object.keys(SLOTS);
@@ -42,6 +43,7 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
     try {
       const result = await synthesizeEquipment(row.item_key);
       const targetItem = getItem(result.target_item_key);
+      playBuffSound();
       showToast(`합성 성공! ${targetItem?.name ?? '상위 등급'} +${result.target_new_level}`, 'success');
       onInventoryChange();
     } catch (err) {

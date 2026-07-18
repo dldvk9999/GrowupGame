@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { syncDailyMails, fetchMails, claimMail, deleteMail } from '../lib/mail';
 import { getItem } from '../lib/itemCatalog';
 import { showToast } from '../lib/toast';
+import { playGoldSound } from '../lib/audio';
 
 export default function Mailbox({ userId, onGoldChange, gold, onUnreadChange }) {
   const [mails, setMails] = useState([]);
@@ -33,6 +34,7 @@ export default function Mailbox({ userId, onGoldChange, gold, onUnreadChange }) 
     try {
       await claimMail(mail.id);
       if (mail.gold_amount > 0) onGoldChange(gold + mail.gold_amount);
+      playGoldSound();
       setMails((prev) => {
         const next = prev.map((m) => (m.id === mail.id ? { ...m, claimed: true } : m));
         onUnreadChange?.(next.some((m) => !m.claimed));
@@ -64,7 +66,7 @@ export default function Mailbox({ userId, onGoldChange, gold, onUnreadChange }) 
       }
     }
     setClaimingAll(false);
-    if (gained > 0) showToast(`우편 일괄수령! 💰 ${gained.toLocaleString()} 획득`, 'success');
+    if (gained > 0) { playGoldSound(); showToast(`우편 일괄수령! 💰 ${gained.toLocaleString()} 획득`, 'success'); }
     if (failed > 0) showToast(`${failed}개 우편은 수령에 실패했어요.`, 'error');
     onUnreadChange?.(stillUnread);
   }, [mails, claimingAll, gold, onGoldChange, onUnreadChange]);

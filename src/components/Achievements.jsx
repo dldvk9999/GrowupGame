@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { showToast } from '../lib/toast';
+import { playLevelUpSound, playGoldSound } from '../lib/audio';
 
 /**
  * 업적 목록 화면. stats(현재 진행도 스냅샷)는 App.jsx가 이미 들고 있는 값들을
@@ -35,6 +36,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
       const reward = await claimAchievement(achievement.key);
       onGoldChange(gold + reward);
       setClaimedKeys((prev) => new Set(prev).add(achievement.key));
+      playLevelUpSound();
       showToast(`업적 달성! "${achievement.title}" 💰 ${reward.toLocaleString()} 획득!`, 'success');
     } catch (err) {
       setError(err.message ?? '수령에 실패했어요.');
