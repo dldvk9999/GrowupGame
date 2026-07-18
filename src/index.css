@@ -1684,6 +1684,7 @@ button {
 .achievement-icon { font-size: 22px; flex-shrink: 0; }
 .achievement-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 140px; }
 .achievement-desc { font-size: 12px; color: var(--text-secondary); }
+.achievement-title-preview { font-size: 11px; color: var(--accent-gold); font-style: italic; }
 .achievement-progress-track {
   position: relative;
   height: 14px;

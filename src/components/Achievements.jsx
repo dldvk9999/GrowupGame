@@ -86,6 +86,9 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
                   <div className="achievement-info">
                     <strong>{a.title}</strong>
                     <span className="achievement-desc">{a.desc}</span>
+                    {!claimed && TITLE_BY_ACHIEVEMENT[a.key] && (
+                      <span className="achievement-title-preview">🎖️ 칭호 "{TITLE_BY_ACHIEVEMENT[a.key]}" 획득 가능</span>
+                    )}
                     {!claimed && (
                       <div className="achievement-progress-track">
                         <div className="achievement-progress-fill" style={{ width: `${progressPct}%` }} />
