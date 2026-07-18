@@ -8,6 +8,7 @@ import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib
 import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
+import { getTodaysQuoteIfNotShown } from './lib/dailyQuote';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -221,6 +222,11 @@ export default function App() {
       setTowerHighestFloor(towerFloor);
       setHasClaimedMissionToday(false);
       setLoginAt(new Date().toISOString());
+
+      const dailyQuote = getTodaysQuoteIfNotShown();
+      if (dailyQuote) {
+        showToast(`💭 ${dailyQuote}`, 'info');
+      }
 
       if (!monster) {
         setStage(STAGE.STORY);
