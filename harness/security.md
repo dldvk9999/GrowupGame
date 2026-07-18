@@ -167,6 +167,17 @@
 - mails.source_key(chapter_clear_챕터번호) 유니크 제약이 재도전으로 인한 중복 지급을 이중으로 방지(1차: v_first_clear 판정, 2차: on conflict do nothing)
 - 반환타입(integer) 변경 없어 DROP FUNCTION 불필요, 자체 스캐너로도 재확인
 
+### 13차 점검 — 064 던전완주보너스 (claim_dungeon_reward, 핵심 함수 재수정)
+
+`claim_dungeon_reward`도 037에서 세션검증 취약점을 고쳤던 이력이 있는 함수라 diff로 재검증:
+
+- 037의 핵심 수정사항(세션 존재+본인소유+미사용 검증, `claimed` 즉시 마킹, "생성 후 2초 최소경과" 게이트, `add_gold`, 반환값)이 그대로 유지됨을 라인단위 diff로 확인
+- 추가된 로직은 진행도 갱신 직전 기존 `cleared_stage` 조회로 "처음 10층 완주인지" 판정 + 완주 시에만 우편 발송하는 블록뿐
+- `mails.source_key`(`dungeon_full_clear_exp`/`dungeon_full_clear_gold`)로 중복 지급 방지
+- 반환타입(integer) 변경 없어 DROP FUNCTION 불필요
+
+**063/064 종합 결론**: 최근 3연속(062/063/064)으로 이미 한 번 취약점이 있었던 핵심 함수들(`grant_idle_reward`/`clear_stage`/`claim_dungeon_reward`)을 재정의했는데, 매번 이전 보안수정 버전과 diff를 떠서 그 수정사항이 실수로 되돌려지지 않았는지 확인하는 절차를 지켰음 — 이런 함수를 다시 건드릴 때는 앞으로도 이 diff 확인 절차를 필수로 거칠 것.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(그리고 이 프로젝트에서 가장 큰) 구조적 한계임.
