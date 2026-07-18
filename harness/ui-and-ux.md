@@ -77,3 +77,7 @@
 ## 헤더가 sticky임 (자주 잊어버리는 부분)
 
 `.app-header`는 `position: sticky; top: 0; z-index: 10;`로 이미 고정돼 있음. 다른 화면에서 "헤더 아래 몇 px" 같은 sticky 오프셋을 계산할 때는 이 헤더가 계속 보인다는 전제로 값을 잡아야 함(스킬 편성의 `loadout-sticky-bar`가 이 패턴의 예시, [`skills.md`](./skills.md) 참고).
+
+## 자동사냥 랜덤 대사 (신규 콘텐츠, `lib/idleFlavor.js`)
+
+자동사냥 처치 로그가 매번 "OO 처치! 경험치+골드" 정보만 뜨면 단조로울 수 있어서, 12% 확률로 그 자리에 순수 재미용 대사(`IDLE_FLAVOR_LINES`, 12종)가 대신 뜸. 게임 로직/보상엔 전혀 영향 없는 텍스트 콘텐츠라 마이그레이션 불필요, `lib/idleFlavor.js`의 배열에 새 대사를 자유롭게 추가/수정 가능. `BattleScreen.jsx`의 자동사냥 루프에서 `maybePickIdleFlavor()` 결과가 있으면 그걸 쓰고, 없으면(88% 확률) 기존처럼 정상 처치 정보를 보여줌.

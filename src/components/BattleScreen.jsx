@@ -8,6 +8,7 @@ import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
+import { maybePickIdleFlavor } from '../lib/idleFlavor';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
@@ -152,7 +153,8 @@ export default function BattleScreen({
       const { grownBase, grownEffective } = growPlayer(player, idleEnemy.expReward, equipmentBonus);
       setPlayer(grownEffective);
       const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
-      setIdleLog(`${idleEnemy.name} 처치! 경험치 +${idleEnemy.expReward}, 골드 +${idleEnemy.goldReward}${growthLog}`);
+      const idleFlavorLine = maybePickIdleFlavor();
+      setIdleLog(idleFlavorLine ?? `${idleEnemy.name} 처치! 경험치 +${idleEnemy.expReward}, 골드 +${idleEnemy.goldReward}${growthLog}`);
       onIdleGain?.(grownBase, idleEnemy.goldReward);
       setIdleEnemy(getIdleMonster(chapter, grownBase.level));
     }, IDLE_KILL_INTERVAL);
