@@ -11,6 +11,7 @@ export const TITLE_BY_ACHIEVEMENT = {
   gacha_5000: '행운의 화신',
   pvp_win_50: '투기장의 지배자',
   attendance_month: '성실한 조련사',
+  full_set_equipped: '완벽주의자',
 };
 
 /** 칭호 장착/해제 (p_achievement_key가 null이면 해제) */

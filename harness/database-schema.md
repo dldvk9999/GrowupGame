@@ -234,6 +234,9 @@
 **059_full_set_achievement.sql**
 - `claim_achievement`에 업적 1종 추가: "완벽한 세트"(`full_set_equipped`, 057 세트효과 판정 로직 재사용). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**060_full_set_title.sql**
+- `set_equipped_title`에 "완벽한 세트" 업적용 칭호 "완벽주의자" 추가
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
