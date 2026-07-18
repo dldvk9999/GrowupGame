@@ -126,3 +126,14 @@
 - `.inventory-name-col`을 `flex: 1` → `flex: 1 1 120px`로, `.inventory-stat-group`에 `min-width: 0; flex-shrink: 1;` 추가 — flexbox의 기본 `min-width: auto` 특성(자식이 컨텐츠 크기 이하로 안 줄어들려는 성질) 때문에 넘침이 재발하지 않도록 명시적으로 축소를 허용함
 
 **교훈**: `display: flex`로 여러 텍스트/버튼 그룹을 한 줄에 배치하는 카드형 UI를 새로 만들 때는 처음부터 `flex-wrap: wrap`을 기본값으로 걸어두는 습관이 필요함(이미 `ui-and-ux.md`의 "flex 가로 카드형 UI의 모바일 안전 패턴" 섹션에 정리돼있던 내용인데, `Inventory.jsx`는 그보다 훨씬 이전(초기 세션)에 만들어진 화면이라 그 패턴이 적용되기 전이었음 — 오래된 화면들도 주기적으로 재점검할 필요가 있음을 보여주는 사례).
+
+## 유사 버그 전수 재스캔 (inventory-row 수정 계기)
+
+`inventory-row` 버그를 계기로, `display: flex` + `align-items: center` + `flex-wrap` 미명시 패턴 전체를 CSS에서 정규식으로 스캔(27개 후보 발견). 그중 실제로 여러 텍스트/버튼을 한 줄에 담는 "카드형 row"만 추려서(`.mail-row`, `.mypage-row`) Playwright로 380px 뷰포트 + 긴 텍스트 실측 검증한 결과 둘 다 넘침 없음 확인:
+- `.mail-row`: `justify-content: space-between` + 버튼이 하나뿐이라 구조적으로 안전
+- `.mypage-row`: 긴 이메일 텍스트로도 자연 줄바꿈되어 안전
+- `.loadout-slot`: 고정 크기(56×56) 정사각 슬롯이라 애초에 넘침 불가능
+- `.worldboss-contributor-row`: 이미 `text-overflow: ellipsis`로 안전 처리되어 있었음(이전 세션에서 신경써서 만든 것)
+- `.inventory-main`: JSX에서 실제로 안 쓰이는 죽은 CSS 클래스로 확인(리스크 없음)
+
+**결론**: `inventory-row`가 유일한 실제 버그였음(이 화면이 세션 초반에 만들어져서 나중에 확립된 "flex-wrap 기본 적용" 안전 패턴이 적용되기 전이었던 것으로 추정).
