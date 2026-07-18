@@ -105,3 +105,9 @@
 - `applyTheme(themeKey)`가 `document.documentElement.style.setProperty('--accent-fire', ...)`로 CSS 커스텀 프로퍼티를 직접 오버라이드함 — 인라인 스타일이 `:root`의 기본값보다 우선순위가 높아서, 앱 전체에서 `var(--accent-fire)`/`var(--accent-gold)`를 참조하는 모든 그라데이션/버튼/강조색이 한 번에 바뀜(개별 컴포넌트 수정 불필요)
 - 선택한 테마는 `localStorage`에 저장되고, `App.jsx`가 앱 시작 시(로그인 여부 무관) 1회 `applyTheme(getSavedTheme())`로 복원함 — 로그인 화면부터 바로 적용됨
 - Playwright로 정적 프리뷰를 렌더링해서 5개 스와치가 서로 다른 색상으로 정확히 표시되는지 픽셀 단위로 검증함
+
+## 전투 화면/챕터 카드 추가 완화
+
+- `.arena`(전투 아레나 배경)에 그림자 + 안쪽 상단 하이라이트 추가해서 화면 안에 "붕 떠있는" 카드 느낌 부여
+- `.chapter-card`에 그림자 + hover 시 위로 3px 떠오르는 효과 추가
+- `.skill-btn`에 그림자 + hover 시 테두리 금색 강조 + 위로 2px 떠오르는 효과 추가(쿨다운 중이거나 비활성화면 hover 효과 제외)

@@ -411,6 +411,7 @@ button {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-lift), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .arena-fx {
   position: absolute;
@@ -512,7 +513,10 @@ button {
   background: var(--bg-panel-2);
   color: var(--text-primary);
   overflow: visible;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.15s var(--ease-soft), border-color 0.2s var(--ease-soft);
 }
+.skill-btn:not(.on-cooldown):not(:disabled):hover { border-color: var(--accent-gold); transform: translateY(-2px); }
 .skill-btn:active { transform: scale(0.96); }
 .skill-btn.on-cooldown { opacity: 0.55; cursor: not-allowed; }
 .skill-btn.skill-heal { border-color: rgba(79, 214, 122, 0.5); }
@@ -912,9 +916,11 @@ button {
   padding: 16px 14px;
   color: var(--text-primary);
   position: relative;
+  box-shadow: var(--shadow-soft);
+  transition: border-color 0.2s var(--ease-soft), transform 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
 }
 .chapter-card.unlocked { cursor: pointer; }
-.chapter-card.unlocked:hover { border-color: var(--accent-gold); }
+.chapter-card.unlocked:hover { border-color: var(--accent-gold); transform: translateY(-3px); box-shadow: var(--shadow-lift); }
 .chapter-card.selected { border-color: var(--accent-fire); box-shadow: 0 0 0 2px rgba(255, 90, 31, 0.35); }
 .chapter-card.is-current { border-color: var(--accent-gold); }
 .chapter-card.locked { opacity: 0.45; cursor: not-allowed; }
