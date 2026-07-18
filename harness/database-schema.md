@@ -258,6 +258,9 @@
 **067_design_refresh_coupon.sql**
 - `REFRESH2026` 쿠폰 시딩(골드10000+에픽방어구, 무제한 사용, 2027-03-31 만료) — 디자인 리프레시/친구추천/업적랭킹 등 신규 콘텐츠 기념
 
+**068_element_popularity.sql** — 신규 콘텐츠
+- `fetch_element_popularity()` 신설 — 전체 유저의 계약 속성 비율(%) 집계, 개인정보 없음. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

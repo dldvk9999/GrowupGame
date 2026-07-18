@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { speciesById } from '../lib/speciesData';
+import { fetchElementPopularity } from '../lib/monsters';
 import MonsterSprite from './MonsterSprite';
 
 const ELEMENT_LABEL = { fire: '🔥 불', water: '💧 물', grass: '🌿 풀' };
@@ -12,6 +14,12 @@ const STAGES = [1, 2, 3];
  * — 나중에 몬스터 전환/포획 기능이 생기면 이 로직을 서버가 실제로 거쳐온 종족 기록 기반으로 바꿔야 함)
  */
 export default function MonsterDex({ myElement, myStage }) {
+  const [popularity, setPopularity] = useState(null);
+
+  useEffect(() => {
+    fetchElementPopularity().then(setPopularity).catch(() => setPopularity([]));
+  }, []);
+
   const discoveredCount = ELEMENTS.reduce((sum, el) => {
     if (el !== myElement) return sum;
     return sum + STAGES.filter((s) => s <= (myStage ?? 0)).length;
@@ -54,6 +62,27 @@ export default function MonsterDex({ myElement, myStage }) {
         ))}
       </div>
       <p className="mypage-locked-hint">현재 계약한 속성의 진화 단계만 발견돼요. 다른 속성은 아직 만나보지 못했어요. (표시된 스탯은 레벨1 기준 기본 수치예요)</p>
+
+      {popularity && popularity.length > 0 && (
+        <div className="element-popularity">
+          <span className="mypage-locked-hint" style={{ margin: '0 0 6px' }}>🌍 전체 유저 계약 속성 비율</span>
+          {popularity.map((row) => (
+            <div key={row.element} className="element-popularity-row">
+              <span className="element-popularity-label">{ELEMENT_LABEL[row.element] ?? row.element}</span>
+              <span className="bar-track element-popularity-track">
+                <span
+                  className="bar-fill"
+                  style={{
+                    width: `${row.percentage}%`,
+                    background: row.element === 'fire' ? 'var(--accent-fire)' : row.element === 'water' ? '#3aa8e0' : '#5cb83c',
+                  }}
+                />
+              </span>
+              <span className="element-popularity-pct">{row.percentage}%</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

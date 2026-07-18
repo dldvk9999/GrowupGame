@@ -1839,6 +1839,11 @@ button {
 .monster-dex-name { font-size: 10px; color: var(--text-secondary); text-align: center; }
 .monster-dex-name--locked { color: var(--text-muted); }
 .monster-dex-stats { font-size: 9px; color: var(--text-muted); text-align: center; }
+.element-popularity { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.element-popularity-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.element-popularity-label { width: 48px; flex-shrink: 0; }
+.element-popularity-track { flex: 1; }
+.element-popularity-pct { width: 40px; text-align: right; flex-shrink: 0; color: var(--text-secondary); }
 
 /* ---------- 랭킹(명예의 전당) ---------- */
 .leaderboard-list { display: flex; flex-direction: column; gap: 6px; }

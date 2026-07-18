@@ -80,3 +80,10 @@ export async function setMonsterNickname(nickname) {
   const { error } = await supabase.rpc('set_monster_nickname', { p_nickname: nickname || null });
   if (error) throw new Error(error.message);
 }
+
+/** 전체 유저의 계약 속성 인기도 통계(%) - 개인정보 없이 집계만 */
+export async function fetchElementPopularity() {
+  const { data, error } = await supabase.rpc('fetch_element_popularity');
+  if (error) throw error;
+  return data ?? [];
+}
