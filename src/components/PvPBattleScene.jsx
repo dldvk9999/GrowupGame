@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
+import { playAttackSound, playVictorySound, playErrorSound } from '../lib/audio';
 
 const ROUNDS = 6;
 const ROUND_INTERVAL = 450; // ms
@@ -176,6 +177,7 @@ export default function PvPBattleScene({ battle, mySpeciesKey, equippedCostumes,
 
       setShake(true);
       setTimeout(() => setShake(false), 180);
+      playAttackSound();
       setScreenFlash(isFinalRound ? (iWin ? '#ffcf4a' : '#ff4d6d') : 'rgba(255,255,255,0.5)');
       setTimeout(() => setScreenFlash(null), isFinalRound ? 320 : 140);
       setLog(HIT_LOGS[Math.floor(Math.random() * HIT_LOGS.length)]);
@@ -184,6 +186,7 @@ export default function PvPBattleScene({ battle, mySpeciesKey, equippedCostumes,
         clearInterval(timer);
         if (iWin) setOppHp(0); else setMyHp(0);
         setLog(iWin ? '치명적인 결정타!' : '결국 무너지고 말았다...');
+        if (iWin) playVictorySound(); else playErrorSound();
         // 마무리 대형 폭발 이펙트 + 투사체 집중포화
         spawnParticles(iWin ? 0.8 : 0.2, iWin ? 0.35 : 0.7, iWin ? '#ffe14a' : '#ff4d6d', 46, 1.6);
         for (let i = 0; i < 5; i++) {
