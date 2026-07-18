@@ -1108,7 +1108,8 @@ button {
 .inventory-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px 10px;
   background: var(--bg-panel);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
@@ -1120,10 +1121,10 @@ button {
   box-shadow: 0 0 0 1px rgba(242, 183, 5, 0.35);
   background: rgba(242, 183, 5, 0.06);
 }
-.inventory-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.inventory-icon { font-size: 18px; }
+.inventory-row-actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: auto; }
+.inventory-icon { font-size: 18px; flex-shrink: 0; }
 .inventory-name { flex: 1; font-size: 13px; }
-.inventory-name-col { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
+.inventory-name-col { flex: 1 1 120px; display: flex; flex-direction: column; gap: 3px; min-width: 100px; }
 .enhance-progress-track {
   display: block;
   height: 4px;
@@ -1265,6 +1266,8 @@ button {
   flex-direction: column;
   gap: 2px;
   font-size: 11px;
+  min-width: 0;
+  flex-shrink: 1;
 }
 .inventory-stat--possession { color: var(--accent-gold); }
 
