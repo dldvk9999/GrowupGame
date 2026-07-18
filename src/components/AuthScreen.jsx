@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { signIn, signUp, checkNicknameAvailable } from '../lib/auth';
+import { useState, useEffect } from 'react';
+import { signIn, signUp, checkNicknameAvailable, fetchTotalUserCount } from '../lib/auth';
 
 export default function AuthScreen({ onAuthed }) {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
@@ -10,6 +10,11 @@ export default function AuthScreen({ onAuthed }) {
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [totalUsers, setTotalUsers] = useState(null);
+
+  useEffect(() => {
+    fetchTotalUserCount().then(setTotalUsers).catch(() => setTotalUsers(null));
+  }, []);
 
   async function handleNicknameBlur() {
     if (!nickname || mode !== 'signup') return;
@@ -49,6 +54,9 @@ export default function AuthScreen({ onAuthed }) {
       <div className="auth-card">
         <h1 className="auth-title">GrowupGame</h1>
         <p className="auth-subtitle">키우기 게임에 오신 걸 환영해요</p>
+        {totalUsers !== null && totalUsers > 0 && (
+          <p className="auth-user-count">👥 {totalUsers.toLocaleString()}명의 조련사가 함께하고 있어요</p>
+        )}
 
         <div className="auth-tabs">
           <button

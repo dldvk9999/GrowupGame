@@ -78,3 +78,12 @@ export async function fetchMyReferralCount(userId) {
   if (error) throw error;
   return count ?? 0;
 }
+
+/** 전체 가입자 수 (로그인 화면에 커뮤니티 규모 표시용) - profiles가 공개 RLS라 직접 count 가능 */
+export async function fetchTotalUserCount() {
+  const { count, error } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true });
+  if (error) throw error;
+  return count ?? 0;
+}

@@ -10,6 +10,10 @@
 - 새 계정 첫 방문(플래그 없음)은 기본적으로 sessionStorage 취급(브라우저 재시작 시 로그아웃) — 명시적으로 체크해야 영구 유지되는, 흔한 "로그인 유지" UX 패턴
 - 닉네임 중복확인은 실시간(`is_nickname_taken` RPC), 회원가입 시 `options.data.nickname`으로 서버에 전달됨
 
+## 로그인 화면 전체 가입자 수 표시 (신규 콘텐츠)
+
+로그인/회원가입 화면 상단에 "👥 N명의 조련사가 함께하고 있어요"를 보여줌 — 커뮤니티가 활발하다는 첫인상을 주는 목적. `profiles`의 SELECT RLS(`using (true)`, `to` 절 없이 전체 role 대상)가 애초에 로그인 전(anon) 상태에도 적용되도록 되어있어서, `fetchTotalUserCount()`가 별도 RPC 없이 `count(*)` 쿼리 하나로 조회함. 조회 실패하거나 0명이면 문구 자체를 숨겨서 어색하지 않게 처리.
+
 ## 로그아웃 시 상태 초기화
 
 `App.jsx`의 `handleSession(null)` 분기가 로그아웃을 감지해서 게임 데이터 state 전체(`profile`/`activeMonster`/`clearedStageIds`/`inventory`/`equipmentDrawProgress`/`userSkills`/`dungeonAttempts`/`dungeonProgress`/`dungeonBattle`/`jobDungeonBattle`/`worldBoss`/`worldBossProgress`/`worldBossSession`/`mission`/`hasUnreadMail`/`attendanceState`/`loginAt`/`currentStageIndex`/`activeTab` 등)를 초기값으로 리셋함 — 공유 기기에서 A 로그아웃 → B 로그인 시 새 세션 데이터가 로드되기 전까지 A의 잔여 데이터가 화면에 잠깐 보이는 걸 방지. 처음엔 `profile`/`activeMonster`/`loginAt` 몇 개만 초기화하다가 046/049 작업 때 `hasUnreadMail`/`attendanceState`를 빠뜨렸던 걸 계기로, 아예 게임 데이터 state 전체를 리셋하도록 정리함. 순수 UI 트랜지언트 플래그(로딩중 표시, 에러 메시지, 모바일 메뉴 열림 등)는 다음 액션에서 자연히 덮어써지므로 리셋 대상에서 제외함.
