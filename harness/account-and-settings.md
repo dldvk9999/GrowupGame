@@ -27,5 +27,6 @@
 헤더의 "⚙️ 설정" 버튼으로 진입. 서브탭:
 - 우편함 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
 - 업적 — [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+- **게임가이드**(`GameGuide.jsx`, `lib/gameGuide.js`) — 전투/뽑기/전직/던전/PvP/일일루틴 6개 섹션으로 정리한 순수 정적 온보딩 콘텐츠. 서버 데이터 아님, 마이그레이션 없이 텍스트만 수정 가능
 - 쿠폰 입력 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
 - **패치노트**(`PatchNotes.jsx`, `lib/patchNotes.js`) — 최근 업데이트 내역을 보여주는 순수 정적 콘텐츠 화면. 서버 데이터가 아니라 클라이언트 코드에 하드코딩된 배열이라 마이그레이션 없이 새 항목을 배열 맨 앞에 추가하기만 하면 됨. "게임이 계속 활발히 업데이트되고 있다"는 인상을 줘서 재방문 동기를 높이는 목적. **최신 패치노트를 아직 안 봤으면 헤더의 "⚙️ 설정" 버튼과 설정 화면 안 "📰 패치노트" 탭 버튼 둘 다에 빨간 점이 뜸**(`hasSeenLatestPatchNote`/`markLatestPatchNoteSeen`, `localStorage`에 마지막으로 본 패치노트 날짜만 저장 — 계정이 아니라 이 브라우저 기준이라 로그인 상태와 무관하게 유지됨). 패치노트 탭을 한 번이라도 열면 두 뱃지 모두 즉시 사라짐

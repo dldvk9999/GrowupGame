@@ -3,6 +3,7 @@ import Mailbox from './Mailbox';
 import CouponRedeem from './CouponRedeem';
 import Achievements from './Achievements';
 import PatchNotes from './PatchNotes';
+import GameGuide from './GameGuide';
 import { hasSeenLatestPatchNote, markLatestPatchNoteSeen } from '../lib/patchNotes';
 
 export default function Settings({ userId, gold, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange, onPatchNoteSeen }) {
@@ -22,6 +23,7 @@ export default function Settings({ userId, gold, onGoldChange, onUnreadMailChang
       <div className="shop-tabs">
         <button className={`shop-tab ${tab === 'mailbox' ? 'active' : ''}`} onClick={() => setTab('mailbox')}>📮 우편함</button>
         <button className={`shop-tab ${tab === 'achievements' ? 'active' : ''}`} onClick={() => setTab('achievements')}>🏆 업적</button>
+        <button className={`shop-tab ${tab === 'guide' ? 'active' : ''}`} onClick={() => setTab('guide')}>📘 게임가이드</button>
         <button className={`shop-tab ${tab === 'coupon' ? 'active' : ''}`} onClick={() => setTab('coupon')}>🎟️ 쿠폰 입력</button>
         <button className={`shop-tab patch-note-tab-btn ${tab === 'patchnotes' ? 'active' : ''}`} onClick={openPatchNotes}>
           📰 패치노트{hasNewPatchNote && <span className="mail-unread-dot" aria-label="새 패치노트 있음" />}
@@ -39,6 +41,7 @@ export default function Settings({ userId, gold, onGoldChange, onUnreadMailChang
           onTitleChange={onTitleChange}
         />
       )}
+      {tab === 'guide' && <GameGuide />}
       {tab === 'coupon' && <CouponRedeem />}
       {tab === 'patchnotes' && <PatchNotes />}
     </div>
