@@ -23,6 +23,15 @@
 - "column reference X is ambiguous" 버그 패턴은 [`security.md`](./security.md) 참고
 - **함수 반환 컬럼을 추가/삭제/타입변경하는 재정의는 `CREATE OR REPLACE FUNCTION`만으로 안 됨** — PostgreSQL은 기존 함수의 리턴 타입(TABLE의 OUT 파라미터 구성)이 다르면 `cannot change return type of existing function` 에러를 내고 배포가 그 자리에서 실패함(050에서 `fetch_leaderboard()`에 `equipped_title` 컬럼을 추가하다가 실제로 발생, GitHub Actions 로그로 확인 후 수정). **반환 컬럼 목록이 바뀌는 재정의를 할 때는 `CREATE OR REPLACE` 앞에 `DROP FUNCTION IF EXISTS 함수명(인자타입...)`을 반드시 먼저 넣을 것.** 반대로 반환 컬럼이 그대로고 함수 몸통(로직)만 바뀌는 경우는 `CREATE OR REPLACE`만으로 충분하고 DROP이 불필요함(이 프로젝트의 절대다수 재정의 패턴). 새 마이그레이션을 작성할 때 함수의 `returns table(...)` 목록을 이전 정의와 diff해서, 컬럼이 하나라도 늘거나 줄거나 이름/타입이 바뀌면 DROP을 추가해야 함을 항상 체크할 것.
 
+## PWA 업데이트 알림 배너
+
+`registerType: 'autoUpdate'`(vite.config.js)는 새 서비스워커를 백그라운드에서 자동으로 활성화하지만 **페이지 자체를 강제로 새로고침하진 않아서**, 자주 배포하는 이 프로젝트 특성상 사용자가 새 버전을 못 알아채고 계속 예전 화면을 쓰게 될 수 있었음.
+
+→ `PwaUpdatePrompt.jsx`(`virtual:pwa-register/react`의 `useRegisterSW` 훅)를 `App.jsx` 최상단(로그인 여부 무관하게 항상 렌더링)에 추가해서, 새 버전이 감지되면 화면 하단에 "🔄 새 버전이 있어요! [새로고침] [나중에]" 배너를 띄움.
+
+- `onRegisteredSW`에서 30분마다 `registration.update()`를 직접 호출해서 자체 폴링도 함(기본은 페이지 재방문 시에만 체크되므로, 탭을 오래 켜두는 유저도 놓치지 않게)
+- 소스코드가 `virtual:pwa-register/react`를 직접 import하면 vite-plugin-pwa가 `index.html`에 자동 주입하던 등록 스크립트를 생략함(중복 등록 방지, 빌드 결과물에서 `dist/registerSW.js`가 더 이상 생성 안 되는 것으로 확인) — `injectRegister` 옵션을 따로 안 건드려도 됨
+
 ## 프론트엔드 안전망 — 에러 바운더리
 
 `main.jsx`에서 `<App />`을 `<ErrorBoundary>`로 감싸둠(`components/ErrorBoundary.jsx`). React는 렌더링 중 처리 안 된 예외가 나면 기본적으로 앱 전체를 unmount시켜서 화면이 완전히 하얗게 깨지는데(사용자는 원인도 모르고 새로고침 외엔 방법이 없음), 이 컴포넌트가 그 예외를 붙잡아서 "오류가 발생했어요 + 새로고침" 복구 화면을 대신 보여줌.

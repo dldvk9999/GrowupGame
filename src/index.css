@@ -1129,6 +1129,27 @@ button {
 .error-boundary-card h2 { margin: 0 0 12px; }
 .error-boundary-card p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; }
 
+/* ---------- PWA 업데이트 배너 ---------- */
+.pwa-update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--accent-gold);
+  background: var(--bg-panel);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  font-size: 13px;
+  max-width: calc(100vw - 32px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 /* ---------- 오늘의 할 일 체크리스트 ---------- */
 .daily-checklist {
   display: flex;

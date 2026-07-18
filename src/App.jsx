@@ -30,6 +30,7 @@ import { getChapterStory } from './lib/stageStory';
 
 import AuthScreen from './components/AuthScreen';
 import ToastContainer from './components/ToastContainer';
+import PwaUpdatePrompt from './components/PwaUpdatePrompt';
 import StoryIntro from './components/StoryIntro';
 import ChapterStory from './components/ChapterStory';
 import StarterSelect from './components/StarterSelect';
@@ -466,6 +467,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <ToastContainer />
+      <PwaUpdatePrompt />
       {showAttendanceModal && (
         <AttendanceModal
           attendanceState={attendanceState ? { ...attendanceState, _claimedToday: hasClaimedToday(attendanceState) } : null}
