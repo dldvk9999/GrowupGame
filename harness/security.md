@@ -216,6 +216,14 @@
 - 070(founder 업적/칭호): claim_achievement/set_equipped_title 둘 다 CASE 분기만 추가, 반환타입 변경 없어 DROP 불필요. created_at 비교만 하는 단순 로직이라 위험 요소 없음. 27개 업적키 diff 재검증 완료
 - 게임가이드 갱신은 순수 정적 텍스트 콘텐츠, 서버 무관
 
+### 21차 점검 — 071 무한의탑 (신규 던전, 대규모 기능이라 정밀 재검증)
+
+- 5개 신규 함수(calc_tower_gold/enter_tower/claim_tower_floor/fetch_tower_leaderboard/fetch_my_tower_rank) 전부 자체 스캐너 통과, 전체 마이그레이션 재스캔(071 포함)에서도 046(기수정) 외 이슈 없음
+- 골드 공식 100만 상한 클램프를 극단치(1000층)까지 시뮬레이션 검증
+- enter_tower의 "현재 최고+1층" 세션 발급 방식이 기존 use_dungeon_attempt(현재 클리어스테이지+1)와 동일한 동시성 특성을 가짐을 코드 비교로 확인 - 새로 만든 위험이 아니라 기존 확립된 패턴을 그대로 재사용한 것, harness에 명시적으로 기록
+- claim_tower_floor의 "세션 유효하면 신뢰" 판정도 기존 던전과 동일한 모델(이미 todo.md에 기록된 한계와 동일선상)
+- RLS 3개 테이블(tower_progress/tower_attempts/tower_sessions) 전부 본인만 조회 + insert/update/delete authenticated로부터 revoke 확인
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(그리고 이 프로젝트에서 가장 큰) 구조적 한계임.
