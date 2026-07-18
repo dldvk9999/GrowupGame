@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import { updateNickname, checkNicknameAvailable, setReferrer, fetchMyReferralCount } from '../lib/auth';
 import { setMonsterNickname } from '../lib/monsters';
+import { fetchClaimedAchievements, ACHIEVEMENT_CATALOG } from '../lib/achievements';
+import { getPvpTier } from '../lib/pvpTier';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, onMonsterNicknameChange }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, onMonsterNicknameChange }) {
   const [referrerInput, setReferrerInput] = useState('');
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
   const [referrerDone, setReferrerDone] = useState(false);
   const [myReferralCount, setMyReferralCount] = useState(null);
+  const [myAchievementCount, setMyAchievementCount] = useState(null);
 
   useEffect(() => {
     if (!session?.user?.id) return;
     fetchMyReferralCount(session.user.id).then(setMyReferralCount).catch(() => setMyReferralCount(null));
+    fetchClaimedAchievements(session.user.id).then((set) => setMyAchievementCount(set.size)).catch(() => setMyAchievementCount(null));
   }, [session?.user?.id]);
 
   // 가입 후 24시간이 지났으면 클라이언트에서도 미리 폼을 숨김(서버가 최종 검증은 항상 다시 함)
@@ -101,6 +105,36 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   return (
     <div className="mypage-screen">
       <h2>마이페이지</h2>
+
+      {activeMonster && (
+        <div className="character-card">
+          <div className="character-card-title">
+            {profile?.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}
+            {profile?.nickname}
+          </div>
+          <div className="character-card-sub">
+            {activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}
+          </div>
+          <div className="character-card-stats">
+            <div className="character-card-stat">
+              <span className="character-card-stat-label">PvP 티어</span>
+              <span className="character-card-stat-value">{getPvpTier(profile?.pvp_wins).icon} {getPvpTier(profile?.pvp_wins).label}</span>
+            </div>
+            <div className="character-card-stat">
+              <span className="character-card-stat-label">무한의 탑</span>
+              <span className="character-card-stat-value">🗼 {towerHighestFloor ?? 0}층</span>
+            </div>
+            <div className="character-card-stat">
+              <span className="character-card-stat-label">업적</span>
+              <span className="character-card-stat-value">🏆 {myAchievementCount ?? '-'}/{ACHIEVEMENT_CATALOG.length}</span>
+            </div>
+            <div className="character-card-stat">
+              <span className="character-card-stat-label">스테이지</span>
+              <span className="character-card-stat-value">🗺️ {clearedCount}/{totalStages}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mypage-card">
         <div className="mypage-row"><span>닉네임</span><strong>{profile?.nickname}</strong></div>
