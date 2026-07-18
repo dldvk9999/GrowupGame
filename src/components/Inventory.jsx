@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionBonus } from '../lib/itemCatalog';
+import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionBonus, ITEM_CATALOG } from '../lib/itemCatalog';
 import { equipItem, unequipItem, isFullSetEquipped } from '../lib/inventory';
 import { synthesizeEquipment, synthesizeEquipmentBatch } from '../lib/equipmentGacha';
 import { fetchMyCostumes, setCostumeLoadout } from '../lib/pvp';
@@ -263,6 +263,12 @@ function CostumeCloset({ userId, equippedCostumes, onCostumeLoadoutChange }) {
         코스튬은 전투 스탯에 영향을 주지 않는 수집/과시용이에요. 슬롯(무기/방어구/장갑/신발)당 1개만 착용할 수 있고,
         착용하면 캐릭터 주위에 등급색 배지로 표시돼요.
       </p>
+      <div className="costume-collection-progress">
+        🎽 컬렉션 {ownedItems.length} / {ITEM_CATALOG.length}
+        <span className="bar-track costume-collection-track">
+          <span className="bar-fill" style={{ width: `${(ownedItems.length / ITEM_CATALOG.length) * 100}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
+        </span>
+      </div>
 
       {error && <p className="shop-error">{error}</p>}
 

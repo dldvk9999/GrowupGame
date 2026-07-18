@@ -1553,6 +1553,8 @@ button {
 .loadout-legend-dot--pending { background: #2dd4bf; }
 .owned-skill-icon { font-size: 22px; }
 .owned-skill-rarity { font-size: 10px; color: var(--text-muted); }
+.costume-collection-progress { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+.costume-collection-track { flex: 1; }
 .owned-skill-level { font-size: 11px; color: var(--text-secondary); }
 .owned-skill-possession { font-size: 10px; color: var(--accent-gold); }
 .owned-skill-locked { font-size: 11px; color: var(--text-muted); }
