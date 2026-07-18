@@ -13,6 +13,7 @@ import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
+import { enterTower, claimTowerFloor, fetchMyTowerProgress, fetchTowerAttemptsRemainingToday, getTowerFloorMonster } from './lib/tower';
 import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { getJobDungeonBoss } from './lib/jobDungeon';
@@ -78,6 +79,11 @@ export default function App() {
   const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
   const [dungeonProgress, setDungeonProgress] = useState({ exp: 0, gold: 0 });
   const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage, sessionId } | null
+  const [towerBattle, setTowerBattle] = useState(null); // { floor, sessionId } | null
+  const [towerHighestFloor, setTowerHighestFloor] = useState(0);
+  const [towerAttemptsRemaining, setTowerAttemptsRemaining] = useState(3);
+  const [towerEntering, setTowerEntering] = useState(false);
+  const [towerError, setTowerError] = useState('');
   const [dungeonEntering, setDungeonEntering] = useState(false);
   const [dungeonError, setDungeonError] = useState('');
   const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
@@ -172,12 +178,15 @@ export default function App() {
       setFreeDrawUsedToday(null);
       setCostumeCount(0);
       setHasClaimedMissionToday(false);
+      setTowerBattle(null);
+      setTowerHighestFloor(0);
+      setTowerAttemptsRemaining(3);
       setLoginAt(null);
       return;
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, towerAttempts] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -194,6 +203,8 @@ export default function App() {
         hasEverParticipatedInWorldBoss(userId).catch(() => false),
         fetchDailyFreeDrawState(userId).catch(() => null),
         fetchMyCostumes(userId).catch(() => new Set()),
+        fetchMyTowerProgress(userId).catch(() => 0),
+        fetchTowerAttemptsRemainingToday(userId).catch(() => 3),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -210,6 +221,8 @@ export default function App() {
       setEverParticipatedWorldBoss(everParticipated);
       setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
       setCostumeCount(costumes.size);
+      setTowerHighestFloor(towerFloor);
+      setTowerAttemptsRemaining(towerAttempts);
       setHasClaimedMissionToday(false);
       setLoginAt(new Date().toISOString());
 
@@ -378,6 +391,40 @@ export default function App() {
       bumpMission('kill_monsters', 1);
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
+    }
+  }
+
+  async function handleEnterTower() {
+    setTowerError('');
+    setTowerEntering(true);
+    try {
+      const { sessionId, floor, remainingAttempts } = await enterTower();
+      setTowerAttemptsRemaining(remainingAttempts);
+      setTowerBattle({ floor, sessionId });
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setTowerError(message);
+      showToast(message, 'error');
+    } finally {
+      setTowerEntering(false);
+    }
+  }
+
+  async function handleTowerClear(grownBase, _clientGoldEstimate) {
+    setActiveMonster(grownBase);
+    try {
+      const [, reward] = await Promise.all([
+        persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
+        claimTowerFloor(towerBattle.sessionId),
+      ]);
+      setProfile((p) => ({ ...p, gold: p.gold + reward.gold }));
+      setTowerHighestFloor(reward.newHighestFloor);
+      bumpMission('kill_monsters', 1);
+      if (reward.isNewRecord) {
+        showToast(`🗼 신기록! ${reward.newHighestFloor}층 달성!`, 'success');
+      }
+    } catch (err) {
+      console.error('무한의 탑 보상 저장 실패', err);
     }
   }
 
@@ -698,6 +745,17 @@ export default function App() {
                   onClear={handleDungeonClear}
                   onExit={() => setDungeonBattle(null)}
                 />
+              ) : towerBattle ? (
+                <DungeonBattle
+                  key={`tower-${towerBattle.floor}-${towerBattle.sessionId}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  dungeonEnemy={getTowerFloorMonster(towerBattle.floor)}
+                  onClear={handleTowerClear}
+                  onExit={() => setTowerBattle(null)}
+                />
               ) : worldBossSession ? (
                 <WorldBossBattle
                   key={worldBossSession.sessionId}
@@ -730,6 +788,11 @@ export default function App() {
                   onEnterWorldBoss={handleEnterWorldBoss}
                   worldBossEntering={worldBossEntering}
                   worldBossError={worldBossError}
+                  towerHighestFloor={towerHighestFloor}
+                  towerAttemptsRemaining={towerAttemptsRemaining}
+                  onEnterTower={handleEnterTower}
+                  towerEntering={towerEntering}
+                  towerError={towerError}
                 />
               )
             )}

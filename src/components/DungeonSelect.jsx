@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
+import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 
-const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss'];
+const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss', 'tower'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
   activeMonster, onEnterJobDungeon, jobEntering, jobError,
   activeType, onActiveTypeChange,
   worldBoss, worldBossProgress, onEnterWorldBoss, worldBossEntering, worldBossError,
+  towerHighestFloor, towerAttemptsRemaining, onEnterTower, towerEntering, towerError,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -46,6 +48,9 @@ export default function DungeonSelect({
         <button className={`shop-tab ${activeType === 'worldboss' ? 'active' : ''}`} onClick={() => onActiveTypeChange('worldboss')}>
           🐉 월드보스
         </button>
+        <button className={`shop-tab ${activeType === 'tower' ? 'active' : ''}`} onClick={() => onActiveTypeChange('tower')}>
+          🗼 무한의 탑
+        </button>
       </div>
       <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
@@ -63,6 +68,14 @@ export default function DungeonSelect({
           onEnter={onEnterWorldBoss}
           entering={worldBossEntering}
           error={worldBossError}
+        />
+      ) : activeType === 'tower' ? (
+        <TowerPanel
+          highestFloor={towerHighestFloor}
+          attemptsRemaining={towerAttemptsRemaining}
+          onEnter={onEnterTower}
+          entering={towerEntering}
+          error={towerError}
         />
       ) : (
         <ProgressiveDungeon
@@ -256,6 +269,67 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
               </div>
             ))}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TowerPanel({ highestFloor, attemptsRemaining, onEnter, entering, error }) {
+  const [leaderboard, setLeaderboard] = useState(null);
+  const [myRank, setMyRank] = useState(null);
+  const resetIn = useCountdownToDaily8AM();
+
+  useEffect(() => {
+    Promise.all([fetchTowerLeaderboard(), fetchMyTowerRank()])
+      .then(([lb, rank]) => { setLeaderboard(lb); setMyRank(rank); })
+      .catch(() => setLeaderboard([]));
+  }, [highestFloor]);
+
+  const nextFloor = (highestFloor ?? 0) + 1;
+  const iAmInTop20 = leaderboard?.some((r) => r.is_me);
+
+  return (
+    <div>
+      <p className="stage-select-hint">
+        상한 없이 계속 올라가는 도전 모드예요. 한 층씩 순서대로 도전하고, 이기면 다음 층으로 최고기록이 갱신돼요.
+        올라갈수록 훨씬 강한 수호자가 나오니 장비/스킬을 충분히 갖추고 도전하세요.
+        하루 3번까지 도전 가능(오늘 {attemptsRemaining ?? 3}/3회 남음, {resetIn} 후 초기화).
+      </p>
+
+      <div className="worldboss-hp-card">
+        <div className="worldboss-hp-title">🗼 나의 최고 기록: {highestFloor ?? 0}층</div>
+        <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>다음 도전: {nextFloor}층</p>
+      </div>
+
+      {error && <p className="shop-error">{error}</p>}
+
+      <button
+        className={`btn btn-challenge ${(attemptsRemaining ?? 3) <= 0 ? 'btn-unaffordable' : ''}`}
+        disabled={entering || (attemptsRemaining ?? 3) <= 0}
+        onClick={onEnter}
+      >
+        {entering ? '입장 중...' : (attemptsRemaining ?? 3) <= 0 ? '오늘 도전 횟수 소진' : `⚔️ ${nextFloor}층 도전`}
+      </button>
+
+      {leaderboard && leaderboard.length > 0 && (
+        <div className="worldboss-top-contributors">
+          <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 최고 도달 층수 TOP {leaderboard.length}</h4>
+          <div className="worldboss-contributor-list">
+            {leaderboard.map((row) => (
+              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+                <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
+                <span className="worldboss-contributor-nickname">
+                  {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
+                  {row.nickname}{row.is_me && ' (나)'}
+                </span>
+                <span className="worldboss-contributor-damage">🗼{row.highest_floor}층</span>
+              </div>
+            ))}
+          </div>
+          {myRank != null && !iAmInTop20 && (
+            <p className="stage-select-hint" style={{ marginTop: 8, marginBottom: 0 }}>내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong></p>
+          )}
         </div>
       )}
     </div>

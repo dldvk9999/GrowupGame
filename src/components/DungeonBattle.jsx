@@ -246,7 +246,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
-        {dungeonEnemy.dungeonType === 'exp' ? '경험치 던전' : '골드 던전'} · {dungeonEnemy.stage}층
+        {dungeonEnemy.dungeonType === 'exp' ? '경험치 던전' : dungeonEnemy.dungeonType === 'gold' ? '골드 던전' : '🗼 무한의 탑'} · {dungeonEnemy.stage}층
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
 

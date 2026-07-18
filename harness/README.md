@@ -15,6 +15,7 @@
 | [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드), 전직 던전 |
+| [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한 없는 도전 모드, 랭킹) |
 | [`world-boss.md`](./world-boss.md) | 주간 공유체력 월드보스, 용의 버프 |
 | [`pvp.md`](./pvp.md) | PvP 비동기 매칭전투, PvP 재화/코스튬 상점 |
 | [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 전투력 랭킹(명예의 전당) |

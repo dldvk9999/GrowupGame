@@ -267,6 +267,9 @@
 **070_founder_title.sql** — 신규 콘텐츠
 - `claim_achievement`/`set_equipped_title`에 "얼리버드"(founder) 업적+칭호 추가 — 2026-08-01 이전 가입자 전용. 둘 다 반환타입 그대로라 DROP 불필요, 27개 업적키 diff 재검증 완료
 
+**071_endless_tower.sql** — 신규 던전 콘텐츠
+- `tower_progress`/`tower_attempts`/`tower_sessions` 신설(기존 dungeon_* 테이블과 완전 독립) — 상한 없이 계속 올라가는 도전 모드. `enter_tower`/`claim_tower_floor`/`fetch_tower_leaderboard`/`fetch_my_tower_rank`/`calc_tower_gold` 신설. 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
@@ -279,6 +282,9 @@
 | `user_skills` | ❌ | `draw_skill`/`draw_skill_batch` RPC |
 | `dungeon_attempts` | ❌ | `use_dungeon_attempt` RPC (원자적 증가로 레이스컨디션 수정됨) |
 | `dungeon_sessions` | ❌ | 입장 시 `use_dungeon_attempt`가 생성, 보상은 `claim_dungeon_reward`가 세션당 1회만 지급 |
+| `tower_progress` | ❌ | `claim_tower_floor` RPC만 갱신 |
+| `tower_attempts` | ❌ | `enter_tower` RPC (원자적 증가) |
+| `tower_sessions` | ❌ | `enter_tower`가 발급, `claim_tower_floor`가 소모(claimed=true) 처리 |
 | `mails` | ❌ (delete만 본인 claimed건 가능) | `sync_daily_mails`(정기우편 생성), `claim_mail`(수령), `redeem_coupon`(쿠폰보상 발송), 직접 `DELETE`는 본인 소유+claimed=true 조건에서만 허용 |
 | `mission_state` | ❌ | `init_mission_state`/`increment_mission_progress`/`claim_mission_reward` RPC |
 | `pvp_battle_log` | ❌ | `start_pvp_battle` RPC 내부에서만 기록 |
