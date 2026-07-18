@@ -23,6 +23,15 @@
 - "column reference X is ambiguous" 버그 패턴은 [`security.md`](./security.md) 참고
 - **함수 반환 컬럼을 추가/삭제/타입변경하는 재정의는 `CREATE OR REPLACE FUNCTION`만으로 안 됨** — PostgreSQL은 기존 함수의 리턴 타입(TABLE의 OUT 파라미터 구성)이 다르면 `cannot change return type of existing function` 에러를 내고 배포가 그 자리에서 실패함(050에서 `fetch_leaderboard()`에 `equipped_title` 컬럼을 추가하다가 실제로 발생, GitHub Actions 로그로 확인 후 수정). **반환 컬럼 목록이 바뀌는 재정의를 할 때는 `CREATE OR REPLACE` 앞에 `DROP FUNCTION IF EXISTS 함수명(인자타입...)`을 반드시 먼저 넣을 것.** 반대로 반환 컬럼이 그대로고 함수 몸통(로직)만 바뀌는 경우는 `CREATE OR REPLACE`만으로 충분하고 DROP이 불필요함(이 프로젝트의 절대다수 재정의 패턴). 새 마이그레이션을 작성할 때 함수의 `returns table(...)` 목록을 이전 정의와 diff해서, 컬럼이 하나라도 늘거나 줄거나 이름/타입이 바뀌면 DROP을 추가해야 함을 항상 체크할 것.
 
+### 재사용 가능한 자동 검증 스크립트 (배포 전 점검용)
+
+046(출석체크)에서 "column reference is ambiguous" 버그가 harness에 이미 정리된 패턴인데도 재발했던 것을 계기로, 매번 사람이 눈으로 훑는 대신 **Python으로 전체 마이그레이션 파일을 훑는 스캐너 2종**을 만들어서 검증했음(파일로 저장해두진 않았지만, 필요할 때마다 아래 로직을 다시 짜서 돌리면 됨):
+
+1. **ambiguous column 자기참조 탐지**: 각 `create or replace function`에서 `returns table(...)`의 컬럼명을 추출한 뒤, 함수 본문의 `UPDATE ... SET col = col`(별칭 없이 좌변=우변이 같은 이름, 우변에 `.`이 없는 경우)을 정규식으로 찾음. 046이 정확히 이 패턴으로 걸렸었고, 재검증 결과 059까지 다른 곳엔 없었음.
+2. **DROP 누락 탐지**: 같은 함수명이 여러 마이그레이션에서 재정의될 때마다 `returns` 절 텍스트를 이전 버전과 비교해서, 달라졌는데 그 앞에 `DROP FUNCTION`이 없으면 경고. `fetch_leaderboard`(048→050→051)가 여기 걸렸어야 했는데 이미 방어적으로 DROP을 넣어둔 상태라 "이슈 없음"으로 통과함(정상).
+
+새 마이그레이션을 큰 규모로 여러 개 작성한 뒤 배포 전에는, 이 두 스캐너를 다시 돌려보는 걸 권장함 — 특히 046 재발 사례처럼 "알고 있는 패턴인데도 급하게 짜다 보면 또 틀리는" 실수를 자동으로 잡아줌.
+
 ## PWA 업데이트 알림 배너
 
 `registerType: 'autoUpdate'`(vite.config.js)는 새 서비스워커를 백그라운드에서 자동으로 활성화하지만 **페이지 자체를 강제로 새로고침하진 않아서**, 자주 배포하는 이 프로젝트 특성상 사용자가 새 버전을 못 알아채고 계속 예전 화면을 쓰게 될 수 있었음.
