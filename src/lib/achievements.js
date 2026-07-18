@@ -59,6 +59,8 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
+  { key: 'attendance_100', category: 'attendance', icon: '💯', title: '백일기도', desc: '누적 출석 100회', reward: 30000, target: 100, stat: 'attendanceTotal' },
+  { key: 'attendance_200', category: 'attendance', icon: '🏵️', title: '영원한 동반자', desc: '누적 출석 200회', reward: 60000, target: 200, stat: 'attendanceTotal' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {

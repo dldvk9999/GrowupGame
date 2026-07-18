@@ -261,6 +261,9 @@
 **068_element_popularity.sql** — 신규 콘텐츠
 - `fetch_element_popularity()` 신설 — 전체 유저의 계약 속성 비율(%) 집계, 개인정보 없음. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
 
+**069_attendance_milestones.sql** — 신규 콘텐츠
+- `claim_achievement`에 업적 2종 추가: 출석 100회/200회 마일스톤. `claim_attendance`는 안 건드리고 이미 검증된 `claim_achievement` 패턴만 재사용. diff로 기존 26개 CASE 보존 확인
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
