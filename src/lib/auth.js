@@ -62,3 +62,9 @@ export async function getMyProfile() {
   if (error) throw error;
   return data;
 }
+
+/** 친구 추천인 등록 (가입 후 24시간 이내 1회만 가능, 이후엔 서버가 거부함) */
+export async function setReferrer(referrerNickname) {
+  const { error } = await supabase.rpc('set_referrer', { p_referrer_nickname: referrerNickname });
+  if (error) throw new Error(error.message);
+}

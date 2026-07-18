@@ -249,6 +249,9 @@
 **064_dungeon_full_clear_bonus.sql** — 신규 콘텐츠
 - `claim_dungeon_reward` 재정의(반환타입 그대로, DROP 불필요) — 경험치/골드 던전 각각 처음 10층 완주 시 골드 2만 축하 우편 자동 발송. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
 
+**065_referral_system.sql** — 신규 콘텐츠
+- `profiles.referred_by` 신설 + `set_referrer(p_referrer_nickname)` RPC — 가입 24시간 이내 1회 추천인 등록. `claim_achievement` 재정의(반환타입 그대로)로 레벨10 달성 시 추천인 보너스 지급 로직 추가. 자세한 내용은 [`referral-system.md`](./referral-system.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

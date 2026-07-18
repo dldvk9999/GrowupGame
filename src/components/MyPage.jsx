@@ -1,9 +1,31 @@
 import { useState } from 'react';
-import { updateNickname, checkNicknameAvailable } from '../lib/auth';
+import { updateNickname, checkNicknameAvailable, setReferrer } from '../lib/auth';
 import { setMonsterNickname } from '../lib/monsters';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, onMonsterNicknameChange }) {
+  const [referrerInput, setReferrerInput] = useState('');
+  const [referrerSaving, setReferrerSaving] = useState(false);
+  const [referrerError, setReferrerError] = useState('');
+  const [referrerDone, setReferrerDone] = useState(false);
+
+  // 가입 후 24시간이 지났으면 클라이언트에서도 미리 폼을 숨김(서버가 최종 검증은 항상 다시 함)
+  const signupHoursAgo = profile?.created_at ? (Date.now() - new Date(profile.created_at)) / (1000 * 60 * 60) : 999;
+  const canSetReferrer = !profile?.referred_by && signupHoursAgo < 24 && !referrerDone;
+
+  async function handleSetReferrer() {
+    if (!referrerInput.trim()) return;
+    setReferrerError('');
+    setReferrerSaving(true);
+    try {
+      await setReferrer(referrerInput.trim());
+      setReferrerDone(true);
+    } catch (err) {
+      setReferrerError(err.message ?? '추천인 등록에 실패했어요.');
+    } finally {
+      setReferrerSaving(false);
+    }
+  }
   const dragonBuffRemaining = dragonBuffActive && profile?.dragon_buff_until
     ? formatRemainingTime(new Date(profile.dragon_buff_until) - new Date())
     : null;
@@ -168,6 +190,31 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             </p>
           )}
         </div>
+      )}
+
+      {canSetReferrer && (
+        <div className="referral-card">
+          <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>🤝 친구 추천인 등록</h3>
+          <p className="stage-select-hint">
+            나를 이 게임으로 이끈 친구의 닉네임을 입력하면, 내가 레벨 10을 달성했을 때 그 친구에게 보너스가 가요.
+            가입 후 24시간 이내에만 등록할 수 있어요.
+          </p>
+          <div className="petname-edit-row">
+            <input
+              value={referrerInput}
+              onChange={(e) => setReferrerInput(e.target.value)}
+              placeholder="추천인 닉네임"
+              maxLength={12}
+            />
+            <button className="btn btn-neutral" disabled={referrerSaving || !referrerInput.trim()} onClick={handleSetReferrer}>
+              {referrerSaving ? '등록 중...' : '등록'}
+            </button>
+          </div>
+          {referrerError && <p className="auth-error">{referrerError}</p>}
+        </div>
+      )}
+      {(profile?.referred_by || referrerDone) && (
+        <p className="stage-select-hint">🤝 추천인이 등록되어 있어요. 레벨 10을 달성하면 추천인에게 보너스가 전달돼요.</p>
       )}
 
       <h3 className="mypage-subtitle">닉네임 변경</h3>
