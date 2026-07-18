@@ -37,6 +37,9 @@ export default function MonsterDex({ myElement, myStage }) {
                     <>
                       <MonsterSprite speciesKey={speciesKey} size={56} alt={species?.name} />
                       <span className="monster-dex-name">{species?.name}</span>
+                      <span className="monster-dex-stats">
+                        ⚔️{species?.baseAtk} 🛡️{species?.baseDef} ❤️{species?.baseHp}
+                      </span>
                     </>
                   ) : (
                     <>
@@ -50,7 +53,7 @@ export default function MonsterDex({ myElement, myStage }) {
           </div>
         ))}
       </div>
-      <p className="mypage-locked-hint">현재 계약한 속성의 진화 단계만 발견돼요. 다른 속성은 아직 만나보지 못했어요.</p>
+      <p className="mypage-locked-hint">현재 계약한 속성의 진화 단계만 발견돼요. 다른 속성은 아직 만나보지 못했어요. (표시된 스탯은 레벨1 기준 기본 수치예요)</p>
     </div>
   );
 }
