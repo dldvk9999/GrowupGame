@@ -848,6 +848,7 @@ export default function App() {
                   })(),
                   costumeCount,
                   isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
+                  towerHighestFloor,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                 }}
                 equippedTitle={profile?.equipped_title}

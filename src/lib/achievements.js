@@ -64,6 +64,9 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'attendance_200', category: 'attendance', icon: '🏵️', title: '영원한 동반자', desc: '누적 출석 200회', reward: 60000, target: 200, stat: 'attendanceTotal' },
 
   { key: 'founder', category: 'special', icon: '🌟', title: '얼리버드', desc: '2026년 8월 1일 이전 가입', reward: 5000, target: 1, stat: 'isFounder' },
+
+  { key: 'tower_10', category: 'special', icon: '🗼', title: '탑의 초입', desc: '무한의 탑 10층 돌파', reward: 4000, target: 10, stat: 'towerHighestFloor' },
+  { key: 'tower_30', category: 'special', icon: '🏯', title: '구름 위 수련자', desc: '무한의 탑 30층 돌파', reward: 15000, target: 30, stat: 'towerHighestFloor' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {

@@ -276,6 +276,9 @@
 **073_tower_prevent_duplicate_sessions.sql** — 보안 수정
 - `enter_tower` 재정의 — 072의 무제한 전환으로 새로 생긴 "중복 미클레임 세션으로 같은 층수 골드 반복 수령" 파밍 경로를 멱등성 체크로 차단. 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
 
+**074_tower_achievements.sql** — 신규 콘텐츠
+- `claim_achievement`에 업적 2종 추가: 무한의 탑 10층/30층 돌파. 반환타입 그대로라 DROP 불필요, 29개 업적키 diff 재검증 완료
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
