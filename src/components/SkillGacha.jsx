@@ -15,7 +15,7 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
   async function handleDraw(count) {
     setError('');
     if (gold < cost) {
-      showToast('골드가 부족합니다.', 'error');
+      showToast(`골드가 ${(cost - gold).toLocaleString()} 부족해요.`, 'error');
       setError('골드가 부족합니다.');
       return;
     }
