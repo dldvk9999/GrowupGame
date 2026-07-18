@@ -231,6 +231,9 @@
 **058_monster_nickname.sql**
 - `set_monster_nickname(p_nickname)` RPC 신설 — 001부터 있었지만 미사용이던 `owned_monsters.nickname` 컬럼을 마이페이지 애칭 기능으로 연결. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
 
+**059_full_set_achievement.sql**
+- `claim_achievement`에 업적 1종 추가: "완벽한 세트"(`full_set_equipped`, 057 세트효과 판정 로직 재사용). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

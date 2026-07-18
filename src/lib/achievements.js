@@ -52,12 +52,14 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
+  { key: 'full_set_equipped', category: 'gear', icon: '🎽', title: '완벽한 세트', desc: '4슬롯을 전부 같은 등급으로 장착하기', reward: 3000, target: 1, stat: 'fullSetEquipped' },
+
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {
-  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', worldboss: '🐉 월드보스', attendance: '📅 출석',
+  growth: '🌱 성장', job: '🎖️ 전직', stage: '🗺️ 스테이지', gacha: '🎰 뽑기', pvp: '🥊 PvP', worldboss: '🐉 월드보스', gear: '🎽 장비', attendance: '📅 출석',
 };
 
 /** 내가 이미 수령한 업적 키 목록 */

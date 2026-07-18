@@ -67,7 +67,7 @@
 
 ### 카탈로그 (client, `src/lib/achievements.js`)
 
-`ACHIEVEMENT_CATALOG`는 정적 배열로 22개 업적을 7개 카테고리(성장/전직/스테이지/뽑기/PvP/월드보스/출석)로 분류함. 서버 RPC의 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적을 추가할 때는 반드시 카탈로그와 `claim_achievement` RPC 양쪽을 같이 수정**해야 함(한쪽만 고치면 클라 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치가 생김).
+`ACHIEVEMENT_CATALOG`는 정적 배열로 23개 업적을 8개 카테고리(성장/전직/스테이지/뽑기/PvP/월드보스/장비/출석)로 분류함. 서버 RPC의 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적을 추가할 때는 반드시 카탈로그와 `claim_achievement` RPC 양쪽을 같이 수정**해야 함(한쪽만 고치면 클라 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치가 생김).
 
 | 카테고리 | 업적 예시 | 기준 |
 |---|---|---|
@@ -77,6 +77,7 @@
 | 🎰 뽑기 | 통산 100/1000/5000회 | 스킬(`total_skill_draws`) + 장비 4슬롯(`equipment_gacha_progress.total_draws`) 합산 |
 | 🥊 PvP | 첫 승/10승/50승 | `profiles.pvp_wins` (053에서 첫 승 추가) |
 | 🐉 월드보스 | 첫 참여 | `world_boss_contributions`에 피해량 1 이상인 행이 있는지(전체 주 대상, 053에서 추가) |
+| 🎽 장비 | 완벽한 세트 | 4슬롯 전부 같은 등급으로 장착(`057`의 세트효과 판정 로직 재사용, 059에서 추가) |
 | 📅 출석 | 통산 7회/30회 | `attendance_state.total_claim_count` |
 
 ### 프로그레스 표시 최적화

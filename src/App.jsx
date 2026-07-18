@@ -4,7 +4,8 @@ import { getMyProfile, signOut } from './lib/auth';
 import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/monsters';
 import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
-import { fetchInventory, getTotalEquipmentBonus } from './lib/inventory';
+import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib/inventory';
+import { getItem } from './lib/itemCatalog';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -750,6 +751,15 @@ export default function App() {
                     + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
                   pvpWins: profile?.pvp_wins ?? 0,
                   worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
+                  fullSetEquipped: (() => {
+                    const equippedRarities = {};
+                    for (const row of inventory) {
+                      if (!row.equipped) continue;
+                      const item = getItem(row.item_key);
+                      if (item) equippedRarities[item.slot] = item.rarity;
+                    }
+                    return isFullSetEquipped(equippedRarities) ? 1 : 0;
+                  })(),
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                 }}
                 equippedTitle={profile?.equipped_title}
