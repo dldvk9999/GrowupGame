@@ -211,6 +211,11 @@
 - 068(fetch_element_popularity): owned_monsters를 security definer로 집계하지만 반환값이 속성별 인원수/비율뿐이라 개인 식별정보 없음
 - 069(출석 마일스톤): claim_attendance는 전혀 안 건드리고 claim_achievement에 CASE만 추가, diff로 기존 로직(추천보너스 포함) 완전 보존 확인. 클라/서버 26개 업적키 재검증 완료(일치)
 
+### 20차 점검 — 070 얼리버드업적, 게임가이드 갱신
+
+- 070(founder 업적/칭호): claim_achievement/set_equipped_title 둘 다 CASE 분기만 추가, 반환타입 변경 없어 DROP 불필요. created_at 비교만 하는 단순 로직이라 위험 요소 없음. 27개 업적키 diff 재검증 완료
+- 게임가이드 갱신은 순수 정적 텍스트 콘텐츠, 서버 무관
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(그리고 이 프로젝트에서 가장 큰) 구조적 한계임.
