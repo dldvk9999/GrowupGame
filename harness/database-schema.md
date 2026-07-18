@@ -240,6 +240,9 @@
 **061_costume_collector_achievement.sql**
 - `claim_achievement`에 업적 1종 추가: "코스튬 수집가"(`costume_collector`, PvP 코스튬 5종 이상). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 
+**062_golden_monster_event.sql** — 신규 콘텐츠
+- `grant_idle_reward` 재정의(반환타입 `integer`→`table(gold,is_golden)`, DROP FUNCTION 선행) — 자동사냥 처치마다 서버가 5% 확률로 "황금 몬스터" 판정해서 골드 3배 지급. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

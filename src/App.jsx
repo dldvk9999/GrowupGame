@@ -310,12 +310,15 @@ export default function App() {
   async function handleIdleGain(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
     try {
-      const [, grantedGold] = await Promise.all([
+      const [, idleReward] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
         grantIdleReward(chapter, grownBase.level),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
+      setProfile((p) => ({ ...p, gold: p.gold + idleReward.gold }));
       bumpMission('kill_monsters', 1);
+      if (idleReward.isGolden) {
+        showToast(`🌟 황금 몬스터 발견! 골드 3배 획득 (+${idleReward.gold.toLocaleString()})`, 'success');
+      }
     } catch (err) {
       console.error('자동 사냥 저장 실패', err);
     }
