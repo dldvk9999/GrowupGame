@@ -3,6 +3,8 @@ import { updateNickname, checkNicknameAvailable, setReferrer, fetchMyReferralCou
 import { setMonsterNickname } from '../lib/monsters';
 import { fetchClaimedAchievements, ACHIEVEMENT_CATALOG } from '../lib/achievements';
 import { getPvpTier } from '../lib/pvpTier';
+import { speciesById } from '../lib/speciesData';
+import { scaleStats } from '../lib/growth';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, onMonsterNicknameChange }) {
@@ -232,6 +234,35 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
               🐉 용의 버프 적용 중{dragonBuffRemaining && ` (${dragonBuffRemaining} 남음)`} — 전투 시 위 최종 공격력·방어력이 20배로 적용돼요.
             </p>
           )}
+        </div>
+      )}
+
+      {activeMonster && speciesById[activeMonster.speciesId] && (
+        <div className="stat-breakdown-card">
+          <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>📈 성장 곡선 미리보기</h3>
+          <p className="mypage-locked-hint" style={{ marginTop: 0 }}>
+            지금 전직 단계({activeMonster.unlockedJobTier ?? 0}차) 기준으로, 레벨만 올랐을 때의 예상 기본 스탯이에요. (장비/스킬 보너스는 미포함, 진화·추가 전직 시 더 커질 수 있어요)
+          </p>
+          <table className="stat-breakdown-table">
+            <thead>
+              <tr><th>레벨</th><th>ATK</th><th>DEF</th><th>HP</th></tr>
+            </thead>
+            <tbody>
+              {[activeMonster.level, activeMonster.level + 10, activeMonster.level + 30, activeMonster.level + 50]
+                .filter((lv, i, arr) => arr.indexOf(lv) === i && lv <= 200)
+                .map((lv) => {
+                  const projected = scaleStats(speciesById[activeMonster.speciesId], lv, activeMonster.unlockedJobTier ?? 0);
+                  return (
+                    <tr key={lv} className={lv === activeMonster.level ? 'stat-breakdown-total' : ''}>
+                      <td>Lv.{lv}{lv === activeMonster.level ? ' (현재)' : ''}</td>
+                      <td>{projected.atk.toLocaleString()}</td>
+                      <td>{projected.def.toLocaleString()}</td>
+                      <td>{projected.maxHp.toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
         </div>
       )}
 
