@@ -1149,6 +1149,24 @@ button {
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
 .patch-note-tab-btn { position: relative; }
 .game-guide-section { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
+.theme-picker { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+.theme-swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border-soft);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s var(--ease-soft), border-color 0.2s var(--ease-soft);
+}
+.theme-swatch:hover { transform: scale(1.08); }
+.theme-swatch.active { border-color: #fff; transform: scale(1.05); }
 
 /* ---------- 에러 바운더리 ---------- */
 .error-boundary-screen {

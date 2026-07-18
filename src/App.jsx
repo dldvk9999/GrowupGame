@@ -7,6 +7,7 @@ import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib/inventory';
 import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
+import { applyTheme, getSavedTheme } from './lib/theme';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -99,6 +100,11 @@ export default function App() {
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const [freeDrawUsedToday, setFreeDrawUsedToday] = useState(null); // null=로딩중
   const [costumeCount, setCostumeCount] = useState(0);
+
+  // 저장된 테마 컬러를 앱 시작 시 1회 적용(로그인 여부와 무관, 로그인 화면부터 바로 반영)
+  useEffect(() => {
+    applyTheme(getSavedTheme());
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
