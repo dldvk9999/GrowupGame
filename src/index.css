@@ -734,6 +734,17 @@ button {
 .pvp-power-value { font-size: 28px; font-weight: 800; color: var(--accent-gold); }
 .pvp-record { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 .pvp-win-streak { font-size: 12px; color: var(--accent-gold); font-weight: 700; margin-top: 4px; }
+.pvp-tier-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+}
+.pvp-tier-next { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 .pvp-fight-btn { width: 100%; margin-top: 10px; padding: 14px; font-size: 15px; }
 
 .pvp-result-card {

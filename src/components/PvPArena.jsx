@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchMyCombatPower, startPvpBattle, fetchPvpHistory } from '../lib/pvp';
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
+import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
 import { showToast } from '../lib/toast';
 import PvPBattleScene from './PvPBattleScene';
 
@@ -67,12 +68,19 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     return n;
   })();
 
+  const myTier = getPvpTier(profile?.pvp_wins);
+  const winsToNext = getWinsToNextTier(profile?.pvp_wins);
+
   return (
     <div className="pvp-arena">
       <div className="pvp-power-card">
+        <span className={`pvp-tier-badge pvp-tier-${myTier.key}`} style={{ borderColor: myTier.color, color: myTier.color }}>
+          {myTier.icon} {myTier.label}
+        </span>
         <span className="pvp-power-label">나의 전투력</span>
         <span className="pvp-power-value">{myPower != null ? myPower.toLocaleString() : '-'}</span>
         <span className="pvp-record">🏆 {profile?.pvp_wins ?? 0}승 · 💀 {profile?.pvp_losses ?? 0}패</span>
+        {winsToNext != null && <span className="pvp-tier-next">다음 티어까지 {winsToNext}승</span>}
         {winStreak >= 2 && <span className="pvp-win-streak">🔥 {winStreak}연승 중!</span>}
       </div>
 
