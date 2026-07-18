@@ -421,7 +421,10 @@ export default function App() {
       setProfile((p) => ({ ...p, gold: p.gold + reward.gold }));
       setTowerHighestFloor(reward.newHighestFloor);
       bumpMission('kill_monsters', 1);
-      if (reward.isNewRecord) {
+      if (reward.isNewRecord && reward.newHighestFloor % 10 === 0) {
+        setHasUnreadMail(true);
+        showToast(`🗼 ${reward.newHighestFloor}층 돌파! 축하 보너스가 우편함에 도착했어요.`, 'success');
+      } else if (reward.isNewRecord) {
         showToast(`🗼 신기록! ${reward.newHighestFloor}층 달성!`, 'success');
       }
     } catch (err) {

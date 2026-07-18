@@ -279,6 +279,9 @@
 **074_tower_achievements.sql** — 신규 콘텐츠
 - `claim_achievement`에 업적 2종 추가: 무한의 탑 10층/30층 돌파. 반환타입 그대로라 DROP 불필요, 29개 업적키 diff 재검증 완료
 
+**075_tower_milestone_bonus.sql** — 신규 콘텐츠
+- `claim_tower_floor` 재정의(반환타입 그대로, DROP 불필요) — 10층 단위 신기록 돌파 시 층수×800(100만 상한) 골드 축하 우편 자동 발송. 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
