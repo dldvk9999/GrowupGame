@@ -15,7 +15,8 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
 
   useEffect(() => {
     fetchMyCombatPower().then(setMyPower).catch(() => {});
-  }, []);
+    loadHistory(); // 연승 스트릭 표시를 위해 처음부터 로드(최근 20개, 가벼운 쿼리)
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function loadHistory() {
     if (!profile?.id) return;
@@ -43,7 +44,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     setMyPower(res.my_power);
     onBattleResolved(res);
     setFighting(false);
-    if (showHistory) loadHistory(); // 전적 목록이 열려있으면 방금 결과도 바로 반영
+    loadHistory(); // 연승 스트릭 표시와 전적 목록 둘 다 즉시 반영되도록 항상 갱신
     if (res.result === 'win') {
       showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
     } else {
@@ -55,12 +56,24 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     ? getDisplaySpriteKey(activeMonster.speciesId, activeMonster.element, activeMonster.unlockedJobTier ?? 0)
     : undefined;
 
+  // 최근 전적(최신순) 맨 앞부터 'win'이 연속되는 개수 = 현재 연승 스트릭
+  const winStreak = (() => {
+    if (!history) return 0;
+    let n = 0;
+    for (const h of history) {
+      if (h.result === 'win') n++;
+      else break;
+    }
+    return n;
+  })();
+
   return (
     <div className="pvp-arena">
       <div className="pvp-power-card">
         <span className="pvp-power-label">나의 전투력</span>
         <span className="pvp-power-value">{myPower != null ? myPower.toLocaleString() : '-'}</span>
         <span className="pvp-record">🏆 {profile?.pvp_wins ?? 0}승 · 💀 {profile?.pvp_losses ?? 0}패</span>
+        {winStreak >= 2 && <span className="pvp-win-streak">🔥 {winStreak}연승 중!</span>}
       </div>
 
       <p className="stage-select-hint">
