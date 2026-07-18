@@ -127,3 +127,7 @@
 - "월드보스 도전"은 `worldBossProgress.attemptsUsed > 0`(오늘 한 번이라도 도전했는지)로 판정 — 클리어 여부가 아니라 "참여했는지"만 봄(어차피 공용 보스라 개인 클리어 개념이 없음)
 - 클릭하면 `App.jsx`가 이미 갖고 있던 `dungeonActiveType`(던전 탭 내부 서브탭 controlled state)을 `'worldboss'`로 직접 세팅해서, 던전 탭의 기본 서브탭이 아니라 정확히 월드보스 화면으로 한 번에 이동함
 - `freeDrawUsedToday`는 이 위젯을 만들면서 처음으로 `App.jsx` 최상위 state로 끌어올림(049 배포 당시엔 `Shop.jsx`가 자체적으로 로컬 state로만 관리했었음) — 로그인 시점 `Promise.all`에 포함시켜서 로그아웃 시 초기화 목록에도 추가함
+
+### 코스튬 수집가 업적 (061)
+
+PvP 코스튬 5종 이상 보유하면 달성. `pvp_costume_inventory` 개수를 서버가 직접 세서 검증(`claim_achievement`의 `costume_collector` 분기). 진행도 표시는 `App.jsx`가 로그인 시점에 `fetchMyCostumes()`로 조회한 개수를 그대로 씀 — PvP 상점에서 새로 사도 다음 로그인까지는 즉시 반영 안 되지만(다른 몇몇 스탯과 동일한 지연 패턴), 실제 수령 가능 여부는 서버가 항상 최신 상태로 재검증하므로 문제없음.

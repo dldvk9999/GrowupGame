@@ -6,6 +6,7 @@ import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib/inventory';
 import { getItem } from './lib/itemCatalog';
+import { fetchMyCostumes } from './lib/pvp';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -97,6 +98,7 @@ export default function App() {
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
   const [freeDrawUsedToday, setFreeDrawUsedToday] = useState(null); // null=로딩중
+  const [costumeCount, setCostumeCount] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -161,12 +163,13 @@ export default function App() {
       setHasUnreadMail(false);
       setAttendanceState(null);
       setFreeDrawUsedToday(null);
+      setCostumeCount(0);
       setLoginAt(null);
       return;
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -182,6 +185,7 @@ export default function App() {
         fetchAttendanceState(userId).catch(() => null),
         hasEverParticipatedInWorldBoss(userId).catch(() => false),
         fetchDailyFreeDrawState(userId).catch(() => null),
+        fetchMyCostumes(userId).catch(() => new Set()),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -197,6 +201,7 @@ export default function App() {
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
       setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
+      setCostumeCount(costumes.size);
       setLoginAt(new Date().toISOString());
 
       if (!monster) {
@@ -762,6 +767,7 @@ export default function App() {
                     }
                     return isFullSetEquipped(equippedRarities) ? 1 : 0;
                   })(),
+                  costumeCount,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                 }}
                 equippedTitle={profile?.equipped_title}
