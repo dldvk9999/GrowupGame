@@ -26,3 +26,7 @@
 ## claim_achievement 재정의 (065)
 
 053/059/060/061에서 계속 재정의되어 온 `claim_achievement`에 "레벨10 업적 달성 시 추천인 보너스 지급" 로직만 추가. 반환타입(`integer`)은 그대로라 DROP FUNCTION 불필요 — 배포 전 24개 업적 CASE 전부가 이전 버전(061)과 diff로 정확히 일치함을 확인함.
+
+## 내 추천 현황 표시
+
+마이페이지에 "내가 추천한 친구" 수를 보여줌(`fetchMyReferralCount`) — `profiles.referred_by = 내ID`인 행 개수를 세는 것뿐이라, `profiles` 테이블이 이미 "누구나 조회 가능" RLS라 별도 RPC 없이 클라이언트가 직접 count 쿼리로 조회함(랭킹/월드보스 순위 조회와 동일한 패턴). 1명 이상 추천했을 때만 행이 보임.

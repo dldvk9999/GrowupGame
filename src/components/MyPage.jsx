@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { updateNickname, checkNicknameAvailable, setReferrer } from '../lib/auth';
+import { useState, useEffect } from 'react';
+import { updateNickname, checkNicknameAvailable, setReferrer, fetchMyReferralCount } from '../lib/auth';
 import { setMonsterNickname } from '../lib/monsters';
 import MonsterDex from './MonsterDex';
 
@@ -8,6 +8,12 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
   const [referrerDone, setReferrerDone] = useState(false);
+  const [myReferralCount, setMyReferralCount] = useState(null);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    fetchMyReferralCount(session.user.id).then(setMyReferralCount).catch(() => setMyReferralCount(null));
+  }, [session?.user?.id]);
 
   // 가입 후 24시간이 지났으면 클라이언트에서도 미리 폼을 숨김(서버가 최종 검증은 항상 다시 함)
   const signupHoursAgo = profile?.created_at ? (Date.now() - new Date(profile.created_at)) / (1000 * 60 * 60) : 999;
@@ -138,6 +144,9 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
         )}
         {petNameError && <p className="auth-error">{petNameError}</p>}
         <div className="mypage-row"><span>클리어한 스테이지</span><strong>{clearedCount} / {totalStages}</strong></div>
+        {myReferralCount !== null && myReferralCount > 0 && (
+          <div className="mypage-row"><span>내가 추천한 친구</span><strong>🤝 {myReferralCount}명</strong></div>
+        )}
       </div>
 
       <MonsterDex

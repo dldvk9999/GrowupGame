@@ -68,3 +68,13 @@ export async function setReferrer(referrerNickname) {
   const { error } = await supabase.rpc('set_referrer', { p_referrer_nickname: referrerNickname });
   if (error) throw new Error(error.message);
 }
+
+/** 내가 추천한 사람 수(profiles.referred_by = 나) - RLS가 "누구나 조회 가능"이라 직접 count 쿼리 가능 */
+export async function fetchMyReferralCount(userId) {
+  const { count, error } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('referred_by', userId);
+  if (error) throw error;
+  return count ?? 0;
+}
