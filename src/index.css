@@ -10,9 +10,13 @@
   --accent-gold: #f2b705;
   --accent-heal: #4fd67a;
   --danger: #ff4d6d;
-  --radius-lg: 16px;
-  --radius-md: 10px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
   --surface-1: #232847;
+  --shadow-soft: 0 4px 16px rgba(5, 6, 16, 0.35);
+  --shadow-lift: 0 8px 24px rgba(5, 6, 16, 0.45);
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * { box-sizing: border-box; }
@@ -66,7 +70,8 @@ button {
   flex-wrap: wrap;
   gap: 8px;
   padding: 14px 24px;
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px solid rgba(51, 58, 92, 0.5);
+  box-shadow: 0 4px 20px rgba(5, 6, 16, 0.25);
   background: rgba(15, 18, 32, 0.7);
   backdrop-filter: blur(6px);
   position: sticky;
@@ -197,14 +202,19 @@ button {
   font-weight: 600;
   font-size: 14px;
   color: #fff;
-  transition: transform 0.1s ease, opacity 0.2s;
+  box-shadow: 0 2px 8px rgba(5, 6, 16, 0.25);
+  transition: transform 0.18s var(--ease-soft), box-shadow 0.18s var(--ease-soft), opacity 0.2s, filter 0.18s ease;
 }
-.btn:active { transform: scale(0.97); }
+.btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(5, 6, 16, 0.3); filter: brightness(1.06); }
+.btn:active { transform: scale(0.97) translateY(0); }
+.btn:disabled { cursor: default; }
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--border-soft);
   color: var(--text-secondary);
+  box-shadow: none;
 }
+.btn-ghost:hover:not(:disabled) { border-color: var(--text-secondary); box-shadow: none; }
 .btn-neutral {
   background: var(--bg-panel-2);
   border: 1px solid var(--border-soft);
@@ -221,10 +231,11 @@ button {
   margin: 0 auto;
 }
 .auth-card {
-  background: var(--bg-panel);
+  background: linear-gradient(165deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 32px 28px;
+  box-shadow: var(--shadow-lift);
 }
 .auth-title {
   margin: 0;
@@ -277,12 +288,13 @@ button {
 .field input {
   background: var(--bg-panel-2);
   border: 1px solid var(--border-soft);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   color: var(--text-primary);
   font-size: 14px;
+  transition: border-color 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
 }
-.field input:focus { outline: 2px solid var(--accent-fire); }
+.field input:focus { outline: none; border-color: var(--accent-fire); box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.2); }
 .hint { font-size: 12px; color: var(--text-muted); }
 .hint.ok { color: var(--accent-heal); }
 .hint.bad { color: var(--danger); }
@@ -301,10 +313,11 @@ button {
 /* ---------- 스토리 화면 ---------- */
 .story-screen { width: 100%; max-width: 620px; margin: 0 auto; }
 .story-card {
-  background: var(--bg-panel);
+  background: linear-gradient(165deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-lg);
   padding: 36px 32px;
+  box-shadow: var(--shadow-lift);
 }
 .story-card h2 {
   margin: 0 0 4px;
@@ -454,10 +467,11 @@ button {
 .bar-track {
   height: 10px;
   background: var(--bg-panel-2);
-  border-radius: 6px;
+  border-radius: 999px;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
-.bar-fill { height: 100%; transition: width 0.2s ease-out; }
+.bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s var(--ease-soft); }
 
 .exp-bar-wrap { margin-bottom: 14px; }
 .exp-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
@@ -551,12 +565,17 @@ button {
   background: transparent;
   color: var(--text-secondary);
   padding: 10px 4px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 13px;
   white-space: nowrap;
+  transition: background 0.2s var(--ease-soft), color 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
 }
-.tab-btn.active { background: var(--accent-fire); color: #fff; }
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--accent-fire), #ff7a3d);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(255, 90, 31, 0.35);
+}
 
 .gold-display {
   font-size: 13px;
@@ -610,14 +629,16 @@ button {
   flex-direction: column;
   gap: 6px;
   padding: 10px 14px;
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border-soft);
   background: rgba(26, 30, 51, 0.95);
   backdrop-filter: blur(6px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   text-align: left;
   cursor: default;
+  transition: transform 0.2s var(--ease-soft);
 }
+.mission-fab:hover { transform: translateY(-2px); }
 .mission-fab-number { font-size: 10px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.03em; }
 .mission-fab-body { display: flex; align-items: center; gap: 10px; }
 .mission-fab-icon { font-size: 22px; flex-shrink: 0; }
@@ -698,6 +719,7 @@ button {
   border-radius: var(--radius-lg);
   padding: 20px;
   margin-bottom: 14px;
+  box-shadow: var(--shadow-soft);
 }
 .pvp-power-label { font-size: 12px; color: var(--text-muted); }
 .pvp-power-value { font-size: 28px; font-weight: 800; color: var(--accent-gold); }
@@ -712,6 +734,7 @@ button {
   border: 1px solid var(--border-soft);
   background: var(--bg-panel);
   text-align: center;
+  box-shadow: var(--shadow-soft);
 }
 .pvp-result-card.win { border-color: var(--accent-heal); }
 .pvp-result-card.lose { border-color: var(--danger); }
@@ -795,9 +818,10 @@ button {
   border-radius: var(--radius-lg);
   padding: 16px;
   margin: 12px 0;
+  box-shadow: var(--shadow-soft);
 }
 .worldboss-hp-title { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-.worldboss-cleared-badge { font-size: 11px; color: var(--accent-heal); border: 1px solid var(--accent-heal); border-radius: 6px; padding: 1px 6px; }
+.worldboss-cleared-badge { font-size: 11px; color: var(--accent-heal); border: 1px solid var(--accent-heal); border-radius: 999px; padding: 1px 8px; }
 .worldboss-hp-track { height: 16px; }
 .worldboss-hp-fill { background: linear-gradient(90deg, #d94aff, #ff5a1f); }
 .worldboss-hp-numbers { text-align: center; font-size: 13px; font-weight: 700; margin-top: 6px; }
@@ -1033,8 +1057,14 @@ button {
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
+  transition: background 0.2s var(--ease-soft), color 0.2s var(--ease-soft), border-color 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
 }
-.shop-tab.active { background: var(--accent-fire); color: #fff; border-color: var(--accent-fire); }
+.shop-tab.active {
+  background: linear-gradient(135deg, var(--accent-fire), #ff7a3d);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 10px rgba(255, 90, 31, 0.35);
+}
 .shop-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; }
 .shop-grid {
   display: grid;
@@ -1052,7 +1082,10 @@ button {
   align-items: center;
   gap: 6px;
   text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
 }
+.shop-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
 .shop-card-icon { font-size: 22px; }
 .shop-card-stat { font-size: 12px; color: var(--text-secondary); }
 .shop-card-price { font-size: 12px; color: var(--accent-gold); }
@@ -1069,6 +1102,7 @@ button {
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
   padding: 10px 14px;
+  transition: border-color 0.2s var(--ease-soft);
 }
 .inventory-row--equipped {
   border-color: var(--accent-gold);
@@ -1103,13 +1137,13 @@ button {
 }
 
 /* ---------- 패치노트 ---------- */
-.patch-note-entry { margin-bottom: 20px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.patch-note-entry { margin-bottom: 20px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 .patch-note-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
 .patch-note-header strong { font-size: 14px; }
 .patch-note-date { font-size: 11px; color: var(--text-muted); }
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
 .patch-note-tab-btn { position: relative; }
-.game-guide-section { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.game-guide-section { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 
 /* ---------- 에러 바운더리 ---------- */
 .error-boundary-screen {
@@ -1174,12 +1208,14 @@ button {
   font-size: 11px;
   color: var(--text-secondary);
   cursor: pointer;
+  transition: border-color 0.2s var(--ease-soft), color 0.2s var(--ease-soft);
 }
+.daily-checklist-item:not(:disabled):hover { border-color: var(--accent-gold); color: var(--text-primary); }
 .daily-checklist-item:disabled { cursor: default; }
 .daily-checklist-item.done { opacity: 0.55; text-decoration: line-through; }
 
 /* ---------- 마이페이지 능력치 상세 ---------- */
-.stat-breakdown-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.stat-breakdown-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 .stat-breakdown-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .stat-breakdown-table th, .stat-breakdown-table td { text-align: right; padding: 6px 4px; }
 .stat-breakdown-table th:first-child, .stat-breakdown-table td:first-child { text-align: left; color: var(--text-secondary); }
@@ -1255,8 +1291,9 @@ button {
 .mypage-row span { color: var(--text-secondary); }
 .mypage-row--petname { flex-wrap: wrap; gap: 8px; }
 .petname-edit-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.petname-edit-row input { width: 120px; padding: 6px 8px; border-radius: var(--radius-sm, 6px); border: 1px solid var(--border-soft); background: var(--bg-panel); color: var(--text-primary); font-size: 13px; }
-.referral-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.petname-edit-row input { width: 120px; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--bg-panel); color: var(--text-primary); font-size: 13px; transition: border-color 0.2s var(--ease-soft); }
+.petname-edit-row input:focus { outline: none; border-color: var(--accent-fire); }
+.referral-card { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 .mypage-subtitle { font-size: 15px; margin: 20px 0 10px; }
 .mypage-locked-hint { font-size: 13px; color: var(--text-muted); }
 .mypage-warning { font-size: 12.5px; color: var(--accent-gold); margin-bottom: 12px; }
@@ -1280,6 +1317,7 @@ button {
   border-radius: var(--radius-lg);
   padding: 20px;
   margin-bottom: 20px;
+  box-shadow: var(--shadow-soft);
 }
 .gacha-level-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
 .gacha-hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 16px; }
@@ -1579,7 +1617,7 @@ button {
   .fighter-slot--player, .fighter-slot--enemy { transform: scale(0.8); }
   .fighter-slot--enemy { transform: scale(0.8) scaleX(-1); }
   .monster-dex-silhouette { width: 40px; height: 40px; font-size: 16px; }
-  .monster-dex { padding: 10px; }
+  .monster-dex { padding: 10px; box-shadow: var(--shadow-soft); }
   .monster-dex-grid { gap: 6px; }
   .leaderboard-row { grid-template-columns: 28px 20px 1fr 44px 60px; font-size: 12px; padding: 6px 8px; }
   .leaderboard-tier { display: none; }
@@ -1680,7 +1718,9 @@ button {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-soft);
   background: var(--bg-panel-2);
+  transition: border-color 0.2s var(--ease-soft), transform 0.2s var(--ease-soft);
 }
+.achievement-row:not(.achievement-row--claimed):hover { border-color: var(--accent-gold); transform: translateY(-1px); }
 .achievement-row--claimed { opacity: 0.6; }
 .achievement-icon { font-size: 22px; flex-shrink: 0; }
 .achievement-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 140px; }
@@ -1712,7 +1752,7 @@ button {
 .achievement-category-count { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 
 /* ---------- 몬스터 도감 ---------- */
-.monster-dex { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
+.monster-dex { margin: 18px 0; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 .monster-dex-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .monster-dex-count { font-size: 12px; color: var(--accent-gold); font-weight: 700; }
 .monster-dex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

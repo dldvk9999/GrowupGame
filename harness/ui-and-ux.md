@@ -81,3 +81,17 @@
 ## 자동사냥 랜덤 대사 (신규 콘텐츠, `lib/idleFlavor.js`)
 
 자동사냥 처치 로그가 매번 "OO 처치! 경험치+골드" 정보만 뜨면 단조로울 수 있어서, 12% 확률로 그 자리에 순수 재미용 대사(`IDLE_FLAVOR_LINES`, 12종)가 대신 뜸. 게임 로직/보상엔 전혀 영향 없는 텍스트 콘텐츠라 마이그레이션 불필요, `lib/idleFlavor.js`의 배열에 새 대사를 자유롭게 추가/수정 가능. `BattleScreen.jsx`의 자동사냥 루프에서 `maybePickIdleFlavor()` 결과가 있으면 그걸 쓰고, 없으면(88% 확률) 기존처럼 정상 처치 정보를 보여줌.
+
+## 전반적인 디자인 톤 완화 (딱딱함 개선)
+
+사용자 피드백으로 전체 UI가 "너무 딱딱한 느낌"이라는 지적을 받아서, 구조는 안 건드리고 시각 속성 위주로 부드럽게 다듬음:
+
+- **디자인 토큰 확장**(`:root`): `--radius-md`를 10px→14px, `--radius-lg`를 16px→20px로 상향(전역 재사용 변수라 이 두 값만 바꿔도 광범위하게 자동 반영됨). `--radius-sm`(10px), `--shadow-soft`/`--shadow-lift`(카드용 그림자 2단계), `--ease-soft`(cubic-bezier 부드러운 이징 커브) 신규 추가
+- **버튼(`.btn`) 기본 클래스**: box-shadow 추가, `hover` 시 살짝 떠오르는 효과(`translateY(-1px)` + 밝기 증가) 추가 — 이전엔 `:active`(눌렀을 때)만 반응하고 `:hover`는 아무 피드백이 없어서 데스크톱에서 밋밋했음
+- **카드류**(`.auth-card`, `.story-card`, `.pvp-power-card`, `.pvp-result-card`, `.shop-card`, `.gacha-panel`, `.worldboss-hp-card`, `.patch-note-entry`, `.game-guide-section`, `.stat-breakdown-card`, `.referral-card`, `.monster-dex` 등): `box-shadow: var(--shadow-soft)` 일괄 추가, 로그인/스토리 카드는 미세한 대각선 그라데이션(`linear-gradient(165deg, ...)`)도 추가해서 완전 납작한 단색보다 입체감을 줌
+- **탭 네비게이션**(`.tab-btn`, `.shop-tab`): active 상태를 단색 배경 대신 그라데이션 + 그림자로 변경, 상태 전환에 `transition` 추가
+- **리스트 행**(`.achievement-row`, `.inventory-row`, `.daily-checklist-item`): hover 시 테두리 색이 부드럽게 바뀌는 전환 추가
+- **진행바**(`.bar-track`/`.bar-fill`): 완전히 둥근 캡슐형(`border-radius: 999px`)으로 변경 + 안쪽 그림자로 홈 파인 느낌 + 채워지는 애니메이션을 더 느긋한 이징으로 변경
+- **인풋 필드**: 포커스 시 딱딱한 2px 아웃라인 대신 부드러운 glow(box-shadow 링) 효과로 변경
+
+이 변경들은 전부 기존 클래스명/구조를 그대로 유지한 채 시각 속성만 조정한 것이라(색상 자체는 거의 그대로 유지, 컴포넌트 마크업 변경 없음), 회귀 위험이 낮음 — 빌드 후 CSS 중괄호 균형 검증 + 정적 HTML 프리뷰를 Playwright로 렌더링해서 그라데이션 색상이 픽셀 단위로 정확한지 확인함(이 샌드박스 환경엔 Supabase 자격증명이 없어서 실제 로그인 후 화면까지는 렌더링 확인이 어려웠음 — 실제 배포본에서 사용자가 직접 확인 필요).
