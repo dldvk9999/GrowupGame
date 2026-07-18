@@ -243,6 +243,9 @@
 **062_golden_monster_event.sql** — 신규 콘텐츠
 - `grant_idle_reward` 재정의(반환타입 `integer`→`table(gold,is_golden)`, DROP FUNCTION 선행) — 자동사냥 처치마다 서버가 5% 확률로 "황금 몬스터" 판정해서 골드 3배 지급. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
 
+**063_chapter_clear_bonus.sql** — 신규 콘텐츠
+- `clear_stage` 재정의(반환타입 그대로, DROP 불필요) — 챕터 보스를 처음 클리어하면 `챕터×5000` 골드 축하 우편 자동 발송. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |

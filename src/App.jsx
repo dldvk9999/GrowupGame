@@ -294,6 +294,8 @@ export default function App() {
   async function handleClear(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
     const userId = session.user.id;
+    const isFirstClear = !clearedStageIds.has(currentStageIndex);
+    const isChapterBoss = currentStageIndex % 10 === 0;
     try {
       const [, grantedGold] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
@@ -302,6 +304,12 @@ export default function App() {
       setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
       setClearedStageIds((prev) => new Set(prev).add(currentStageIndex));
       bumpMission('kill_monsters', 1);
+      // 챕터 보스를 처음 클리어했으면 축하 우편이 갔을 것이므로 뱃지를 바로 띄워줌
+      // (정확한 값은 우편함 진입 시 항상 다시 확인되므로, 여긴 낙관적 신호일 뿐)
+      if (isFirstClear && isChapterBoss) {
+        setHasUnreadMail(true);
+        showToast('🎉 챕터 클리어! 축하 보너스가 우편함에 도착했어요.', 'success');
+      }
     } catch (err) {
       console.error('클리어 저장 실패', err);
     }
