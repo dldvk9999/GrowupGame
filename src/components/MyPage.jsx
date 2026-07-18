@@ -5,6 +5,8 @@ import { fetchClaimedAchievements, ACHIEVEMENT_CATALOG } from '../lib/achievemen
 import { getPvpTier } from '../lib/pvpTier';
 import { speciesById } from '../lib/speciesData';
 import { scaleStats } from '../lib/growth';
+import { showToast } from '../lib/toast';
+import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, onMonsterNicknameChange }) {
@@ -14,6 +16,18 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const [referrerDone, setReferrerDone] = useState(false);
   const [myReferralCount, setMyReferralCount] = useState(null);
   const [myAchievementCount, setMyAchievementCount] = useState(null);
+  const [nicknameCopied, setNicknameCopied] = useState(false);
+
+  async function handleCopyNickname() {
+    try {
+      await navigator.clipboard.writeText(profile?.nickname ?? '');
+      setNicknameCopied(true);
+      playClickSound();
+      setTimeout(() => setNicknameCopied(false), 2000);
+    } catch {
+      showToast('복사에 실패했어요. 닉네임을 직접 알려주세요: ' + (profile?.nickname ?? ''), 'error');
+    }
+  }
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -113,6 +127,9 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           <div className="character-card-title">
             {profile?.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}
             {profile?.nickname}
+            <button type="button" className="nickname-copy-btn" onClick={handleCopyNickname} title="닉네임 복사(친구에게 추천인으로 공유해보세요)">
+              {nicknameCopied ? '✅' : '📋'}
+            </button>
           </div>
           <div className="character-card-sub">
             {activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}

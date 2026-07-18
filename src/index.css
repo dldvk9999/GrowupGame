@@ -1347,7 +1347,17 @@ button {
   box-shadow: var(--shadow-lift);
   text-align: center;
 }
-.character-card-title { font-size: 18px; font-weight: 800; }
+.character-card-title { font-size: 18px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+.nickname-copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s var(--ease-soft);
+}
+.nickname-copy-btn:hover { background: rgba(255, 255, 255, 0.08); }
 .character-card-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; margin-bottom: 14px; }
 .character-card-stats {
   display: grid;
