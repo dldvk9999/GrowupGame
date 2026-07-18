@@ -59,7 +59,7 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
   async function handleBuy(listing) {
     setError('');
     if (currency < listing.price) {
-      showToast('PvP 재화가 부족합니다.', 'error');
+      showToast(`PvP 재화가 ${(listing.price - currency).toLocaleString()} 부족해요.`, 'error');
       return;
     }
     if (owned.has(listing.item_key)) {
