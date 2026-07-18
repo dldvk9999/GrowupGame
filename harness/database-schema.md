@@ -282,6 +282,9 @@
 **075_tower_milestone_bonus.sql** — 신규 콘텐츠
 - `claim_tower_floor` 재정의(반환타입 그대로, DROP 불필요) — 10층 단위 신기록 돌파 시 층수×800(100만 상한) 골드 축하 우편 자동 발송. 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
 
+**076_tower_launch_coupon.sql**
+- `TOWER2026` 쿠폰 시딩(골드15000+에픽무기, 무제한 사용, 2027-06-30 만료) — 무한의 탑 출시 기념
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
