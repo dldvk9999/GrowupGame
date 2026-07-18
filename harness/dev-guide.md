@@ -23,6 +23,14 @@
 - "column reference X is ambiguous" 버그 패턴은 [`security.md`](./security.md) 참고
 - **함수 반환 컬럼을 추가/삭제/타입변경하는 재정의는 `CREATE OR REPLACE FUNCTION`만으로 안 됨** — PostgreSQL은 기존 함수의 리턴 타입(TABLE의 OUT 파라미터 구성)이 다르면 `cannot change return type of existing function` 에러를 내고 배포가 그 자리에서 실패함(050에서 `fetch_leaderboard()`에 `equipped_title` 컬럼을 추가하다가 실제로 발생, GitHub Actions 로그로 확인 후 수정). **반환 컬럼 목록이 바뀌는 재정의를 할 때는 `CREATE OR REPLACE` 앞에 `DROP FUNCTION IF EXISTS 함수명(인자타입...)`을 반드시 먼저 넣을 것.** 반대로 반환 컬럼이 그대로고 함수 몸통(로직)만 바뀌는 경우는 `CREATE OR REPLACE`만으로 충분하고 DROP이 불필요함(이 프로젝트의 절대다수 재정의 패턴). 새 마이그레이션을 작성할 때 함수의 `returns table(...)` 목록을 이전 정의와 diff해서, 컬럼이 하나라도 늘거나 줄거나 이름/타입이 바뀌면 DROP을 추가해야 함을 항상 체크할 것.
 
+## 프론트엔드 안전망 — 에러 바운더리
+
+`main.jsx`에서 `<App />`을 `<ErrorBoundary>`로 감싸둠(`components/ErrorBoundary.jsx`). React는 렌더링 중 처리 안 된 예외가 나면 기본적으로 앱 전체를 unmount시켜서 화면이 완전히 하얗게 깨지는데(사용자는 원인도 모르고 새로고침 외엔 방법이 없음), 이 컴포넌트가 그 예외를 붙잡아서 "오류가 발생했어요 + 새로고침" 복구 화면을 대신 보여줌.
+
+- 게임 로직/서버와는 전혀 관여하지 않는 순수 방어적 UI 안전장치라, 평소(에러가 없을 때)엔 아무 영향도 없음
+- React의 에러 바운더리는 클래스 컴포넌트 API(`componentDidCatch`/`getDerivedStateFromError`)로만 구현 가능(hooks로는 아직 안 됨) — React 프레임워크 자체의 제약이라 이 파일만 예외적으로 클래스 컴포넌트로 작성됨(나머지 전부 함수형 컴포넌트인 이 프로젝트에서 유일한 클래스 컴포넌트)
+- 이벤트 핸들러 안에서 발생하는 에러(예: 버튼 클릭 콜백 안의 예외)는 에러 바운더리가 못 잡음(React의 공식 제약) — 렌더링 중 발생하는 에러만 잡을 수 있음. 이벤트 핸들러 쪽은 각 컴포넌트가 개별적으로 try/catch 하는 기존 패턴을 그대로 유지해야 함
+
 ## 과거에 있었던 CSS 스크롤 버그
 
 `html, body, #root`에 `height: 100%`(고정값)를 주면 콘텐츠가 뷰포트보다 길어질 때(예: 상점 화면) 하단이 스크롤되지 않고 잘리는 문제가 있었음. `min-height: 100%`로 바꿔서 해결함 — 비슷한 "화면 하단 짤림" 이슈 재발 시 이 부분부터 의심할 것(자세한 내용은 [`ui-and-ux.md`](./ui-and-ux.md)).

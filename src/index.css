@@ -1109,6 +1109,26 @@ button {
 .patch-note-tab-btn { position: relative; }
 .game-guide-section { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); }
 
+/* ---------- 에러 바운더리 ---------- */
+.error-boundary-screen {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at top, #1c2140 0%, #0a0c17 65%);
+}
+.error-boundary-card {
+  max-width: 360px;
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+}
+.error-boundary-card h2 { margin: 0 0 12px; }
+.error-boundary-card p { color: var(--text-secondary); margin-bottom: 20px; font-size: 14px; }
+
 /* ---------- 오늘의 할 일 체크리스트 ---------- */
 .daily-checklist {
   display: flex;
