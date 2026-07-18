@@ -45,7 +45,7 @@ export async function claimTowerFloor(sessionId) {
   return { gold: row.gold, newHighestFloor: row.new_highest_floor, isNewRecord: row.is_new_record };
 }
 
-/** 내 최고 도달 층수 + 오늘 시도 횟수 조회 */
+/** 내 최고 도달 층수 조회 */
 export async function fetchMyTowerProgress(userId) {
   const { data, error } = await supabase
     .from('tower_progress')
@@ -54,19 +54,6 @@ export async function fetchMyTowerProgress(userId) {
     .maybeSingle();
   if (error) throw error;
   return data?.highest_floor ?? 0;
-}
-
-/** 오늘 남은 도전 횟수(하루 3회 제한) */
-export async function fetchTowerAttemptsRemainingToday(userId) {
-  const today = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from('tower_attempts')
-    .select('count')
-    .eq('user_id', userId)
-    .eq('attempt_date', today)
-    .maybeSingle();
-  if (error) throw error;
-  return Math.max(0, 3 - (data?.count ?? 0));
 }
 
 /** 최고 도달 층수 랭킹 TOP20 */

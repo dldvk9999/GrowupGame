@@ -13,7 +13,7 @@ import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
-import { enterTower, claimTowerFloor, fetchMyTowerProgress, fetchTowerAttemptsRemainingToday, getTowerFloorMonster } from './lib/tower';
+import { enterTower, claimTowerFloor, fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
 import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { getJobDungeonBoss } from './lib/jobDungeon';
@@ -81,7 +81,6 @@ export default function App() {
   const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage, sessionId } | null
   const [towerBattle, setTowerBattle] = useState(null); // { floor, sessionId } | null
   const [towerHighestFloor, setTowerHighestFloor] = useState(0);
-  const [towerAttemptsRemaining, setTowerAttemptsRemaining] = useState(3);
   const [towerEntering, setTowerEntering] = useState(false);
   const [towerError, setTowerError] = useState('');
   const [dungeonEntering, setDungeonEntering] = useState(false);
@@ -180,13 +179,12 @@ export default function App() {
       setHasClaimedMissionToday(false);
       setTowerBattle(null);
       setTowerHighestFloor(0);
-      setTowerAttemptsRemaining(3);
       setLoginAt(null);
       return;
     }
     try {
       const userId = newSession.user.id;
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, towerAttempts] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -204,7 +202,6 @@ export default function App() {
         fetchDailyFreeDrawState(userId).catch(() => null),
         fetchMyCostumes(userId).catch(() => new Set()),
         fetchMyTowerProgress(userId).catch(() => 0),
-        fetchTowerAttemptsRemainingToday(userId).catch(() => 3),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -222,7 +219,6 @@ export default function App() {
       setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
       setCostumeCount(costumes.size);
       setTowerHighestFloor(towerFloor);
-      setTowerAttemptsRemaining(towerAttempts);
       setHasClaimedMissionToday(false);
       setLoginAt(new Date().toISOString());
 
@@ -398,8 +394,7 @@ export default function App() {
     setTowerError('');
     setTowerEntering(true);
     try {
-      const { sessionId, floor, remainingAttempts } = await enterTower();
-      setTowerAttemptsRemaining(remainingAttempts);
+      const { sessionId, floor } = await enterTower();
       setTowerBattle({ floor, sessionId });
     } catch (err) {
       const message = err.message ?? '입장에 실패했어요.';
@@ -562,6 +557,7 @@ export default function App() {
       {stage === STAGE.GAME && (
         <header className="app-header">
           <span className="app-title">GrowupGame</span>
+          {profile && <span className="app-header-gold-mobile">💰 {profile.gold?.toLocaleString() ?? 0}</span>}
           <div className="app-header-right">
             <HeaderActions
               canInstall={canInstall}
@@ -789,7 +785,6 @@ export default function App() {
                   worldBossEntering={worldBossEntering}
                   worldBossError={worldBossError}
                   towerHighestFloor={towerHighestFloor}
-                  towerAttemptsRemaining={towerAttemptsRemaining}
                   onEnterTower={handleEnterTower}
                   towerEntering={towerEntering}
                   towerError={towerError}

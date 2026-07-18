@@ -75,6 +75,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
 
       <button
         className="btn btn-ghost pvp-history-toggle"
+        style={{ marginBottom: 16 }}
         onClick={() => {
           const next = !showAchLeaderboard;
           setShowAchLeaderboard(next);

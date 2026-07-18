@@ -10,25 +10,28 @@ export default function DailyChecklist({ attendanceClaimedToday, freeDrawUsed, m
     { key: 'mission', label: '가이드미션', done: missionCompleted === true, onClick: null },
   ];
   const doneCount = items.filter((i) => i.done).length;
-
-  if (doneCount === items.length) return null; // 다 했으면 위젯 자체를 숨겨서 화면을 안 가림
+  const allDone = doneCount === items.length;
 
   return (
     <div className="daily-checklist">
-      <span className="daily-checklist-title">📋 오늘의 할 일 ({doneCount}/{items.length})</span>
-      <div className="daily-checklist-items">
-        {items.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={`daily-checklist-item ${item.done ? 'done' : ''}`}
-            onClick={item.onClick ?? undefined}
-            disabled={!item.onClick || item.done}
-          >
-            {item.done ? '✅' : '⬜'} {item.label}
-          </button>
-        ))}
-      </div>
+      <span className="daily-checklist-title">
+        {allDone ? '🎉 오늘 할 일을 모두 완료했어요!' : `📋 오늘의 할 일 (${doneCount}/${items.length})`}
+      </span>
+      {!allDone && (
+        <div className="daily-checklist-items">
+          {items.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`daily-checklist-item ${item.done ? 'done' : ''}`}
+              onClick={item.onClick ?? undefined}
+              disabled={!item.onClick || item.done}
+            >
+              {item.done ? '✅' : '⬜'} {item.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

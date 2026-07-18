@@ -158,11 +158,22 @@ button {
 .mobile-menu-content .gold-display { text-align: center; font-size: 15px; }
 .mobile-menu-content .btn { width: 100%; }
 
+.app-header-gold-mobile {
+  display: none;
+  color: var(--accent-gold);
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
 @media (max-width: 640px) {
   .app-header-right { display: none; }
   .mobile-menu-btn { display: flex; }
   .mobile-menu-backdrop { display: block; }
   .mobile-menu-drawer { display: flex; }
+  .app-header-gold-mobile { display: inline-flex; }
 }
 
 .app-nickname {
@@ -1074,7 +1085,7 @@ button {
 
 /* ---------- 상점 ---------- */
 .shop-screen { width: 100%; }
-.shop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.shop-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 .free-draw-btn { width: 100%; margin-bottom: 12px; }
 .shop-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
 .shop-mode-toggle { display: flex; gap: 6px; margin-bottom: 18px; }

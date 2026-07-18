@@ -270,6 +270,9 @@
 **071_endless_tower.sql** — 신규 던전 콘텐츠
 - `tower_progress`/`tower_attempts`/`tower_sessions` 신설(기존 dungeon_* 테이블과 완전 독립) — 상한 없이 계속 올라가는 도전 모드. `enter_tower`/`claim_tower_floor`/`fetch_tower_leaderboard`/`fetch_my_tower_rank`/`calc_tower_gold` 신설. 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
 
+**072_tower_unlimited_and_reward_boost.sql** — 사용자 피드백 반영
+- `enter_tower` 재정의 — 하루 3회 입장 제한 완전 제거(무제한). `calc_tower_gold` 재정의 — 보상 배율 1.1→1.6(45% 상향), 100만 상한 유지. 둘 다 반환타입 그대로라 DROP 불필요
+
 ## 클라이언트 쓰기 권한 요약 (009 보안패치 이후 기준)
 
 | 테이블/기능 | client 직접 write 가능? | 실제 변경 경로 |
