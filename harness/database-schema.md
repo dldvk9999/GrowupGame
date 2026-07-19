@@ -376,3 +376,6 @@
 
 **097_tower_100_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`에 무한의 탑 100층 돌파 업적 추가. 반환타입 그대로라 DROP 불필요, diff/45개키 재검증 완료
+
+**098_dungeon_daily_combo_bonus.sql** — 신규 던전 콘텐츠
+- `claim_dungeon_reward` 재정의(반환타입에 `combo_bonus` 추가, DROP FUNCTION 포함) — 하루 3회 던전을 전부 클리어하면 즉시 콤보 보너스 8000골드 지급

@@ -439,13 +439,16 @@ export default function App() {
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
         claimDungeonReward(dungeonBattle.sessionId),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + reward.gold }));
+      setProfile((p) => ({ ...p, gold: p.gold + reward.gold + (reward.comboBonus ?? 0) }));
       setDungeonProgress((prev) => ({
         ...prev,
         [dungeonBattle.type]: Math.max(prev[dungeonBattle.type] ?? 0, dungeonBattle.stage),
       }));
       bumpMission('kill_monsters', 1);
-      if (reward.isElite) {
+      if (reward.comboBonus > 0) {
+        playNewRecordSound();
+        showToast(`🔥 오늘 이 던전 입장권을 전부 클리어했어요! 콤보 보너스 +${reward.comboBonus.toLocaleString()}`, 'success');
+      } else if (reward.isElite) {
         playGoldenMonsterSound();
         showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       }
