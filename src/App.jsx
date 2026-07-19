@@ -891,6 +891,7 @@ export default function App() {
                 userId={session.user.id}
                 gold={profile?.gold ?? 0}
                 pvpWins={profile?.pvp_wins ?? 0}
+                hasUnreadMail={hasUnreadMail}
                 onGoldChange={handleGoldChange}
                 onUnreadMailChange={setHasUnreadMail}
                 onPatchNoteSeen={() => setHasNewPatchNote(false)}

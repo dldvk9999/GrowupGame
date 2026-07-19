@@ -29,7 +29,7 @@
 ## 설정 화면
 
 헤더의 "⚙️ 설정" 버튼으로 진입. 서브탭:
-- 우편함 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
+- **우편함**([`mailbox-and-coupons.md`](./mailbox-and-coupons.md)) — 읽지 않은 우편이 있으면 "📮 우편함" 탭 버튼 자체에도 빨간 점이 뜸(사용자 피드백으로 추가, 이전엔 헤더 "⚙️ 설정" 버튼에만 통합 표시가 있어서 정확히 어느 탭에 새 소식이 있는지 알기 어려웠음). `App.jsx`가 이미 들고 있던 `hasUnreadMail`을 `Settings`에 그대로 내려받아서 표시, 별도 서버 호출 없음
 - 업적 — [`attendance-and-achievements.md`](./attendance-and-achievements.md)
 - **게임가이드**(`GameGuide.jsx`, `lib/gameGuide.js`) — 전투/뽑기/전직/던전/PvP/일일루틴 6개 섹션으로 정리한 순수 정적 온보딩 콘텐츠. 서버 데이터 아님, 마이그레이션 없이 텍스트만 수정 가능
 - 쿠폰 입력 — [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)

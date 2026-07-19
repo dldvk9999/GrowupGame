@@ -6,7 +6,7 @@ import PatchNotes from './PatchNotes';
 import GameGuide from './GameGuide';
 import { hasSeenLatestPatchNote, markLatestPatchNoteSeen } from '../lib/patchNotes';
 
-export default function Settings({ userId, gold, pvpWins, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange, onPatchNoteSeen }) {
+export default function Settings({ userId, gold, pvpWins, hasUnreadMail, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange, onPatchNoteSeen }) {
   const [tab, setTab] = useState('mailbox');
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
 
@@ -21,7 +21,9 @@ export default function Settings({ userId, gold, pvpWins, onGoldChange, onUnread
     <div className="settings-screen">
       <h2>설정</h2>
       <div className="shop-tabs">
-        <button className={`shop-tab ${tab === 'mailbox' ? 'active' : ''}`} onClick={() => setTab('mailbox')}>📮 우편함</button>
+        <button className={`shop-tab mail-tab-btn ${tab === 'mailbox' ? 'active' : ''}`} onClick={() => setTab('mailbox')}>
+          📮 우편함{hasUnreadMail && <span className="mail-unread-dot" aria-label="읽지 않은 우편 있음" />}
+        </button>
         <button className={`shop-tab ${tab === 'achievements' ? 'active' : ''}`} onClick={() => setTab('achievements')}>🏆 업적</button>
         <button className={`shop-tab ${tab === 'guide' ? 'active' : ''}`} onClick={() => setTab('guide')}>📘 게임가이드</button>
         <button className={`shop-tab ${tab === 'coupon' ? 'active' : ''}`} onClick={() => setTab('coupon')}>🎟️ 쿠폰 입력</button>
