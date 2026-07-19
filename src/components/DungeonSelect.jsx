@@ -161,7 +161,7 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error }) {
             <div key={tier} className={`job-dungeon-card ${isDone ? 'done' : ''}`}>
               <div className="job-dungeon-tier">{tier}차 전직</div>
               <div className="job-dungeon-boss">{boss.name}</div>
-              <div className="job-dungeon-req">필요 레벨 Lv.{boss.requiredLevel} · 체력 {boss.hp.toLocaleString()}</div>
+              <div className="job-dungeon-req">필요 레벨 Lv.{boss.requiredLevel} · 체력 {boss.hp.toLocaleString()} · ⚔️{boss.atk.toLocaleString()} · 🛡️{boss.def.toLocaleString()}</div>
               {isDone ? (
                 <span className="job-dungeon-done-badge">✅ 완료</span>
               ) : (
