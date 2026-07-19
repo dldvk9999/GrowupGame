@@ -316,3 +316,15 @@
 | `world_boss_sessions` | ❌ | `enter_world_boss`가 발급, `report_world_boss_damage`가 소모(claimed=true) 처리 |
 | `world_boss_contributions` | ❌ (누구나 조회는 가능) | `report_world_boss_damage` RPC 내부에서만 누적 |
 | `chat_messages` | insert 가능(닉네임은 트리거가 덮어씀, 속도제한 트리거 있음) | - |
+
+**077_costume_master_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`/`set_equipped_title`에 "패셔니스타"(costume_master) 업적+칭호 추가 — PvP 코스튬 20종 전부 수집. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**078_fix_tower_ambiguous_floor.sql** — 긴급 버그 수정
+- `enter_tower` 재정의 — 073에서 재발한 ambiguous column 버그 수정(테이블 별칭 추가). 자세한 내용은 [`endless-tower.md`](./endless-tower.md)
+
+**079_dungeon_max_stage_500.sql** — 사용자 피드백 반영
+- `use_dungeon_attempt` 재정의 — 경험치/골드 던전 최고층 10→500 상향. 반환타입 그대로라 DROP 불필요
+
+**080_dungeon_gold_cap_for_500_floors.sql** — 079 후속 긴급 수정
+- `calc_dungeon_gold` 재정의 — 500층 상향으로 골드가 100만 상한을 초과하는 문제(약 103층부터) 발견, 클램프 추가. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

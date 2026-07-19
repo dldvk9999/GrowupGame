@@ -100,7 +100,7 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
     <div>
       <p className="stage-select-hint">
         1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 하루 3번까지 입장 가능(오늘 {remaining}/3회 남음, {resetIn} 후 초기화).
-        {allCleared && ' 최고층까지 전부 클리어했어요! 10층을 반복 도전할 수 있어요.'}
+        {allCleared && ` 최고층까지 전부 클리어했어요! ${DUNGEON_STAGE_COUNT}층을 반복 도전할 수 있어요.`}
       </p>
       {error && <p className="shop-error">{error}</p>}
 
@@ -125,12 +125,11 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
         </button>
       </div>
 
-      <div className="dungeon-progress-track">
-        {Array.from({ length: DUNGEON_STAGE_COUNT }, (_, i) => i + 1).map((s) => (
-          <span key={s} className={`dungeon-progress-dot ${s <= clearedStage ? 'done' : s === currentStage ? 'current' : ''}`}>
-            {s}
-          </span>
-        ))}
+      <div className="dungeon-progress-summary">
+        <span className="dungeon-progress-label">진행도 {clearedStage} / {DUNGEON_STAGE_COUNT}층</span>
+        <span className="bar-track dungeon-progress-bar-track">
+          <span className="bar-fill" style={{ width: `${(clearedStage / DUNGEON_STAGE_COUNT) * 100}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
+        </span>
       </div>
     </div>
   );
