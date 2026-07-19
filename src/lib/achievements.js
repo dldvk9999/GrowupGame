@@ -14,6 +14,7 @@ export const TITLE_BY_ACHIEVEMENT = {
   full_set_equipped: '완벽주의자',
   founder: '얼리버드',
   costume_master: '패셔니스타',
+  power_1m: '종말의 위용',
 };
 
 /** 칭호 장착/해제 (p_achievement_key가 null이면 해제) */
@@ -59,6 +60,10 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'costume_collector', category: 'gear', icon: '👗', title: '코스튬 수집가', desc: 'PvP 코스튬 5종 이상 보유하기', reward: 2000, target: 5, stat: 'costumeCount' },
   { key: 'costume_master', category: 'gear', icon: '👑', title: '패셔니스타', desc: 'PvP 코스튬 20종 전부 수집하기', reward: 10000, target: 20, stat: 'costumeCount' },
+
+  { key: 'power_10k', category: 'special', icon: '💪', title: '강자의 서막', desc: '전투력 10,000 달성', reward: 3000, target: 10000, stat: 'combatPower' },
+  { key: 'power_100k', category: 'special', icon: '🔱', title: '압도적인 힘', desc: '전투력 100,000 달성', reward: 12000, target: 100000, stat: 'combatPower' },
+  { key: 'power_1m', category: 'special', icon: '☄️', title: '종말의 위용', desc: '전투력 1,000,000 달성', reward: 50000, target: 1000000, stat: 'combatPower' },
 
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },

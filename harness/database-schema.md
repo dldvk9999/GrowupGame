@@ -334,3 +334,6 @@
 
 **082_community_stats.sql** — 신규 콘텐츠
 - `fetch_total_achievement_claims()` 신설 — 전체 유저 누적 업적 달성 횟수 집계(개인정보 없음, auth.uid() 불필요라 로그인 전에도 호출 가능). 자세한 내용은 [`account-and-settings.md`](./account-and-settings.md)
+
+**083_combat_power_achievements.sql** — 신규 콘텐츠
+- `claim_achievement`/`set_equipped_title`에 전투력 마일스톤 업적 3종(10K/100K/1M) 추가 — 이미 있는 `fetch_my_combat_power()`(PvP와 동일 계산)로 조작불가능하게 검증. 반환타입 그대로라 DROP 불필요, diff/33개키 재검증. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
+import { fetchMyCombatPower } from '../lib/pvp';
 import { showToast } from '../lib/toast';
 import { playLevelUpSound, playGoldSound } from '../lib/audio';
 
@@ -7,6 +8,8 @@ import { playLevelUpSound, playGoldSound } from '../lib/audio';
  * 업적 목록 화면. stats(현재 진행도 스냅샷)는 App.jsx가 이미 들고 있는 값들을
  * 그대로 내려받아서 별도 서버 호출 없이 프로그레스바를 계산한다.
  * 실제 수령 검증은 claim_achievement RPC가 서버에서 다시 하므로, 여기 계산은 표시용일 뿐.
+ * 전투력만 예외 — App.jsx가 안 들고 있는 값이라, 여기서 fetchMyCombatPower()(PvP와 동일한
+ * 서버 계산, 장비 보너스 포함)로 직접 조회해서 stats에 병합함
  */
 export default function Achievements({ userId, stats, onGoldChange, gold, equippedTitle, onTitleChange }) {
   const [claimedKeys, setClaimedKeys] = useState(null);
@@ -16,6 +19,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const [showAchLeaderboard, setShowAchLeaderboard] = useState(false);
   const [achLeaderboard, setAchLeaderboard] = useState(null);
   const [myAchRank, setMyAchRank] = useState(null);
+  const [combatPower, setCombatPower] = useState(null);
 
   function loadAchLeaderboard() {
     Promise.all([fetchAchievementLeaderboard(), fetchMyAchievementRank()])
@@ -26,7 +30,11 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   useEffect(() => {
     if (!userId) return;
     fetchClaimedAchievements(userId).then(setClaimedKeys).catch(() => setClaimedKeys(new Set()));
+    fetchMyCombatPower().then(setCombatPower).catch(() => setCombatPower(null));
   }, [userId]);
+
+  const statsWithCombatPower = { ...stats, combatPower: combatPower ?? 0 };
+
 
 
   async function handleClaim(achievement) {
@@ -121,7 +129,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
           </h3>
           <div className="achievement-list">
             {catAchievements.map((a) => {
-              const current = stats?.[a.stat] ?? 0;
+              const current = statsWithCombatPower?.[a.stat] ?? 0;
               const claimed = claimedKeys.has(a.key);
               const eligible = current >= a.target;
               const progressPct = Math.min(100, Math.round((current / a.target) * 100));
