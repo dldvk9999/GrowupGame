@@ -750,6 +750,7 @@ button {
   background: var(--bg-panel-2);
   color: var(--text-primary);
 }
+.lobby-chat-form .btn { width: auto; max-width: none; margin: 0; flex-shrink: 0; }
 
 /* ---------- PvP ---------- */
 .pvp-power-card {
@@ -1070,6 +1071,9 @@ button {
   padding: 14px 24px;
   width: 100%;
   max-width: 360px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 .result-actions {
   display: flex;
@@ -1077,6 +1081,7 @@ button {
   justify-content: center;
   flex-wrap: wrap;
 }
+.result-actions .btn { margin: 0; width: auto; flex: 0 1 auto; }
 .chapter-tag {
   width: 22px; height: 22px;
   border-radius: 50%;
@@ -1486,7 +1491,7 @@ button {
 .gacha-reveal-desc { font-size: 12px; color: var(--text-secondary); margin: 4px 0 0; }
 
 .gacha-draw-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-.gacha-draw-buttons .btn { flex: 1; min-width: 120px; font-size: 13px; }
+.gacha-draw-buttons .btn { flex: 1; min-width: 120px; font-size: 13px; margin: 0; width: auto; max-width: none; }
 
 .gacha-result-wrap { margin-top: 16px; }
 .gacha-result-summary { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
