@@ -115,6 +115,13 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
         <div className="dungeon-stage-reward">
           EXP +{d.expReward.toLocaleString()} · 💰 +{d.goldReward.toLocaleString()}
         </div>
+        {(() => {
+          const depthMilestones = [100, 300, 500];
+          const nextDepthMilestone = depthMilestones.find((m) => m > clearedStage);
+          return nextDepthMilestone ? (
+            <p className="mypage-locked-hint" style={{ textAlign: 'center', margin: '4px 0 0' }}>🏅 다음 업적까지 {nextDepthMilestone - clearedStage}층 남음</p>
+          ) : null;
+        })()}
         <button
           className={`btn btn-challenge ${remaining <= 0 ? 'btn-unaffordable' : ''}`}
           disabled={entering}
