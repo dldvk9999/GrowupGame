@@ -331,3 +331,6 @@
 
 **081_guide_mission_cooldown_2s.sql** — 사용자 피드백 반영
 - `claim_mission_reward` 재정의 — 최소 대기시간 20초→2초 축소. 반환타입(public.mission_state) 그대로라 DROP 불필요, diff로 쿨타임 값 하나만 변경됐음을 확인
+
+**082_community_stats.sql** — 신규 콘텐츠
+- `fetch_total_achievement_claims()` 신설 — 전체 유저 누적 업적 달성 횟수 집계(개인정보 없음, auth.uid() 불필요라 로그인 전에도 호출 가능). 자세한 내용은 [`account-and-settings.md`](./account-and-settings.md)

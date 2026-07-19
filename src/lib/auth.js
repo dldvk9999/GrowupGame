@@ -87,3 +87,10 @@ export async function fetchTotalUserCount() {
   if (error) throw error;
   return count ?? 0;
 }
+
+/** 전체 유저가 지금까지 달성한 업적 총 횟수 (로그인 화면 커뮤니티 현황용) */
+export async function fetchTotalAchievementClaims() {
+  const { data, error } = await supabase.rpc('fetch_total_achievement_claims');
+  if (error) throw error;
+  return data ?? 0;
+}

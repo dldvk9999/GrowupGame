@@ -14,6 +14,10 @@
 
 로그인/회원가입 화면 상단에 "👥 N명의 조련사가 함께하고 있어요"를 보여줌 — 커뮤니티가 활발하다는 첫인상을 주는 목적. `profiles`의 SELECT RLS(`using (true)`, `to` 절 없이 전체 role 대상)가 애초에 로그인 전(anon) 상태에도 적용되도록 되어있어서, `fetchTotalUserCount()`가 별도 RPC 없이 `count(*)` 쿼리 하나로 조회함. 조회 실패하거나 0명이면 문구 자체를 숨겨서 어색하지 않게 처리.
 
+### 커뮤니티 현황판 확장 — 전체 업적 달성 횟수 (migration 082, 신규 콘텐츠)
+
+가입자 수 아래에 "🏆 지금까지 N개의 업적이 달성됐어요"도 추가로 표시. `achievement_claims`는 "본인만 조회" RLS라 클라이언트가 직접 count 못하므로, `fetch_total_achievement_claims()`(security definer, 개인 식별정보 없이 총 개수 하나만 반환)로 집계함 — `auth.uid()` 체크가 없어서 로그인 전 화면에서도 호출 가능(068의 `fetch_element_popularity`와 동일한 설계 패턴). 두 줄이 연속으로 표시될 때 CSS 음수 마진이 겹치는 문제를 Playwright로 실측 확인 후 수정(`.auth-user-count + .auth-user-count`로 두 번째 줄부터는 음수 마진 적용 안 되게 분리).
+
 ## 로그아웃 시 상태 초기화
 
 `App.jsx`의 `handleSession(null)` 분기가 로그아웃을 감지해서 게임 데이터 state 전체(`profile`/`activeMonster`/`clearedStageIds`/`inventory`/`equipmentDrawProgress`/`userSkills`/`dungeonAttempts`/`dungeonProgress`/`dungeonBattle`/`jobDungeonBattle`/`worldBoss`/`worldBossProgress`/`worldBossSession`/`mission`/`hasUnreadMail`/`attendanceState`/`loginAt`/`currentStageIndex`/`activeTab` 등)를 초기값으로 리셋함 — 공유 기기에서 A 로그아웃 → B 로그인 시 새 세션 데이터가 로드되기 전까지 A의 잔여 데이터가 화면에 잠깐 보이는 걸 방지. 처음엔 `profile`/`activeMonster`/`loginAt` 몇 개만 초기화하다가 046/049 작업 때 `hasUnreadMail`/`attendanceState`를 빠뜨렸던 걸 계기로, 아예 게임 데이터 state 전체를 리셋하도록 정리함. 순수 UI 트랜지언트 플래그(로딩중 표시, 에러 메시지, 모바일 메뉴 열림 등)는 다음 액션에서 자연히 덮어써지므로 리셋 대상에서 제외함.

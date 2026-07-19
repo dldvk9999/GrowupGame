@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { signIn, signUp, checkNicknameAvailable, fetchTotalUserCount } from '../lib/auth';
+import { signIn, signUp, checkNicknameAvailable, fetchTotalUserCount, fetchTotalAchievementClaims } from '../lib/auth';
 
 export default function AuthScreen({ onAuthed }) {
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup'
@@ -11,9 +11,11 @@ export default function AuthScreen({ onAuthed }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [totalUsers, setTotalUsers] = useState(null);
+  const [totalAchievements, setTotalAchievements] = useState(null);
 
   useEffect(() => {
     fetchTotalUserCount().then(setTotalUsers).catch(() => setTotalUsers(null));
+    fetchTotalAchievementClaims().then(setTotalAchievements).catch(() => setTotalAchievements(null));
   }, []);
 
   async function handleNicknameBlur() {
@@ -56,6 +58,9 @@ export default function AuthScreen({ onAuthed }) {
         <p className="auth-subtitle">키우기 게임에 오신 걸 환영해요</p>
         {totalUsers !== null && totalUsers > 0 && (
           <p className="auth-user-count">👥 {totalUsers.toLocaleString()}명의 조련사가 함께하고 있어요</p>
+        )}
+        {totalAchievements !== null && totalAchievements > 0 && (
+          <p className="auth-user-count">🏆 지금까지 {totalAchievements.toLocaleString()}개의 업적이 달성됐어요</p>
         )}
 
         <div className="auth-tabs">

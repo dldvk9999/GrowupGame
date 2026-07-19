@@ -273,8 +273,10 @@ button {
   color: var(--accent-gold);
   font-size: 12px;
   font-weight: 600;
-  margin: -16px 0 20px;
+  margin: -16px 0 6px;
 }
+.auth-user-count:last-of-type { margin-bottom: 20px; }
+.auth-user-count + .auth-user-count { margin-top: 0; }
 .auth-tabs {
   display: flex;
   border-radius: var(--radius-md);
