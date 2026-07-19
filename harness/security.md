@@ -318,6 +318,10 @@ Leaderboard.jsx 리팩토링은 기존에 이미 검증된 3개 RPC(fetch_leader
 
 fetch_element_popularity(068)와 동일한 안전 패턴(security definer 집계, 개인정보 없음). 신규 공격표면 없음.
 
+### 37차 점검 — 083 전투력업적
+
+fetch_my_combat_power()(PvP/랭킹에서 이미 검증된 서버함수)를 그대로 재사용한 조건 검증이라 조작 불가능. claim_achievement/set_equipped_title CASE만 추가, 반환타입 변경없어 DROP불필요, diff/33개키 재검증 완료. 신규 공격표면 없음.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(그리고 이 프로젝트에서 가장 큰) 구조적 한계임.
