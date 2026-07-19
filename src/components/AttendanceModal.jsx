@@ -63,6 +63,17 @@ export default function AttendanceModal({ attendanceState, onClose, onClaimed })
           하루라도 거르면 1일차부터 다시 시작하니 매일 들러주세요!
         </p>
 
+        {(() => {
+          const total = attendanceState?.total_claim_count ?? 0;
+          const milestones = [7, 30, 100, 200, 365];
+          const next = milestones.find((m) => m > total);
+          return next ? (
+            <p className="stage-select-hint attendance-milestone-hint">
+              🏅 누적 출석 {total}회 — 다음 업적까지 {next - total}회 남음 (설정 &gt; 업적에서 확인)
+            </p>
+          ) : null;
+        })()}
+
         <div className="attendance-grid">
           {DAY_REWARDS.map((reward, i) => {
             const day = i + 1;
