@@ -297,7 +297,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           })()}
           <table className="stat-breakdown-table">
             <thead>
-              <tr><th>레벨</th><th>ATK</th><th>DEF</th><th>HP</th></tr>
+              <tr><th>레벨</th><th>ATK</th><th>DEF</th><th>HP</th><th>전투력</th></tr>
             </thead>
             <tbody>
               {[activeMonster.level, activeMonster.level + 10, activeMonster.level + 30, activeMonster.level + 50]
@@ -310,6 +310,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
                       <td>{projected.atk.toLocaleString()}</td>
                       <td>{projected.def.toLocaleString()}</td>
                       <td>{projected.maxHp.toLocaleString()}</td>
+                      <td>{calculateCombatPower(projected).toLocaleString()}</td>
                     </tr>
                   );
                 })}
