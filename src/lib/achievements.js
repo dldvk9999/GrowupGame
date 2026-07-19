@@ -51,6 +51,8 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'gacha_1000', category: 'gacha', icon: '🎲', title: '뽑기 중독', desc: '스킬+장비 통산 뽑기 1,000회', reward: 5000, target: 1000, stat: 'gachaTotal' },
   { key: 'gacha_5000', category: 'gacha', icon: '💎', title: '뽑기의 화신', desc: '스킬+장비 통산 뽑기 5,000회', reward: 20000, target: 5000, stat: 'gachaTotal' },
 
+  { key: 'skill_collector', category: 'gacha', icon: '📚', title: '만능 마스터', desc: '스킬 50종 전부 보유하기', reward: 25000, target: 50, stat: 'ownedSkillCount' },
+
   { key: 'pvp_win_1', category: 'pvp', icon: '🎯', title: '첫 승리', desc: 'PvP 첫 승 달성', reward: 300, target: 1, stat: 'pvpWins' },
   { key: 'pvp_win_10', category: 'pvp', icon: '🥊', title: '투기장 신인', desc: 'PvP 10승 달성', reward: 1500, target: 10, stat: 'pvpWins' },
   { key: 'pvp_win_50', category: 'pvp', icon: '⚡', title: '투기장 강자', desc: 'PvP 50승 달성', reward: 6000, target: 50, stat: 'pvpWins' },

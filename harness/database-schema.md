@@ -358,3 +358,6 @@
 
 **091_max_enhance_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`에 최대강화(+1000) 업적 추가. 자세한 내용은 [`equipment.md`](./equipment.md)
+
+**092_skill_collector_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`에 스킬 완전수집(50종) 업적 추가. 자세한 내용은 [`skills.md`](./skills.md)

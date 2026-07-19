@@ -89,3 +89,7 @@
 ⚠️ 스킬 아이콘 일부가 특정 기기/브라우저에서 X박스(글자 없음)로 보이는 문제가 있었음 — `stone_throw`(🪨)와 `phoenix_feather`(🪶)가 Unicode 13.0(2020년) 이모지라 오래된 폰트/OS에서 지원이 안 될 수 있었음. 각각 🔨/💖(둘 다 훨씬 오래되고 보편적인 이모지)로 교체함. 추가로 `index.css`의 기본 `font-family`에 `Apple Color Emoji`/`Segoe UI Emoji`/`Noto Color Emoji` 등 이모지 전용 폰트를 폴백으로 추가해서, 특정 이모지가 본문 폰트에 없어도 브라우저가 시스템 이모지 폰트로 대체 렌더링하도록 시스템적으로 보강함.
 
 **새 스킬/아이템에 이모지 아이콘을 넣을 땐 너무 최신(대략 2019년 이후) 이모지는 피할 것.**
+
+## 스킬 완전수집 업적 (migration 092, 신규 콘텐츠)
+
+"만능 마스터" — 50종 스킬을 전부 보유하면 달성. `user_skills`의 `(user_id, skill_key)` unique 제약 덕분에 `count(distinct skill_key)`로 정확히 판정. 코스튬 완전수집(077)과 동일한 성격의 엔드게임 컬렉션 목표. `claim_achievement` CASE만 추가, 반환타입 그대로라 DROP 불필요, diff/42개 키 재검증 완료.
