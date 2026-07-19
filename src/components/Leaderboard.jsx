@@ -4,6 +4,7 @@ import { fetchMyCombatPower } from '../lib/pvp';
 import { fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
 import { fetchReferralLeaderboard, fetchMyReferralRank } from '../lib/auth';
+import { trackRankChange } from '../lib/rankHistory';
 import { showToast } from '../lib/toast';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
@@ -22,23 +23,24 @@ export default function Leaderboard({ profile, activeMonster }) {
         <button className={`shop-tab ${kind === 'gold' ? 'active' : ''}`} onClick={() => setKind('gold')}>💰 재산</button>
       </div>
       {kind === 'power' && <PowerLeaderboard profile={profile} activeMonster={activeMonster} />}
-      {kind === 'achievement' && <SimpleLeaderboard fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." />}
-      {kind === 'tower' && <SimpleLeaderboard fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." />}
-      {kind === 'referral' && <SimpleLeaderboard fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." />}
-      {kind === 'gold' && <SimpleLeaderboard fetchList={fetchGoldLeaderboard} fetchMyRank={fetchMyGoldRank} valueKey="gold" valueIcon="💰" valueSuffix="" emptyText="아직 골드를 모은 유저가 없어요." formatValue />}
+      {kind === 'achievement' && <SimpleLeaderboard kind="achievement" fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." />}
+      {kind === 'tower' && <SimpleLeaderboard kind="tower" fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." />}
+      {kind === 'referral' && <SimpleLeaderboard kind="referral" fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." />}
+      {kind === 'gold' && <SimpleLeaderboard kind="gold" fetchList={fetchGoldLeaderboard} fetchMyRank={fetchMyGoldRank} valueKey="gold" valueIcon="💰" valueSuffix="" emptyText="아직 골드를 모은 유저가 없어요." formatValue />}
     </div>
   );
 }
 
 /** 업적/무한의 탑처럼 "순위·닉네임·값 하나"로 구성된 단순한 랭킹 공용 렌더러 */
-function SimpleLeaderboard({ fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText, formatValue }) {
+function SimpleLeaderboard({ kind, fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText, formatValue }) {
   const [rows, setRows] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const [error, setError] = useState('');
+  const [rankChange, setRankChange] = useState(null);
 
   useEffect(() => {
     Promise.all([fetchList(), fetchMyRank()])
-      .then(([list, rank]) => { setRows(list); setMyRank(rank); })
+      .then(([list, rank]) => { setRows(list); setMyRank(rank); setRankChange(trackRankChange(kind, rank)); })
       .catch((err) => setError(err.message ?? '랭킹을 불러오지 못했어요.'));
   }, [fetchList, fetchMyRank]);
 
@@ -61,7 +63,14 @@ function SimpleLeaderboard({ fetchList, fetchMyRank, valueKey, valueIcon, valueS
         </div>
       ))}
       {myRank != null && !iAmInList && (
-        <p className="stage-select-hint" style={{ marginTop: 8 }}>내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong></p>
+        <p className="stage-select-hint" style={{ marginTop: 8 }}>
+          내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong>
+          {rankChange != null && rankChange !== 0 && (
+            <span className={`rank-change-badge ${rankChange > 0 ? 'up' : 'down'}`}>
+              {rankChange > 0 ? `▲${rankChange}` : `▼${Math.abs(rankChange)}`}
+            </span>
+          )}
+        </p>
       )}
     </div>
   );
@@ -73,11 +82,13 @@ function PowerLeaderboard({ profile, activeMonster }) {
   const [myPower, setMyPower] = useState(null);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [rankChange, setRankChange] = useState(null);
 
   async function load({ isRefresh = false } = {}) {
     try {
       const [lb, rank, power] = await Promise.all([fetchLeaderboard(), fetchMyRank(), fetchMyCombatPower()]);
       setRows(lb); setMyRank(rank); setMyPower(power); setError('');
+      setRankChange(trackRankChange('power', rank));
     } catch (err) {
       const message = err.message ?? '랭킹을 불러오지 못했어요.';
       if (isRefresh) {
@@ -109,7 +120,16 @@ function PowerLeaderboard({ profile, activeMonster }) {
       <div className="leaderboard-header-row">
         <p className="stage-select-hint" style={{ margin: 0 }}>
           전체 유저 전투력 상위 50명이에요.
-          {myRank != null && <> 내 순위는 <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong>예요.</>}
+          {myRank != null && (
+            <>
+              {' '}내 순위는 <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong>예요.
+              {rankChange != null && rankChange !== 0 && (
+                <span className={`rank-change-badge ${rankChange > 0 ? 'up' : 'down'}`}>
+                  {rankChange > 0 ? `▲${rankChange}` : `▼${Math.abs(rankChange)}`}
+                </span>
+              )}
+            </>
+          )}
         </p>
         <button className="btn btn-ghost leaderboard-refresh-btn" disabled={refreshing} onClick={handleRefresh}>
           {refreshing ? '갱신 중...' : '🔄 새로고침'}
