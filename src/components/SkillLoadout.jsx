@@ -84,6 +84,13 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
         )}
       </div>
 
+      <div className="costume-collection-progress">
+        📚 스킬 컬렉션 {ownedMap.size} / {SKILL_CATALOG.length}
+        <span className="bar-track costume-collection-track">
+          <span className="bar-fill" style={{ width: `${(ownedMap.size / SKILL_CATALOG.length) * 100}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
+        </span>
+      </div>
+
       <div className="owned-skill-grid">
         {SKILL_CATALOG.map((def) => {
           const level = ownedMap.get(def.skillKey);
