@@ -925,6 +925,7 @@ export default function App() {
                   towerHighestFloor,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
                   dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
+                  maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),
                 }}
                 equippedTitle={profile?.equipped_title}
                 onTitleChange={(title) => setProfile((p) => (p ? { ...p, equipped_title: title } : p))}

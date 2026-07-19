@@ -72,3 +72,7 @@
 - 전투 시 실제 적용 보너스 = 장착 보너스 + 보유한 전체 아이템의 보유효과 합산(`getTotalEquipmentBonus`, `inventory.js`) — `App.jsx`가 이걸로 `equipmentBonus`를 계산해서 각 전투 화면에 넘김
 - 스킬 보유효과와 합산되어 최종 전투 스탯에 반영됨(자세한 내용은 [`skills.md`](./skills.md), [`combat.md`](./combat.md))
 - 장비 보너스는 전투 시작 시 `withEquipment()`로 합산되어 임시 적용됨 — DB에 저장되는 성장치(`grownBase`)에는 포함되지 않음(장비를 빼도 순수 캐릭터 성장은 그대로 유지되는 구조)
+
+## 최대강화 업적 (migration 091, 신규 콘텐츠)
+
+"만렙 대장장이" — 장비 하나를 `MAX_ENHANCE_LEVEL`(1000)까지 강화하면 달성. `user_inventory`에서 `enhance_level >= 1000`인 행이 하나라도 있으면 인정. 진행률 표시는 App.jsx가 이미 로드해둔 `inventory` 목록에서 최댓값을 계산해서 `maxEnhanceLevel`로 넘김(새 서버 호출 없음). `claim_achievement` CASE만 추가, 반환타입 그대로라 DROP 불필요, diff/41개 키 재검증 완료.

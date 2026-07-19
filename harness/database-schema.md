@@ -355,3 +355,6 @@
 
 **090_worldboss_damage_achievements.sql** — 신규 콘텐츠
 - `claim_achievement`에 월드보스 누적피해량 마일스톤 업적 2종(3천만/3억) 추가. 자세한 내용은 [`world-boss.md`](./world-boss.md)
+
+**091_max_enhance_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`에 최대강화(+1000) 업적 추가. 자세한 내용은 [`equipment.md`](./equipment.md)

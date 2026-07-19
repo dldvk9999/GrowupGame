@@ -62,6 +62,8 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'full_set_equipped', category: 'gear', icon: '🎽', title: '완벽한 세트', desc: '4슬롯을 전부 같은 등급으로 장착하기', reward: 3000, target: 1, stat: 'fullSetEquipped' },
 
+  { key: 'max_enhance', category: 'gear', icon: '🔨', title: '만렙 대장장이', desc: '장비 하나를 +1000까지 강화하기', reward: 30000, target: 1000, stat: 'maxEnhanceLevel' },
+
   { key: 'costume_collector', category: 'gear', icon: '👗', title: '코스튬 수집가', desc: 'PvP 코스튬 5종 이상 보유하기', reward: 2000, target: 5, stat: 'costumeCount' },
   { key: 'costume_master', category: 'gear', icon: '👑', title: '패셔니스타', desc: 'PvP 코스튬 20종 전부 수집하기', reward: 10000, target: 20, stat: 'costumeCount' },
 
