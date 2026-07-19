@@ -3,13 +3,14 @@ import { updateNickname, checkNicknameAvailable, setReferrer, fetchMyReferralCou
 import { setMonsterNickname } from '../lib/monsters';
 import { fetchClaimedAchievements, ACHIEVEMENT_CATALOG } from '../lib/achievements';
 import { getPvpTier } from '../lib/pvpTier';
+import { getNextGoals } from '../lib/nextGoals';
 import { speciesById } from '../lib/speciesData';
 import { scaleStats } from '../lib/growth';
 import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, onMonsterNicknameChange }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, onMonsterNicknameChange }) {
   const [referrerInput, setReferrerInput] = useState('');
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
@@ -151,6 +152,18 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
               <span className="character-card-stat-label">스테이지</span>
               <span className="character-card-stat-value">🗺️ {clearedCount}/{totalStages}</span>
             </div>
+          </div>
+          <div className="character-card-next-goals">
+            <span className="character-card-next-goals-title">🎯 다음 목표</span>
+            {getNextGoals({
+              pvpWins: profile?.pvp_wins,
+              towerHighestFloor,
+              attendanceTotal: attendanceState?.total_claim_count,
+            }).map((goal) => (
+              <span key={goal.label} className="character-card-next-goal-chip">
+                {goal.icon} {goal.label} {goal.remaining}{goal.unit} 남음
+              </span>
+            ))}
           </div>
         </div>
       )}

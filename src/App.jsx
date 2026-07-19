@@ -844,6 +844,7 @@ export default function App() {
                 skillPossessionAtk={skillPossessionAtk}
                 dragonBuffActive={dragonBuffActive}
                 towerHighestFloor={towerHighestFloor}
+                attendanceState={attendanceState}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}

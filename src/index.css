@@ -1374,6 +1374,9 @@ button {
 }
 .character-card-stat-label { font-size: 11px; color: var(--text-muted); }
 .character-card-stat-value { font-size: 14px; font-weight: 700; }
+.character-card-next-goals { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-soft); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; }
+.character-card-next-goals-title { font-size: 12px; color: var(--text-secondary); width: 100%; text-align: center; margin-bottom: 2px; }
+.character-card-next-goal-chip { font-size: 11px; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-soft); }
 .mypage-card {
   background: var(--bg-panel);
   border: 1px solid var(--border-soft);
