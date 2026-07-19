@@ -10,7 +10,7 @@ import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
 import { getTodaysQuoteIfNotShown } from './lib/dailyQuote';
 import { updateLoginStreak } from './lib/loginStreak';
-import { playGoldenMonsterSound, playNewRecordSound, startBgm } from './lib/audio';
+import { playGoldenMonsterSound, playNewRecordSound, startBgm, pauseBgmForVisibility, resumeBgmForVisibility } from './lib/audio';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
@@ -125,6 +125,20 @@ export default function App() {
     }
     document.addEventListener('click', handleFirstInteraction);
     return () => document.removeEventListener('click', handleFirstInteraction);
+  }, []);
+
+  // 앱을 백그라운드로 보내거나(다른 탭/앱으로 전환) 화면을 잠그면 BGM을 멈추고,
+  // 다시 돌아오면(설정이 여전히 켜져있는 경우에만) 자동으로 재개함
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        pauseBgmForVisibility();
+      } else {
+        resumeBgmForVisibility();
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   useEffect(() => {

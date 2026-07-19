@@ -62,3 +62,11 @@ Playwright로 각 함수를 실제 헤드리스 브라우저에서 호출해 검
 - 업적 수령(`Achievements.jsx`) — 레벨업 사운드
 - 우편 수령/전체수령(`Mailbox.jsx`) — 골드 획득 사운드(전체수령은 1개 이상 성공했을 때만)
 - 장비 합성 성공(`Inventory.jsx`) — 버프 사운드
+
+## 백그라운드 시 BGM 자동 정지 (사용자 피드백)
+
+모바일에서 앱을 다른 앱으로 전환하거나 화면을 잠그면 `document.hidden`이 `true`가 되는데, 이때 `visibilitychange` 이벤트로 BGM을 자동으로 멈추고, 다시 앱으로 돌아오면(BGM 설정이 여전히 켜져있는 경우에만) 자동으로 재개함.
+
+- `pauseBgmForVisibility()`/`resumeBgmForVisibility()`가 `settings.bgmEnabled`(사용자가 설정에서 명시적으로 켜고 끄는 값)는 절대 건드리지 않고, `wasBgmPlayingBeforeHidden`이라는 별도 플래그로만 "백그라운드 진입 직전에 실제로 재생 중이었는지"를 기억함 — 이러면 사용자가 설정에서 BGM을 꺼놓은 상태로 백그라운드를 오가도 절대 임의로 다시 켜지지 않음
+- `App.jsx`에 `visibilitychange` 리스너를 등록해서 처리
+- 헤드리스 브라우저로 두 시나리오(BGM 켜진 상태의 백그라운드↔복귀, BGM 꺼진 상태의 백그라운드↔복귀) 모두 예외 없이 정상 실행됨을 확인

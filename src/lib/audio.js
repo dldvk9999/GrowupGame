@@ -141,6 +141,25 @@ export function stopBgm() {
   if (bgmTimeoutId) clearTimeout(bgmTimeoutId);
 }
 
+// ---------- 탭/화면 비활성화 시 BGM 일시정지 ----------
+// 모바일에서 앱을 백그라운드로 보내거나 화면을 잠그면 document.hidden이 true가 됨.
+// 이때는 "사용자가 설정에서 BGM을 껐다"와는 별개로 일시정지만 하고, 다시 돌아오면
+// (BGM 설정이 여전히 켜져있는 경우에만) 자동으로 재개함. settings.bgmEnabled 자체는
+// 건드리지 않아서, 사용자가 명시적으로 끈 경우엔 절대 임의로 다시 켜지 않음.
+let wasBgmPlayingBeforeHidden = false;
+
+export function pauseBgmForVisibility() {
+  wasBgmPlayingBeforeHidden = bgmPlaying;
+  if (bgmPlaying) stopBgm();
+}
+
+export function resumeBgmForVisibility() {
+  if (wasBgmPlayingBeforeHidden && settings.bgmEnabled) {
+    startBgm();
+  }
+  wasBgmPlayingBeforeHidden = false;
+}
+
 // ---------- 설정 ----------
 export function getAudioSettings() {
   return { ...settings };
