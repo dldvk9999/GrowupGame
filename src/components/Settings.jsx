@@ -43,7 +43,7 @@ export default function Settings({ userId, gold, pvpWins, hasUnreadMail, onGoldC
           onTitleChange={onTitleChange}
         />
       )}
-      {tab === 'guide' && <GameGuide isFounder={achievementStats?.isFounder === 1} pvpWins={pvpWins} />}
+      {tab === 'guide' && <GameGuide userId={userId} isFounder={achievementStats?.isFounder === 1} pvpWins={pvpWins} />}
       {tab === 'coupon' && <CouponRedeem />}
       {tab === 'patchnotes' && <PatchNotes />}
     </div>

@@ -13,6 +13,7 @@ export const THEMES = {
   royal: { label: '👑 로얄', fire: '#8a4fff', gold: '#f2b705' },
   founder: { label: '🌟 얼리버드', fire: '#f2b705', gold: '#fff6d6', unlock: { type: 'achievement', key: 'founder', label: '"얼리버드" 업적 달성' } },
   diamond: { label: '💎 다이아몬드', fire: '#4fd6d6', gold: '#8a4fff', unlock: { type: 'pvpTier', tier: 'diamond', label: 'PvP 다이아몬드 티어 도달' } },
+  dragon: { label: '🐲 드래곤', fire: '#d94a4a', gold: '#2fa84f', unlock: { type: 'achievement', key: 'worldboss_damage_300m', label: '"용살자" 업적 달성' } },
 };
 
 const THEME_KEY = 'growupgame-theme';

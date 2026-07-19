@@ -2,17 +2,27 @@ import { GAME_GUIDE_SECTIONS } from '../lib/gameGuide';
 import { THEMES, getSavedTheme, applyTheme } from '../lib/theme';
 import { getAudioSettings, setBgmEnabled, setSfxEnabled, setAudioVolume, playClickSound } from '../lib/audio';
 import { getPvpTier } from '../lib/pvpTier';
+import { fetchClaimedAchievements } from '../lib/achievements';
 import { showToast } from '../lib/toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function GameGuide({ isFounder, pvpWins }) {
+export default function GameGuide({ userId, isFounder, pvpWins }) {
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
   const [audioSettings, setAudioSettingsState] = useState(getAudioSettings());
+  const [claimedKeys, setClaimedKeys] = useState(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchClaimedAchievements(userId).then(setClaimedKeys).catch(() => setClaimedKeys(new Set()));
+  }, [userId]);
 
   function isThemeUnlocked(key) {
     const unlock = THEMES[key]?.unlock;
     if (!unlock) return true;
-    if (unlock.type === 'achievement') return unlock.key === 'founder' ? !!isFounder : false;
+    if (unlock.type === 'achievement') {
+      if (unlock.key === 'founder') return !!isFounder; // 090 이전부터 있던 예외 - App.jsx가 이미 계산해둔 값 재사용
+      return claimedKeys?.has(unlock.key) ?? false;
+    }
     if (unlock.type === 'pvpTier') return getPvpTier(pvpWins).key === unlock.tier;
     return true;
   }
