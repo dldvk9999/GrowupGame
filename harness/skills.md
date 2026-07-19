@@ -64,6 +64,7 @@
 - `G`/`Shift+G`/`Ctrl+G` 키보드 단축키로 1/10/100회 뽑기 가능 (자세한 내용은 [`ui-and-ux.md`](./ui-and-ux.md))
 - ⚠️ **버그 수정 이력**: 뽑을 때마다 서버는 `profiles.total_skill_draws`를 정상적으로 증가시키는데, **클라이언트가 뽑은 뒤 그 값을 다시 안 불러와서** 뽑기레벨/진행바가 새로고침 전까지 그대로 멈춰있던 버그가 있었음(장비뽑기 쪽은 `refreshInventory`가 `equipmentDrawProgress`까지 같이 재조회하도록 이미 고쳐져 있었는데, 스킬뽑기의 `refreshSkills`는 `user_skills`만 재조회하고 `profile`은 빠뜨렸던 게 원인). `App.jsx`의 `refreshSkills`가 `fetchUserSkills`와 `getMyProfile`을 함께 호출해서 `profile.total_skill_draws`까지 갱신하도록 수정함
 - **중복(강화) 시 10% 확률 럭키 보너스**(055) — 평소 +3인 스킬 강화량이 10% 확률로 +6(2배)이 됨. 장비도 동일 원리(055, [`equipment.md`](./equipment.md) 참고). 반환 컬럼 구성은 안 바뀌므로 클라이언트 수정 없이 `new_skill_level`/`new_enhance_level`에 자연스럽게 큰 값이 찍힘 — 별도의 "럭키!" 팝업은 없고 결과 배지 숫자가 평소보다 크게 나오는 것으로만 체감됨(변동성 있는 보상 자체가 목적)
+- **뽑기 확률 투명 공개**(신규 콘텐츠, `lib/gachaProbability.js`) — 뽑기 화면에 "🎲 현재 확률 보기" 토글을 추가해서, 지금 뽑기레벨 기준 노멀~신화 정확한 확률(%)을 그대로 보여줌. 서버(`draw_skill`/`draw_equipment`, 055)의 확률 구간표를 클라이언트에 그대로 미러링한 것 — diff로 6개 구간(경계 8/18/28/38/48) 수치가 정확히 일치함을 확인함. **⚠️ 서버 확률을 바꾸는 마이그레이션을 만들 때는 반드시 `lib/gachaProbability.js`도 함께 갱신해야 함**(안 그러면 화면에 뜨는 확률이 실제와 달라지는 신뢰도 문제가 생김) — 이 규칙을 이 문서와 `gachaProbability.js` 파일 상단 주석에 명시해둠
 
 ## 일일 무료 뽑기 (migration 049)
 

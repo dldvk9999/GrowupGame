@@ -4,6 +4,7 @@ import { drawSkill, drawSkillBatch } from '../lib/skillGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 import { playGachaRevealSound } from '../lib/audio';
+import { getGachaProbability } from '../lib/gachaProbability';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
@@ -11,6 +12,7 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]); // 항상 배열로 통일 (1회도 배열 1개)
   const [error, setError] = useState('');
+  const [showProbability, setShowProbability] = useState(false);
 
   const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 300 + (drawLevel - 1) * 90;
@@ -79,6 +81,20 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
         <p className="gacha-hint">뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.50)</p>
+
+        <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>
+          {showProbability ? '▲ 확률 접기' : '🎲 현재 확률 보기'}
+        </button>
+        {showProbability && (
+          <div className="gacha-probability-table">
+            {Object.entries(getGachaProbability(drawLevel)).filter(([k]) => k !== 'maxLevel').map(([rarity, prob]) => (
+              <div key={rarity} className="gacha-probability-row" style={{ color: RARITY_COLOR[rarity] }}>
+                <span>{RARITY_LABEL[rarity]}</span>
+                <span>{(prob * 100).toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {error && <p className="shop-error">{error}</p>}
 

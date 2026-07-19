@@ -4,6 +4,7 @@ import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 import { playGachaRevealSound } from '../lib/audio';
+import { getGachaProbability } from '../lib/gachaProbability';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
@@ -11,6 +12,7 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
+  const [showProbability, setShowProbability] = useState(false);
 
   const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
@@ -88,6 +90,20 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
           {slotMeta.icon} {slotMeta.label} 전용 뽑기예요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요.
           이미 보유한 등급이 또 나오면 <strong>자동으로 강화(+1, 최대 +1000)</strong>돼요.
         </p>
+
+        <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>
+          {showProbability ? '▲ 확률 접기' : '🎲 현재 확률 보기'}
+        </button>
+        {showProbability && (
+          <div className="gacha-probability-table">
+            {Object.entries(getGachaProbability(drawLevel)).filter(([k]) => k !== 'maxLevel').map(([rarity, prob]) => (
+              <div key={rarity} className="gacha-probability-row" style={{ color: RARITIES[rarity].color }}>
+                <span>{RARITIES[rarity].label}</span>
+                <span>{(prob * 100).toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {error && <p className="shop-error">{error}</p>}
 
