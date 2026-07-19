@@ -6,12 +6,12 @@ const POWER_MILESTONES = [10000, 100000, 1000000];
 const DUNGEON_DEPTH_MILESTONES = [100, 300, 500];
 
 /**
- * 여러 시스템(PvP 티어/무한의 탑/출석/코스튬/전투력/던전깊이)에 흩어진 "다음으로
- * 가장 가까운 목표"를 한 곳에 모아서 계산. 전부 순수 계산(이미 로드된 데이터 조합)이라
- * 서버 호출 없음.
+ * 여러 시스템(PvP 티어/무한의 탑/출석/코스튬/전투력/던전깊이/스킬/강화)에 흩어진
+ * "다음으로 가장 가까운 목표"를 한 곳에 모아서 계산. 전부 순수 계산(이미 로드된
+ * 데이터 조합)이라 서버 호출 없음.
  * 반환: [{ icon, label, remaining, unit }] 형태 배열(달성할 목표가 없으면 빈 배열)
  */
-export function getNextGoals({ pvpWins, towerHighestFloor, attendanceTotal, costumeCount, combatPower, dungeonDepth }) {
+export function getNextGoals({ pvpWins, towerHighestFloor, attendanceTotal, costumeCount, combatPower, dungeonDepth, ownedSkillCount, maxEnhanceLevel }) {
   const goals = [];
 
   const winsToNextTier = getWinsToNextTier(pvpWins);
@@ -44,6 +44,16 @@ export function getNextGoals({ pvpWins, towerHighestFloor, attendanceTotal, cost
   const nextDepthMilestone = DUNGEON_DEPTH_MILESTONES.find((m) => m > depth);
   if (nextDepthMilestone) {
     goals.push({ icon: '🏰', label: '던전 깊이 마일스톤', remaining: nextDepthMilestone - depth, unit: '층' });
+  }
+
+  const skills = ownedSkillCount ?? 0;
+  if (skills < 50) {
+    goals.push({ icon: '📚', label: '스킬 컬렉션', remaining: 50 - skills, unit: '종' });
+  }
+
+  const enhance = maxEnhanceLevel ?? 0;
+  if (enhance < 1000) {
+    goals.push({ icon: '🔨', label: '최고 강화수치', remaining: 1000 - enhance, unit: '' });
   }
 
   return goals;

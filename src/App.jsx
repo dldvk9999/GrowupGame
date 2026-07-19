@@ -891,6 +891,8 @@ export default function App() {
                 loginStreak={loginStreak}
                 costumeCount={costumeCount}
                 dungeonDepth={Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0)}
+                ownedSkillCount={new Set(userSkills.map((s) => s.skill_key)).size}
+                maxEnhanceLevel={inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0)}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}

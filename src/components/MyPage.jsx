@@ -12,7 +12,7 @@ import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, onMonsterNicknameChange }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
   const [referrerInput, setReferrerInput] = useState('');
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
@@ -169,6 +169,8 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
                 maxHp: activeMonster.maxHp + (equipmentBonus?.hp ?? 0),
               }),
               dungeonDepth,
+              ownedSkillCount,
+              maxEnhanceLevel,
             }).map((goal) => (
               <span key={goal.label} className="character-card-next-goal-chip">
                 {goal.icon} {goal.label} {goal.remaining}{goal.unit} 남음
