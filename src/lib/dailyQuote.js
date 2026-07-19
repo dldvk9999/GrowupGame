@@ -17,6 +17,8 @@ export const DAILY_QUOTES = [
   '레벨업의 손맛, 오늘도 느껴보세요.',
   '무한의 탑, 오늘은 몇 층까지 가볼까요?',
   '꾸준함이 결국 가장 강한 스탯이에요.',
+  '뽑기 확률이 궁금하면 언제든 "현재 확률 보기"를 눌러보세요.',
+  '연속 접속 기록, 오늘도 이어가볼까요?',
 ];
 
 const DAILY_QUOTE_KEY = 'growupgame-last-quote-date';
