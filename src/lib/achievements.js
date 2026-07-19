@@ -57,6 +57,9 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
+  { key: 'worldboss_damage_30m', category: 'worldboss', icon: '🗡️', title: '용의 사냥꾼', desc: '월드보스 누적 피해량 30,000,000 달성', reward: 8000, target: 30000000, stat: 'worldBossTotalDamage' },
+  { key: 'worldboss_damage_300m', category: 'worldboss', icon: '🐲', title: '용살자', desc: '월드보스 누적 피해량 300,000,000 달성', reward: 40000, target: 300000000, stat: 'worldBossTotalDamage' },
+
   { key: 'full_set_equipped', category: 'gear', icon: '🎽', title: '완벽한 세트', desc: '4슬롯을 전부 같은 등급으로 장착하기', reward: 3000, target: 1, stat: 'fullSetEquipped' },
 
   { key: 'costume_collector', category: 'gear', icon: '👗', title: '코스튬 수집가', desc: 'PvP 코스튬 5종 이상 보유하기', reward: 2000, target: 5, stat: 'costumeCount' },

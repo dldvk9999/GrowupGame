@@ -352,3 +352,6 @@
 
 **089_referral_achievements.sql** — 신규 콘텐츠
 - `claim_achievement`/`set_equipped_title`에 친구추천 마일스톤 업적 2종(5명/20명) 추가. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**090_worldboss_damage_achievements.sql** — 신규 콘텐츠
+- `claim_achievement`에 월드보스 누적피해량 마일스톤 업적 2종(3천만/3억) 추가. 자세한 내용은 [`world-boss.md`](./world-boss.md)

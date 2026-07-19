@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchMyCombatPower } from '../lib/pvp';
 import { fetchMyReferralCount } from '../lib/auth';
+import { fetchMyTotalWorldBossDamage } from '../lib/worldBoss';
 import { showToast } from '../lib/toast';
 import { playLevelUpSound, playGoldSound } from '../lib/audio';
 
@@ -22,6 +23,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const [myAchRank, setMyAchRank] = useState(null);
   const [combatPower, setCombatPower] = useState(null);
   const [referralCount, setReferralCount] = useState(null);
+  const [worldBossTotalDamage, setWorldBossTotalDamage] = useState(null);
 
   function loadAchLeaderboard() {
     Promise.all([fetchAchievementLeaderboard(), fetchMyAchievementRank()])
@@ -34,9 +36,10 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
     fetchClaimedAchievements(userId).then(setClaimedKeys).catch(() => setClaimedKeys(new Set()));
     fetchMyCombatPower().then(setCombatPower).catch(() => setCombatPower(null));
     fetchMyReferralCount(userId).then(setReferralCount).catch(() => setReferralCount(null));
+    fetchMyTotalWorldBossDamage(userId).then(setWorldBossTotalDamage).catch(() => setWorldBossTotalDamage(null));
   }, [userId]);
 
-  const statsWithCombatPower = { ...stats, combatPower: combatPower ?? 0, referralCount: referralCount ?? 0 };
+  const statsWithCombatPower = { ...stats, combatPower: combatPower ?? 0, referralCount: referralCount ?? 0, worldBossTotalDamage: worldBossTotalDamage ?? 0 };
 
 
 

@@ -109,3 +109,13 @@ export async function reportWorldBossDamage(sessionId, damage) {
     clearedNow: row.cleared_now,
   };
 }
+
+/** 전체 주차 누적 월드보스 피해량 (업적 진행률 표시용) - RLS "누구나 조회 가능"이라 직접 조회 */
+export async function fetchMyTotalWorldBossDamage(userId) {
+  const { data, error } = await supabase
+    .from('world_boss_contributions')
+    .select('total_damage')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return (data ?? []).reduce((sum, row) => sum + Number(row.total_damage), 0);
+}
