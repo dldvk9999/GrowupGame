@@ -328,3 +328,6 @@
 
 **080_dungeon_gold_cap_for_500_floors.sql** — 079 후속 긴급 수정
 - `calc_dungeon_gold` 재정의 — 500층 상향으로 골드가 100만 상한을 초과하는 문제(약 103층부터) 발견, 클램프 추가. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**081_guide_mission_cooldown_2s.sql** — 사용자 피드백 반영
+- `claim_mission_reward` 재정의 — 최소 대기시간 20초→2초 축소. 반환타입(public.mission_state) 그대로라 DROP 불필요, diff로 쿨타임 값 하나만 변경됐음을 확인
