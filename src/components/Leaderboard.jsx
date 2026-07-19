@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchLeaderboard, fetchMyRank } from '../lib/leaderboard';
+import { fetchLeaderboard, fetchMyRank, fetchGoldLeaderboard, fetchMyGoldRank } from '../lib/leaderboard';
 import { fetchMyCombatPower } from '../lib/pvp';
 import { fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
@@ -10,7 +10,7 @@ const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function Leaderboard({ profile, activeMonster }) {
-  const [kind, setKind] = useState('power'); // 'power' | 'achievement' | 'tower' | 'referral'
+  const [kind, setKind] = useState('power'); // 'power' | 'achievement' | 'tower' | 'referral' | 'gold'
 
   return (
     <div className="leaderboard-screen">
@@ -19,17 +19,19 @@ export default function Leaderboard({ profile, activeMonster }) {
         <button className={`shop-tab ${kind === 'achievement' ? 'active' : ''}`} onClick={() => setKind('achievement')}>🏆 업적</button>
         <button className={`shop-tab ${kind === 'tower' ? 'active' : ''}`} onClick={() => setKind('tower')}>🗼 무한의 탑</button>
         <button className={`shop-tab ${kind === 'referral' ? 'active' : ''}`} onClick={() => setKind('referral')}>🤝 친구추천</button>
+        <button className={`shop-tab ${kind === 'gold' ? 'active' : ''}`} onClick={() => setKind('gold')}>💰 재산</button>
       </div>
       {kind === 'power' && <PowerLeaderboard profile={profile} activeMonster={activeMonster} />}
       {kind === 'achievement' && <SimpleLeaderboard fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." />}
       {kind === 'tower' && <SimpleLeaderboard fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." />}
       {kind === 'referral' && <SimpleLeaderboard fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." />}
+      {kind === 'gold' && <SimpleLeaderboard fetchList={fetchGoldLeaderboard} fetchMyRank={fetchMyGoldRank} valueKey="gold" valueIcon="💰" valueSuffix="" emptyText="아직 골드를 모은 유저가 없어요." formatValue />}
     </div>
   );
 }
 
 /** 업적/무한의 탑처럼 "순위·닉네임·값 하나"로 구성된 단순한 랭킹 공용 렌더러 */
-function SimpleLeaderboard({ fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText }) {
+function SimpleLeaderboard({ fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText, formatValue }) {
   const [rows, setRows] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const [error, setError] = useState('');
@@ -55,7 +57,7 @@ function SimpleLeaderboard({ fetchList, fetchMyRank, valueKey, valueIcon, valueS
             {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
             {row.nickname}{row.is_me && ' (나)'}
           </span>
-          <span className="worldboss-contributor-damage">{valueIcon}{row[valueKey]}{valueSuffix}</span>
+          <span className="worldboss-contributor-damage">{valueIcon}{formatValue ? row[valueKey].toLocaleString() : row[valueKey]}{valueSuffix}</span>
         </div>
       ))}
       {myRank != null && !iAmInList && (

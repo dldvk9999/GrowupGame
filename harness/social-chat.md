@@ -51,3 +51,7 @@
 ## 친구 추천 랭킹 추가 (migration 084, 신규 콘텐츠)
 
 랭킹 통합 허브에 4번째 종류 "🤝 친구추천" 추가 — 누가 가장 많은 친구를 데려왔는지(`profiles.referred_by`) 집계한 TOP20. `fetch_referral_leaderboard()`/`fetch_my_referral_rank()`는 기존 업적/탑 랭킹과 동일한 패턴(security definer 집계, 개인정보 없이 닉네임/추천횟수/칭호만 반환) — 새로 만든 `SimpleLeaderboard` 재사용 없이 `Leaderboard.jsx`가 이미 갖고 있던 공용 컴포넌트를 그대로 씀(코드 추가 없이 props만 새로 넘김). 자체 스캐너 통과, 4개 종류 탭 모바일 넘침 재검증 완료.
+
+## 골드 재산 랭킹 추가 (migration 085, 신규 콘텐츠)
+
+5번째 종류 "💰 재산" 추가 — 전체 유저 골드 보유량 TOP20. `profiles.gold`가 이미 공개 RLS(select using true)라 클라이언트가 직접 조회할 수도 있었지만, 다른 랭킹들과 인터페이스를 통일하기 위해 동일한 RPC 패턴(`fetch_gold_leaderboard`/`fetch_my_gold_rank`)으로 만듦. `SimpleLeaderboard`에 `formatValue` prop을 추가해서 골드 값에 천단위 콤마가 붙도록 확장(기존 업적/탑/추천 랭킹은 작은 정수라 필요 없었음). 극단값(9억대 골드+긴 닉네임+칭호) 조합으로 모바일 실측 검증 완료.

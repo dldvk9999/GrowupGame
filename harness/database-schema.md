@@ -337,3 +337,6 @@
 
 **083_combat_power_achievements.sql** — 신규 콘텐츠
 - `claim_achievement`/`set_equipped_title`에 전투력 마일스톤 업적 3종(10K/100K/1M) 추가 — 이미 있는 `fetch_my_combat_power()`(PvP와 동일 계산)로 조작불가능하게 검증. 반환타입 그대로라 DROP 불필요, diff/33개키 재검증. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**085_gold_leaderboard.sql** — 신규 콘텐츠
+- `fetch_gold_leaderboard()`/`fetch_my_gold_rank()` 신설 — 골드 재산 랭킹, 기존 업적/탑/추천 랭킹과 동일 패턴. 자세한 내용은 [`social-chat.md`](./social-chat.md)
