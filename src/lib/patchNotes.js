@@ -4,6 +4,13 @@
  */
 export const PATCH_NOTES = [
   {
+    date: '2026-07-19 (13)',
+    title: 'PvP 다이아몬드 업적 추가',
+    items: [
+      '👑 PvP 100승(다이아몬드 티어) 업적 "투기장의 전설" 추가',
+    ],
+  },
+  {
     date: '2026-07-19 (12)',
     title: '출석 초장기 업적 추가',
     items: [
