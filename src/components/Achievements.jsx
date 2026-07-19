@@ -75,37 +75,38 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
         <strong> {totalClaimed} / {totalCount}</strong> 달성
       </p>
 
-      <button
-        className="btn btn-ghost pvp-history-toggle"
-        style={{ marginBottom: 16 }}
-        onClick={() => {
-          const next = !showAchLeaderboard;
-          setShowAchLeaderboard(next);
-          if (next && achLeaderboard === null) loadAchLeaderboard();
-        }}
-      >
-        {showAchLeaderboard ? '▲ 업적 랭킹 접기' : '🏅 업적 랭킹 보기 (누가 제일 많이 달성했을까?)'}
-      </button>
+      <div style={{ marginBottom: 16 }}>
+        <button
+          className="btn btn-ghost pvp-history-toggle"
+          onClick={() => {
+            const next = !showAchLeaderboard;
+            setShowAchLeaderboard(next);
+            if (next && achLeaderboard === null) loadAchLeaderboard();
+          }}
+        >
+          {showAchLeaderboard ? '▲ 업적 랭킹 접기' : '🏅 업적 랭킹 보기 (누가 제일 많이 달성했을까?)'}
+        </button>
 
-      {showAchLeaderboard && (
-        <div className="achievement-leaderboard">
-          {achLeaderboard === null && <p className="stage-select-hint">불러오는 중...</p>}
-          {achLeaderboard?.length === 0 && <p className="inventory-empty">아직 업적을 달성한 유저가 없어요.</p>}
-          {achLeaderboard?.map((row) => (
-            <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
-              <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
-              <span className="worldboss-contributor-nickname">
-                {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
-                {row.nickname}{row.is_me && ' (나)'}
-              </span>
-              <span className="worldboss-contributor-damage">🏆{row.achievement_count}개</span>
-            </div>
-          ))}
-          {myAchRank != null && achLeaderboard && !achLeaderboard.some((r) => r.is_me) && (
-            <p className="stage-select-hint" style={{ marginTop: 8, marginBottom: 0 }}>내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myAchRank}위</strong></p>
-          )}
-        </div>
-      )}
+        {showAchLeaderboard && (
+          <div className="achievement-leaderboard">
+            {achLeaderboard === null && <p className="stage-select-hint">불러오는 중...</p>}
+            {achLeaderboard?.length === 0 && <p className="inventory-empty">아직 업적을 달성한 유저가 없어요.</p>}
+            {achLeaderboard?.map((row) => (
+              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+                <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
+                <span className="worldboss-contributor-nickname">
+                  {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
+                  {row.nickname}{row.is_me && ' (나)'}
+                </span>
+                <span className="worldboss-contributor-damage">🏆{row.achievement_count}개</span>
+              </div>
+            ))}
+            {myAchRank != null && achLeaderboard && !achLeaderboard.some((r) => r.is_me) && (
+              <p className="stage-select-hint" style={{ marginTop: 8, marginBottom: 0 }}>내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myAchRank}위</strong></p>
+            )}
+          </div>
+        )}
+      </div>
 
       {error && <p className="shop-error">{error}</p>}
 
