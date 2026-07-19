@@ -373,3 +373,6 @@
 
 **096_stage_elite_monster_event.sql** — 신규 콘텐츠
 - `clear_stage` 재정의(반환타입 integer→table, DROP FUNCTION 포함) — 스테이지 클리어 시 8% 확률 골드 2배(황금몬스터/던전정예몬스터와 동일 설계로 일관성 확보)
+
+**097_tower_100_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`에 무한의 탑 100층 돌파 업적 추가. 반환타입 그대로라 DROP 불필요, diff/45개키 재검증 완료

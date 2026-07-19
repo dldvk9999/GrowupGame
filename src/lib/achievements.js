@@ -93,6 +93,8 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'tower_10', category: 'special', icon: '🗼', title: '탑의 초입', desc: '무한의 탑 10층 돌파', reward: 4000, target: 10, stat: 'towerHighestFloor' },
   { key: 'tower_30', category: 'special', icon: '🏯', title: '구름 위 수련자', desc: '무한의 탑 30층 돌파', reward: 15000, target: 30, stat: 'towerHighestFloor' },
+
+  { key: 'tower_100', category: 'special', icon: '🌌', title: '천공의 도전자', desc: '무한의 탑 100층 돌파', reward: 60000, target: 100, stat: 'towerHighestFloor' },
 ];
 
 export const ACHIEVEMENT_CATEGORY_LABEL = {
