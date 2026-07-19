@@ -364,3 +364,6 @@
 
 **093_attendance_365_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`에 출석 365회(1년) 초장기 마일스톤 업적 추가. 반환타입 그대로라 DROP 불필요, diff/43개키 재검증 완료
+
+**094_pvp_diamond_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`에 PvP 100승(다이아몬드 티어) 업적 추가. 자세한 내용은 [`pvp.md`](./pvp.md)

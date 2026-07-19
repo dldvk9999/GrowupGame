@@ -57,6 +57,8 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'pvp_win_10', category: 'pvp', icon: '🥊', title: '투기장 신인', desc: 'PvP 10승 달성', reward: 1500, target: 10, stat: 'pvpWins' },
   { key: 'pvp_win_50', category: 'pvp', icon: '⚡', title: '투기장 강자', desc: 'PvP 50승 달성', reward: 6000, target: 50, stat: 'pvpWins' },
 
+  { key: 'pvp_win_100', category: 'pvp', icon: '👑', title: '투기장의 전설', desc: 'PvP 100승 달성 (다이아몬드 티어)', reward: 25000, target: 100, stat: 'pvpWins' },
+
   { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
   { key: 'worldboss_damage_30m', category: 'worldboss', icon: '🗡️', title: '용의 사냥꾼', desc: '월드보스 누적 피해량 30,000,000 달성', reward: 8000, target: 30000000, stat: 'worldBossTotalDamage' },
