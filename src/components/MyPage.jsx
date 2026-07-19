@@ -10,6 +10,7 @@ import { calculateCombatPower } from '../lib/combat';
 import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstimate';
 import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
+import { suggestMonsterName } from '../lib/nameSuggestion';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
@@ -202,6 +203,14 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
                   maxLength={12}
                   placeholder={activeMonster.speciesName}
                 />
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => { setPetNameInput(suggestMonsterName(activeMonster.element)); playClickSound(); }}
+                  title="어울리는 이름 무작위로 추천받기"
+                >
+                  🎲 추천
+                </button>
                 <button className="btn btn-neutral" disabled={petNameSaving} onClick={handleSavePetName}>
                   {petNameSaving ? '저장 중...' : '저장'}
                 </button>
