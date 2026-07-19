@@ -714,9 +714,11 @@ export default function App() {
               freeDrawUsed={freeDrawUsedToday}
               missionCompleted={missionCompleted || hasClaimedMissionToday}
               worldBossAttempted={(worldBossProgress?.attemptsUsed ?? 0) > 0}
+              dungeonAttempted={(dungeonAttempts?.exp ?? 3) < 3 || (dungeonAttempts?.gold ?? 3) < 3}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onOpenShop={() => setActiveTab('shop')}
               onOpenWorldBoss={() => { setActiveTab('dungeon'); setDungeonActiveType('worldboss'); }}
+              onOpenDungeon={() => { setActiveTab('dungeon'); setDungeonActiveType('exp'); }}
             />
 
             <nav className="tab-nav">
