@@ -431,16 +431,20 @@ export default function App() {
   async function handleDungeonClear(grownBase, _clientGoldEstimate) {
     setActiveMonster(grownBase);
     try {
-      const [, grantedGold] = await Promise.all([
+      const [, reward] = await Promise.all([
         persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
         claimDungeonReward(dungeonBattle.sessionId),
       ]);
-      setProfile((p) => ({ ...p, gold: p.gold + grantedGold }));
+      setProfile((p) => ({ ...p, gold: p.gold + reward.gold }));
       setDungeonProgress((prev) => ({
         ...prev,
         [dungeonBattle.type]: Math.max(prev[dungeonBattle.type] ?? 0, dungeonBattle.stage),
       }));
       bumpMission('kill_monsters', 1);
+      if (reward.isElite) {
+        playGoldenMonsterSound();
+        showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
+      }
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
     }
@@ -917,6 +921,7 @@ export default function App() {
                   isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
                   towerHighestFloor,
                   attendanceTotal: attendanceState?.total_claim_count ?? 0,
+                  dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
                 }}
                 equippedTitle={profile?.equipped_title}
                 onTitleChange={(title) => setProfile((p) => (p ? { ...p, equipped_title: title } : p))}

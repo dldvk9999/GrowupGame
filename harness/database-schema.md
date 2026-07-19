@@ -340,3 +340,12 @@
 
 **085_gold_leaderboard.sql** — 신규 콘텐츠
 - `fetch_gold_leaderboard()`/`fetch_my_gold_rank()` 신설 — 골드 재산 랭킹, 기존 업적/탑/추천 랭킹과 동일 패턴. 자세한 내용은 [`social-chat.md`](./social-chat.md)
+
+**086_fix_dungeon_full_clear_500.sql** — 긴급 버그 수정
+- `claim_dungeon_reward` 재정의 — 완주 판정 stage=10→500 정정(079 상향에 맞춰 누락됐던 부분). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**087_dungeon_elite_monster_event.sql** — 신규 던전 콘텐츠
+- `claim_dungeon_reward` 재정의(반환타입 integer→table로 변경, DROP FUNCTION 포함) — 던전 클리어 시 8% 확률로 골드 2배(황금몬스터와 동일 설계)
+
+**088_dungeon_depth_achievements.sql** — 신규 던전 콘텐츠
+- `claim_achievement`에 던전 깊이 마일스톤 업적 3종(100/300/500층) 추가. 반환타입 그대로라 DROP 불필요

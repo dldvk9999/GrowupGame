@@ -65,6 +65,10 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'power_100k', category: 'special', icon: '🔱', title: '압도적인 힘', desc: '전투력 100,000 달성', reward: 12000, target: 100000, stat: 'combatPower' },
   { key: 'power_1m', category: 'special', icon: '☄️', title: '종말의 위용', desc: '전투력 1,000,000 달성', reward: 50000, target: 1000000, stat: 'combatPower' },
 
+  { key: 'dungeon_depth_100', category: 'stage', icon: '🏰', title: '던전 탐험가', desc: '경험치/골드 던전 100층 돌파', reward: 5000, target: 100, stat: 'dungeonDepth' },
+  { key: 'dungeon_depth_300', category: 'stage', icon: '🕯️', title: '던전 정복자', desc: '경험치/골드 던전 300층 돌파', reward: 20000, target: 300, stat: 'dungeonDepth' },
+  { key: 'dungeon_depth_500', category: 'stage', icon: '👹', title: '심연의 지배자', desc: '경험치/골드 던전 500층 완주', reward: 80000, target: 500, stat: 'dungeonDepth' },
+
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
   { key: 'attendance_100', category: 'attendance', icon: '💯', title: '백일기도', desc: '누적 출석 100회', reward: 30000, target: 100, stat: 'attendanceTotal' },

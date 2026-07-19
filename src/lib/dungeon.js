@@ -47,5 +47,6 @@ export async function useDungeonAttempt(dungeonType) {
 export async function claimDungeonReward(sessionId) {
   const { data, error } = await supabase.rpc('claim_dungeon_reward', { p_session_id: sessionId });
   if (error) throw error;
-  return data;
+  const row = data?.[0];
+  return { gold: row.gold, isElite: row.is_elite };
 }
