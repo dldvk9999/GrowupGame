@@ -878,6 +878,15 @@ button {
 .worldboss-cleared-badge { font-size: 11px; color: var(--accent-heal); border: 1px solid var(--accent-heal); border-radius: 999px; padding: 1px 8px; }
 .worldboss-hp-track { height: 16px; }
 .worldboss-hp-fill { background: linear-gradient(90deg, #d94aff, #ff5a1f); }
+.tower-opponent-preview {
+  background: var(--bg-panel-2);
+  border: 1px dashed var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+.tower-opponent-preview-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.tower-opponent-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; font-size: 13px; font-weight: 700; }
 .worldboss-hp-numbers { text-align: center; font-size: 13px; font-weight: 700; margin-top: 6px; }
 .worldboss-my-damage { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 .worldboss-my-rank { color: var(--accent-gold); font-weight: 700; }

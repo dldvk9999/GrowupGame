@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
-import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
+import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 
@@ -296,6 +296,21 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
       <div className="worldboss-hp-card">
         <div className="worldboss-hp-title">🗼 나의 최고 기록: {highestFloor ?? 0}층</div>
         <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>다음 도전: {nextFloor}층</p>
+      </div>
+
+      <div className="tower-opponent-preview">
+        <span className="tower-opponent-preview-title">👁️ 다음 상대 미리보기</span>
+        {(() => {
+          const opponent = getTowerFloorMonster(nextFloor);
+          return (
+            <div className="tower-opponent-stats">
+              <span>❤️ HP {opponent.maxHp.toLocaleString()}</span>
+              <span>⚔️ ATK {opponent.atk.toLocaleString()}</span>
+              <span>🛡️ DEF {opponent.def.toLocaleString()}</span>
+            </div>
+          );
+        })()}
+        <p className="stage-select-hint" style={{ margin: '4px 0 0' }}>내 전투력과 비교해서 승산을 가늠해보세요.</p>
       </div>
 
       {error && <p className="shop-error">{error}</p>}
