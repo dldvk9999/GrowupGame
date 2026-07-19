@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchMyCombatPower } from '../lib/pvp';
+import { fetchMyReferralCount } from '../lib/auth';
 import { showToast } from '../lib/toast';
 import { playLevelUpSound, playGoldSound } from '../lib/audio';
 
@@ -20,6 +21,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const [achLeaderboard, setAchLeaderboard] = useState(null);
   const [myAchRank, setMyAchRank] = useState(null);
   const [combatPower, setCombatPower] = useState(null);
+  const [referralCount, setReferralCount] = useState(null);
 
   function loadAchLeaderboard() {
     Promise.all([fetchAchievementLeaderboard(), fetchMyAchievementRank()])
@@ -31,9 +33,10 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
     if (!userId) return;
     fetchClaimedAchievements(userId).then(setClaimedKeys).catch(() => setClaimedKeys(new Set()));
     fetchMyCombatPower().then(setCombatPower).catch(() => setCombatPower(null));
+    fetchMyReferralCount(userId).then(setReferralCount).catch(() => setReferralCount(null));
   }, [userId]);
 
-  const statsWithCombatPower = { ...stats, combatPower: combatPower ?? 0 };
+  const statsWithCombatPower = { ...stats, combatPower: combatPower ?? 0, referralCount: referralCount ?? 0 };
 
 
 

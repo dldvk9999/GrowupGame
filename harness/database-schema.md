@@ -349,3 +349,6 @@
 
 **088_dungeon_depth_achievements.sql** — 신규 던전 콘텐츠
 - `claim_achievement`에 던전 깊이 마일스톤 업적 3종(100/300/500층) 추가. 반환타입 그대로라 DROP 불필요
+
+**089_referral_achievements.sql** — 신규 콘텐츠
+- `claim_achievement`/`set_equipped_title`에 친구추천 마일스톤 업적 2종(5명/20명) 추가. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)

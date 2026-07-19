@@ -15,6 +15,7 @@ export const TITLE_BY_ACHIEVEMENT = {
   founder: '얼리버드',
   costume_master: '패셔니스타',
   power_1m: '종말의 위용',
+  referral_20: '전도사',
 };
 
 /** 칭호 장착/해제 (p_achievement_key가 null이면 해제) */
@@ -68,6 +69,9 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'dungeon_depth_100', category: 'stage', icon: '🏰', title: '던전 탐험가', desc: '경험치/골드 던전 100층 돌파', reward: 5000, target: 100, stat: 'dungeonDepth' },
   { key: 'dungeon_depth_300', category: 'stage', icon: '🕯️', title: '던전 정복자', desc: '경험치/골드 던전 300층 돌파', reward: 20000, target: 300, stat: 'dungeonDepth' },
   { key: 'dungeon_depth_500', category: 'stage', icon: '👹', title: '심연의 지배자', desc: '경험치/골드 던전 500층 완주', reward: 80000, target: 500, stat: 'dungeonDepth' },
+
+  { key: 'referral_5', category: 'special', icon: '🌱', title: '작은 씨앗', desc: '친구 5명 추천 성공', reward: 5000, target: 5, stat: 'referralCount' },
+  { key: 'referral_20', category: 'special', icon: '🌳', title: '전도사', desc: '친구 20명 추천 성공', reward: 25000, target: 20, stat: 'referralCount' },
 
   { key: 'attendance_week', category: 'attendance', icon: '📅', title: '일주일 개근', desc: '누적 출석 7회', reward: 2000, target: 7, stat: 'attendanceTotal' },
   { key: 'attendance_month', category: 'attendance', icon: '🗓️', title: '한달 개근', desc: '누적 출석 30회', reward: 10000, target: 30, stat: 'attendanceTotal' },
