@@ -7,6 +7,7 @@ import { getNextGoals } from '../lib/nextGoals';
 import { speciesById } from '../lib/speciesData';
 import { scaleStats } from '../lib/growth';
 import { calculateCombatPower } from '../lib/combat';
+import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstimate';
 import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
@@ -281,6 +282,19 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           <p className="mypage-locked-hint" style={{ marginTop: 0 }}>
             지금 전직 단계({activeMonster.unlockedJobTier ?? 0}차) 기준으로, 레벨만 올랐을 때의 예상 기본 스탯이에요. (장비/스킬 보너스는 미포함, 진화·추가 전직 시 더 커질 수 있어요)
           </p>
+          {(() => {
+            const estimatedSeconds = estimateSecondsToNextLevel({
+              level: activeMonster.level,
+              exp: activeMonster.exp,
+              chapter: Math.max(1, Math.ceil((clearedCount ?? 0) / 10)),
+            });
+            const durationText = formatDuration(estimatedSeconds);
+            return durationText ? (
+              <p className="mypage-locked-hint" style={{ marginTop: 0, color: 'var(--accent-gold)' }}>
+                ⏱️ 자동사냥만으로 다음 레벨까지 {durationText} (스테이지 도전/던전 등을 병행하면 더 빨라요)
+              </p>
+            ) : null;
+          })()}
           <table className="stat-breakdown-table">
             <thead>
               <tr><th>레벨</th><th>ATK</th><th>DEF</th><th>HP</th></tr>
