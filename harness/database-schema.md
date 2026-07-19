@@ -379,3 +379,6 @@
 
 **098_dungeon_daily_combo_bonus.sql** — 신규 던전 콘텐츠
 - `claim_dungeon_reward` 재정의(반환타입에 `combo_bonus` 추가, DROP FUNCTION 포함) — 하루 3회 던전을 전부 클리어하면 즉시 콤보 보너스 8000골드 지급
+
+**099_dungeon_combo_launch_coupon.sql**
+- `DUNGEONCOMBO` 쿠폰 시딩(골드12000+에픽무기, 무제한 사용, 2027-12-31 만료) — 던전 콤보보너스 출시 기념
