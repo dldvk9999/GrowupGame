@@ -218,6 +218,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
       spawnParticles(0.2, 0.7, '#4aa8ff');
     } else if (skill.type === 'haste') {
       setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: skill.multiplier }));
+      setTimeout(() => setPlayerBuffs((prev) => ({ ...prev })), skill.duration);
       setLog(`${player.name}의 ${skill.name}! 재사용 대기시간이 감소한다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#c9ff4a');

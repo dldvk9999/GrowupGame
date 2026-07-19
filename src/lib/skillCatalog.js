@@ -15,7 +15,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'dazing_blow', name: '현기증 강타', icon: '💫', rarity: 'normal', rarityOrder: 1, type: 'stun', base: 1.0, cooldown: 9000, description: '적을 잠시 멍하게 만듦' },
   { skillKey: 'rust_thorn', name: '녹슨 가시', icon: '🥀', rarity: 'normal', rarityOrder: 1, type: 'dot', base: 0.30, cooldown: 7000, ticks: 4, tickInterval: 1500, description: '가시가 박혀 지속 피해' },
   { skillKey: 'battle_cry', name: '기합', icon: '📣', rarity: 'normal', rarityOrder: 1, type: 'buff_atk', base: 0.15, cooldown: 15000, duration: 10000, description: '기합을 넣어 공격력 상승' },
-  { skillKey: 'quick_step', name: '재빠른 발놀림', icon: '🌀', rarity: 'normal', rarityOrder: 1, type: 'haste', base: 0.15, cooldown: 20000, duration: 8000, description: '재사용 대기시간 감소' },
+  { skillKey: 'quick_step', name: '재빠른 발놀림', icon: '🌀', rarity: 'normal', rarityOrder: 1, type: 'haste', base: 0.15, cooldown: 20000, duration: 10000, description: '재사용 대기시간 감소' },
 
   // ---------- 레어 ----------
   { skillKey: 'flame_bolt', name: '화염탄', icon: '🔥', rarity: 'rare', rarityOrder: 2, type: 'damage', base: 1.40, cooldown: 1800, description: '화염 구체를 발사' },
@@ -27,7 +27,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'concussive_wave', name: '뇌진탕 파동', icon: '💢', rarity: 'rare', rarityOrder: 2, type: 'stun', base: 1.3, cooldown: 10000, description: '충격파로 적을 기절시킴' },
   { skillKey: 'venom_spike', name: '맹독 가시', icon: '☠️', rarity: 'rare', rarityOrder: 2, type: 'dot', base: 0.42, cooldown: 7500, ticks: 4, tickInterval: 1500, description: '맹독이 퍼져 지속 피해' },
   { skillKey: 'iron_skin', name: '강철 피부', icon: '🛡️', rarity: 'rare', rarityOrder: 2, type: 'buff_def', base: 0.22, cooldown: 16000, duration: 10000, description: '피부가 강철처럼 단단해짐' },
-  { skillKey: 'adrenaline', name: '아드레날린', icon: '💉', rarity: 'rare', rarityOrder: 2, type: 'haste', base: 0.20, cooldown: 20000, duration: 8000, description: '더 빠르게 움직임' },
+  { skillKey: 'adrenaline', name: '아드레날린', icon: '💉', rarity: 'rare', rarityOrder: 2, type: 'haste', base: 0.20, cooldown: 20000, duration: 10000, description: '더 빠르게 움직임' },
 
   // ---------- 에픽 ----------
   { skillKey: 'thunder_strike', name: '뇌격', icon: '⚡', rarity: 'epic', rarityOrder: 3, type: 'damage', base: 1.96, cooldown: 2800, description: '번개를 내리쳐 강타' },
@@ -39,7 +39,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'gravity_crush', name: '중력 압박', icon: '🌌', rarity: 'epic', rarityOrder: 3, type: 'stun', base: 1.6, cooldown: 11000, description: '중력으로 짓눌러 움직임을 봉인' },
   { skillKey: 'corrosive_mist', name: '부식 안개', icon: '☁️', rarity: 'epic', rarityOrder: 3, type: 'dot', base: 0.60, cooldown: 8000, ticks: 4, tickInterval: 1500, description: '부식성 안개가 서서히 갉아먹음' },
   { skillKey: 'berserk', name: '광폭화', icon: '😤', rarity: 'epic', rarityOrder: 3, type: 'buff_atk', base: 0.30, cooldown: 17000, duration: 10000, description: '이성을 놓고 힘을 폭발시킴' },
-  { skillKey: 'time_warp', name: '시간 왜곡', icon: '⏳', rarity: 'epic', rarityOrder: 3, type: 'haste', base: 0.28, cooldown: 21000, duration: 8000, description: '시간의 흐름을 왜곡시켜 가속함' },
+  { skillKey: 'time_warp', name: '시간 왜곡', icon: '⏳', rarity: 'epic', rarityOrder: 3, type: 'haste', base: 0.28, cooldown: 21000, duration: 10000, description: '시간의 흐름을 왜곡시켜 가속함' },
 
   // ---------- 전설 ----------
   { skillKey: 'dragon_roar', name: '용의 포효', icon: '🐲', rarity: 'legendary', rarityOrder: 4, type: 'damage', base: 2.74, cooldown: 4200, description: '용의 기운을 담은 포효' },
@@ -51,7 +51,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'chrono_lock', name: '시간 결박', icon: '⏱️', rarity: 'legendary', rarityOrder: 4, type: 'stun', base: 2.0, cooldown: 12000, description: '시간을 멈춰 적을 결박함' },
   { skillKey: 'plague_curse', name: '역병의 저주', icon: '🦠', rarity: 'legendary', rarityOrder: 4, type: 'dot', base: 0.85, cooldown: 8500, ticks: 4, tickInterval: 1500, description: '역병이 온몸에 퍼짐' },
   { skillKey: 'aegis_wall', name: '이지스 방벽', icon: '🏰', rarity: 'legendary', rarityOrder: 4, type: 'buff_def', base: 0.42, cooldown: 18000, duration: 10000, description: '전설의 방패가 몸을 감쌈' },
-  { skillKey: 'quicksilver', name: '수은의 가속', icon: '🌠', rarity: 'legendary', rarityOrder: 4, type: 'haste', base: 0.38, cooldown: 22000, duration: 8000, description: '수은처럼 유동적으로 가속함' },
+  { skillKey: 'quicksilver', name: '수은의 가속', icon: '🌠', rarity: 'legendary', rarityOrder: 4, type: 'haste', base: 0.38, cooldown: 22000, duration: 10000, description: '수은처럼 유동적으로 가속함' },
 
   // ---------- 신화 ----------
   { skillKey: 'world_ender', name: '종말의 일격', icon: '☄️', rarity: 'mythic', rarityOrder: 5, type: 'damage', base: 3.84, cooldown: 6500, description: '세상을 가르는 궁극기' },
@@ -63,7 +63,7 @@ export const SKILL_CATALOG = [
   { skillKey: 'absolute_zero', name: '절대영도', icon: '❄️', rarity: 'mythic', rarityOrder: 5, type: 'stun', base: 2.5, cooldown: 13000, description: '모든 움직임을 얼려버림' },
   { skillKey: 'entropy_decay', name: '엔트로피 붕괴', icon: '🕳️', rarity: 'mythic', rarityOrder: 5, type: 'dot', base: 1.20, cooldown: 9000, ticks: 4, tickInterval: 1500, description: '존재 자체가 서서히 붕괴함' },
   { skillKey: 'godspeed', name: '신속', icon: '⚡', rarity: 'mythic', rarityOrder: 5, type: 'buff_atk', base: 0.60, cooldown: 19000, duration: 10000, description: '신의 속도로 공격력이 폭증함' },
-  { skillKey: 'singularity', name: '특이점', icon: '🕳️', rarity: 'mythic', rarityOrder: 5, type: 'haste', base: 0.50, cooldown: 23000, duration: 8000, description: '특이점이 시간을 압축시킴' },
+  { skillKey: 'singularity', name: '특이점', icon: '🕳️', rarity: 'mythic', rarityOrder: 5, type: 'haste', base: 0.50, cooldown: 23000, duration: 10000, description: '특이점이 시간을 압축시킴' },
 ];
 
 export const RARITY_LABEL = { normal: '노멀', rare: '레어', epic: '에픽', legendary: '전설', mythic: '신화' };

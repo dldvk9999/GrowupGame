@@ -288,6 +288,11 @@ export default function BattleScreen({
       spawnParticles(0.2, 0.7, '#4aa8ff');
     } else if (skill.type === 'haste') {
       setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: skill.multiplier }));
+      // haste 버프는 "Date.now() < hasteUntil" 조건으로 화면에 표시되는데, React는 시간이
+      // 지났다고 저절로 리렌더하지 않으므로, 버프가 실제로 끝나는 정확한 시점에 강제로
+      // 리렌더를 유발해서(같은 값이라도 새 객체로 set) "⚡ 쿨타임 감소 중" 표시가
+      // 정확한 타이밍에 사라지도록 함
+      setTimeout(() => setPlayerBuffs((prev) => ({ ...prev })), skill.duration);
       setLog(`${player.name}의 ${skill.name}! 재사용 대기시간이 감소한다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#c9ff4a');
