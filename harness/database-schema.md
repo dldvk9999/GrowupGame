@@ -361,3 +361,6 @@
 
 **092_skill_collector_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`에 스킬 완전수집(50종) 업적 추가. 자세한 내용은 [`skills.md`](./skills.md)
+
+**093_attendance_365_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`에 출석 365회(1년) 초장기 마일스톤 업적 추가. 반환타입 그대로라 DROP 불필요, diff/43개키 재검증 완료
