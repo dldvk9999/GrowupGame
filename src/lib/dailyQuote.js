@@ -23,6 +23,7 @@ export const DAILY_QUOTES = [
   '친구를 추천했다면 친구추천 랭킹도 챙겨보세요.',
   '던전을 돌다 보면 가끔 정예 몬스터가 나타나요. 놓치지 마세요!',
   '월드보스를 꾸준히 사냥하면 특별한 테마도 해금할 수 있어요.',
+  '몬스터 이름이 고민되면 애칭 추천 버튼을 눌러보세요.',
 ];
 
 const DAILY_QUOTE_KEY = 'growupgame-last-quote-date';
