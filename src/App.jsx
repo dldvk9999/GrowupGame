@@ -888,6 +888,7 @@ export default function App() {
                 attendanceState={attendanceState}
                 loginStreak={loginStreak}
                 costumeCount={costumeCount}
+                dungeonDepth={Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0)}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}
