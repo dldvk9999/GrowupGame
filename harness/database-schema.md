@@ -387,3 +387,6 @@
 - `claim_dungeon_reward` 재정의(반환타입에 `is_lucky_week` 추가, DROP FUNCTION 포함) — 이번 주 행운의 던전(exp/gold 중 하나, 매주 결정론적 선정) 클리어 시 골드 1.5배
 - `fetch_lucky_dungeon_type()` 신설 — 조회 전용, 개인정보 없음
 - ⚠️ 배포 전 검증 중 배율중첩 클램프 누락 버그 발견/즉시 수정(harness에 상세 기록)
+
+**101_daily_free_draw_split_5.sql** — 사용자 요청
+- `daily_free_draw_state` 테이블 재구성((user_id, draw_type) 복합키), `claim_daily_free_draw` 재정의(p_type이 슬롯/스킬 구분값 겸함, p_slot 파라미터 제거, DROP FUNCTION 포함) — 일일 무료뽑기를 무기/방어구/장갑/신발/스킬 5종 독립으로 분리. 자세한 내용은 [`skills.md`](./skills.md)

@@ -10,7 +10,7 @@ const EQUIP_TABS = Object.keys(SLOTS); // ['weapon','armor','gloves','shoes']
 const ALL_TABS = [...EQUIP_TABS, 'skill'];
 
 export default function Shop({
-  userId, gold, equipmentDrawProgress, totalSkillDraws, inventory, freeDrawUsed, onFreeDrawUsedChange,
+  userId, gold, equipmentDrawProgress, totalSkillDraws, inventory, freeDrawUsedMap, onFreeDrawUsedChange,
   onInventoryChange, onGoldChange, onSkillsRefresh,
 }) {
   const [tab, setTab] = useState('weapon');
@@ -35,10 +35,9 @@ export default function Shop({
   async function handleFreeDraw() {
     setClaimingFree(true);
     try {
-      const type = tab === 'skill' ? 'skill' : 'equipment';
-      const result = await claimDailyFreeDraw(type, type === 'equipment' ? tab : undefined);
-      onFreeDrawUsedChange?.(true);
-      if (type === 'skill') {
+      const result = await claimDailyFreeDraw(tab);
+      onFreeDrawUsedChange?.(tab);
+      if (tab === 'skill') {
         const def = getSkillDef(result.skill_key);
         showToast(`🎁 무료뽑기! ${def?.name ?? result.skill_key} ${result.was_duplicate ? `(중복, Lv.${result.new_level})` : '(신규 획득!)'}`, 'success');
         onSkillsRefresh?.();
@@ -54,6 +53,8 @@ export default function Shop({
     }
   }
 
+  const freeDrawUsed = freeDrawUsedMap ? freeDrawUsedMap[tab] : null;
+
   return (
     <div className="shop-screen">
       <div className="shop-header">
@@ -68,15 +69,16 @@ export default function Shop({
       >
         {freeDrawUsed === null ? '확인 중...' : freeDrawUsed ? '🎁 오늘의 무료뽑기 사용 완료 (내일 초기화)' : claimingFree ? '뽑는 중...' : `🎁 오늘의 무료뽑기 (${tab === 'skill' ? '스킬' : SLOTS[tab].label}, 1회 공짜)`}
       </button>
+      <p className="stage-select-hint free-draw-hint">무기·방어구·장갑·신발·스킬 각각 하루 1번씩, 총 5번 무료로 뽑을 수 있어요.</p>
 
       <div className="shop-tabs">
         {EQUIP_TABS.map((slot) => (
-          <button key={slot} className={`shop-tab ${tab === slot ? 'active' : ''}`} onClick={() => setTab(slot)}>
-            {SLOTS[slot].icon} {SLOTS[slot].label} 뽑기
+          <button key={slot} className={`shop-tab free-draw-tab-btn ${tab === slot ? 'active' : ''}`} onClick={() => setTab(slot)}>
+            {SLOTS[slot].icon} {SLOTS[slot].label} 뽑기{freeDrawUsedMap && !freeDrawUsedMap[slot] && <span className="mail-unread-dot" aria-label="무료뽑기 가능" />}
           </button>
         ))}
-        <button className={`shop-tab ${tab === 'skill' ? 'active' : ''}`} onClick={() => setTab('skill')}>
-          🎯 스킬 뽑기
+        <button className={`shop-tab free-draw-tab-btn ${tab === 'skill' ? 'active' : ''}`} onClick={() => setTab('skill')}>
+          🎯 스킬 뽑기{freeDrawUsedMap && !freeDrawUsedMap.skill && <span className="mail-unread-dot" aria-label="무료뽑기 가능" />}
         </button>
       </div>
       <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>

@@ -27,7 +27,7 @@ import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
-import { fetchDailyFreeDrawState, hasUsedFreeDrawToday } from './lib/dailyFreeDraw';
+import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import AttendanceModal from './components/AttendanceModal';
@@ -110,7 +110,7 @@ export default function App() {
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
-  const [freeDrawUsedToday, setFreeDrawUsedToday] = useState(null); // null=로딩중
+  const [freeDrawUsedMap, setFreeDrawUsedMap] = useState(null); // null=로딩중, {weapon,armor,gloves,shoes,skill}
   const [costumeCount, setCostumeCount] = useState(0);
 
   // 저장된 테마 컬러를 앱 시작 시 1회 적용(로그인 여부와 무관, 로그인 화면부터 바로 반영)
@@ -224,7 +224,7 @@ export default function App() {
       setMission(null);
       setHasUnreadMail(false);
       setAttendanceState(null);
-      setFreeDrawUsedToday(null);
+      setFreeDrawUsedMap(null);
       setCostumeCount(0);
       setHasClaimedMissionToday(false);
       setTowerBattle(null);
@@ -249,7 +249,7 @@ export default function App() {
         fetchMails(userId).catch(() => []),
         fetchAttendanceState(userId).catch(() => null),
         hasEverParticipatedInWorldBoss(userId).catch(() => false),
-        fetchDailyFreeDrawState(userId).catch(() => null),
+        fetchDailyFreeDrawState(userId).catch(() => []),
         fetchMyCostumes(userId).catch(() => new Set()),
         fetchMyTowerProgress(userId).catch(() => 0),
       ]);
@@ -266,7 +266,7 @@ export default function App() {
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
-      setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
+      setFreeDrawUsedMap(buildFreeDrawUsedMap(freeDrawState));
       setCostumeCount(costumes.size);
       setTowerHighestFloor(towerFloor);
       setHasClaimedMissionToday(hasClaimedMissionTodayPersisted(newSession.user.id));
@@ -721,7 +721,7 @@ export default function App() {
 
             <DailyChecklist
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
-              freeDrawUsed={freeDrawUsedToday}
+              freeDrawUsed={freeDrawUsedMap ? Object.values(freeDrawUsedMap).every(Boolean) : null}
               missionCompleted={missionCompleted || hasClaimedMissionToday}
               worldBossAttempted={(worldBossProgress?.attemptsUsed ?? 0) > 0}
               dungeonAttempted={(dungeonAttempts?.exp ?? 3) < 3 || (dungeonAttempts?.gold ?? 3) < 3}
@@ -779,8 +779,8 @@ export default function App() {
                 equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
                 inventory={inventory}
-                freeDrawUsed={freeDrawUsedToday}
-                onFreeDrawUsedChange={setFreeDrawUsedToday}
+                freeDrawUsedMap={freeDrawUsedMap}
+                onFreeDrawUsedChange={(type) => setFreeDrawUsedMap((prev) => ({ ...prev, [type]: true }))}
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}
