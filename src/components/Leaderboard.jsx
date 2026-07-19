@@ -3,13 +3,14 @@ import { fetchLeaderboard, fetchMyRank } from '../lib/leaderboard';
 import { fetchMyCombatPower } from '../lib/pvp';
 import { fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
+import { fetchReferralLeaderboard, fetchMyReferralRank } from '../lib/auth';
 import { showToast } from '../lib/toast';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function Leaderboard({ profile, activeMonster }) {
-  const [kind, setKind] = useState('power'); // 'power' | 'achievement' | 'tower'
+  const [kind, setKind] = useState('power'); // 'power' | 'achievement' | 'tower' | 'referral'
 
   return (
     <div className="leaderboard-screen">
@@ -17,10 +18,12 @@ export default function Leaderboard({ profile, activeMonster }) {
         <button className={`shop-tab ${kind === 'power' ? 'active' : ''}`} onClick={() => setKind('power')}>⚔️ 전투력</button>
         <button className={`shop-tab ${kind === 'achievement' ? 'active' : ''}`} onClick={() => setKind('achievement')}>🏆 업적</button>
         <button className={`shop-tab ${kind === 'tower' ? 'active' : ''}`} onClick={() => setKind('tower')}>🗼 무한의 탑</button>
+        <button className={`shop-tab ${kind === 'referral' ? 'active' : ''}`} onClick={() => setKind('referral')}>🤝 친구추천</button>
       </div>
       {kind === 'power' && <PowerLeaderboard profile={profile} activeMonster={activeMonster} />}
       {kind === 'achievement' && <SimpleLeaderboard fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." />}
       {kind === 'tower' && <SimpleLeaderboard fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." />}
+      {kind === 'referral' && <SimpleLeaderboard fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." />}
     </div>
   );
 }

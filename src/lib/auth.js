@@ -79,6 +79,20 @@ export async function fetchMyReferralCount(userId) {
   return count ?? 0;
 }
 
+/** 친구 추천 랭킹 TOP20 */
+export async function fetchReferralLeaderboard() {
+  const { data, error } = await supabase.rpc('fetch_referral_leaderboard');
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** 내 추천 순위 (20위 밖일 때 표시용) */
+export async function fetchMyReferralRank() {
+  const { data, error } = await supabase.rpc('fetch_my_referral_rank');
+  if (error) throw error;
+  return data;
+}
+
 /** 전체 가입자 수 (로그인 화면에 커뮤니티 규모 표시용) - profiles가 공개 RLS라 직접 count 가능 */
 export async function fetchTotalUserCount() {
   const { count, error } = await supabase

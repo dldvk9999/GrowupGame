@@ -47,3 +47,7 @@
 - 기존 위치(업적 화면 토글, 탑 화면)는 **그대로 유지**함(제거 안 함) — 각 문맥에서 자연스럽게 마주치는 것도 의미가 있어서 중복 접근 경로로 남겨둠, 로비의 통합 허브는 "한 곳에서 다 보고 싶을 때"를 위한 추가 경로
 - 업적/탑 랭킹은 `SimpleLeaderboard`라는 공용 컴포넌트로 렌더링 — 둘 다 "순위·닉네임·값 하나" 구조로 동일해서, `fetchList`/`fetchMyRank`/`valueKey`/`valueIcon` 등을 props로 받아 하나의 컴포넌트로 처리(코드 중복 방지)
 - 전투력 랭킹은 컬럼 구성이 다르므로(속성/전직/레벨/전투력) 기존 로직을 `PowerLeaderboard`로 그대로 옮김
+
+## 친구 추천 랭킹 추가 (migration 084, 신규 콘텐츠)
+
+랭킹 통합 허브에 4번째 종류 "🤝 친구추천" 추가 — 누가 가장 많은 친구를 데려왔는지(`profiles.referred_by`) 집계한 TOP20. `fetch_referral_leaderboard()`/`fetch_my_referral_rank()`는 기존 업적/탑 랭킹과 동일한 패턴(security definer 집계, 개인정보 없이 닉네임/추천횟수/칭호만 반환) — 새로 만든 `SimpleLeaderboard` 재사용 없이 `Leaderboard.jsx`가 이미 갖고 있던 공용 컴포넌트를 그대로 씀(코드 추가 없이 props만 새로 넘김). 자체 스캐너 통과, 4개 종류 탭 모바일 넘침 재검증 완료.
