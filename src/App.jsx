@@ -9,6 +9,7 @@ import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
 import { getTodaysQuoteIfNotShown } from './lib/dailyQuote';
+import { hasClaimedMissionTodayPersisted, markMissionClaimedToday } from './lib/missionClaimPersist';
 import { updateLoginStreak } from './lib/loginStreak';
 import { playGoldenMonsterSound, playNewRecordSound, startBgm, pauseBgmForVisibility, resumeBgmForVisibility } from './lib/audio';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
@@ -268,7 +269,7 @@ export default function App() {
       setFreeDrawUsedToday(hasUsedFreeDrawToday(freeDrawState));
       setCostumeCount(costumes.size);
       setTowerHighestFloor(towerFloor);
-      setHasClaimedMissionToday(false);
+      setHasClaimedMissionToday(hasClaimedMissionTodayPersisted(newSession.user.id));
       setLoginAt(new Date().toISOString());
       setLoginStreak(updateLoginStreak());
 
@@ -566,6 +567,7 @@ export default function App() {
       setMission(nextMission);
       setProfile((p) => ({ ...p, gold: p.gold + reward }));
       setHasClaimedMissionToday(true);
+      markMissionClaimedToday(session?.user?.id);
       showToast(`미션 완료! 💰 ${reward.toLocaleString()} 획득`, 'success');
     } catch (err) {
       showToast(err.message ?? '보상 수령에 실패했어요.', 'error');
