@@ -4,6 +4,13 @@
  */
 export const PATCH_NOTES = [
   {
+    date: '2026-07-19 (22)',
+    title: '던전 콤보보너스 출시 기념 쿠폰',
+    items: [
+      '🎟️ DUNGEONCOMBO 쿠폰 발행',
+    ],
+  },
+  {
     date: '2026-07-19 (21)',
     title: '가이드미션 새로고침 버그 수정 · 던전 콤보 보너스',
     items: [
