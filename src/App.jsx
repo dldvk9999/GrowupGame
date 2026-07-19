@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from './lib/supabaseClient';
 import { getMyProfile, signOut } from './lib/auth';
 import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/monsters';
@@ -68,6 +68,7 @@ export default function App() {
   const { canInstall, promptInstall } = usePwaInstall();
   const [stage, setStage] = useState(STAGE.LOADING);
   const [session, setSession] = useState(null);
+  const sessionRef = useRef(null); // handleSession의 stale closure 회피용(아래 주석 참고)
   const [profile, setProfile] = useState(null);
   const [activeMonster, setActiveMonster] = useState(null);
   const [clearedStageIds, setClearedStageIds] = useState(new Set());
@@ -177,6 +178,25 @@ export default function App() {
   }, [stage, activeTab]);
 
   async function handleSession(newSession) {
+    // onAuthStateChange 리스너는 컴포넌트 최초 마운트 시 딱 한 번만 등록되기 때문에
+    // (아래 useEffect가 빈 배열 의존성), 이 함수가 매번 최신 state를 직접 참조하면
+    // "최초 렌더 시점의 stale 값"만 보게 됨(흔한 React 클로저 문제). 그래서 최신
+    // 세션 정보는 setSession이 아니라 sessionRef.current로 추적함.
+    //
+    // 앱을 백그라운드로 보냈다가 복귀하거나 토큰이 자동 갱신될 때도 이 함수가 다시
+    // 호출되는데, 예전엔 매번 무조건 activeTab을 'battle'로 리셋하고 전체 데이터를
+    // 재조회해서 "다른 탭을 보고 있다가 돌아오면 항상 전투 탭으로 튕기는" 문제가
+    // 있었음(사용자 제보) - 같은 유저의 세션이 그대로 갱신된 것뿐이면(로그아웃 후
+    // 재로그인이 아니라) 아무것도 안 하고 조기 리턴해서 지금 보던 화면을 그대로 유지함.
+    const prevUserId = sessionRef.current?.user?.id;
+    const isSameUserRefresh = newSession && prevUserId && prevUserId === newSession.user.id;
+    sessionRef.current = newSession;
+
+    if (isSameUserRefresh) {
+      setSession(newSession);
+      return;
+    }
+
     setSession(newSession);
     if (!newSession) {
       setStage(STAGE.AUTH);
