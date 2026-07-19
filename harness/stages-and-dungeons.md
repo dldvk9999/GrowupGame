@@ -38,23 +38,26 @@ def = round((3 + index*0.4*(isBoss?2.2:1)) * stepMultiplier)
 ### 보상 공식
 
 ```
-expReward  = round(hp * (isBoss ? 1.5 : 0.85))
+expReward  = round(hp * (isBoss ? 1.15 : 0.65))
 goldReward = (round(hp * (isBoss ? 0.9 : 0.4)) + stage*2) * 5
 ```
 
 서버 `calc_stage_gold`도 동일 공식을 SQL로 그대로 반영(골드는 서버가 최종 계산, `def`는 골드 공식에 영향 없음).
 
+⚠️ **경험치 하향 이력(사용자 요청)**: 원래 배율(일반몹 0.85 / 보스 1.5)에서 각각 0.65 / 1.15로 하향(약 23~24% 감소). 골드는 그대로 유지, 경험치만 조정. 레벨업/경험치는 서버 검증 없이 클라이언트가 계산한 값을 `save_monster_growth` RPC로 그대로 저장하는 구조([`security.md`](./security.md)의 "알려진 한계" 참고)라, 클라이언트 배율만 조정하면 바로 반영됨(서버 쪽 변경 불필요).
+
 ### 자동사냥 보상
 
 ```
 hp = max(10, round(8 + chapter*2.0 + playerLevel*3.0))
-expReward  = max(2, round(hp*0.25))
+expReward  = max(2, round(hp*0.19))
 goldReward = max(5, round(hp*0.15)*5*8)
 ```
 
 - 챕터/레벨 가중치를 대폭 올려서(기존 0.6/0.8 → 2.0/3.0) **레벨이 높거나 진행 챕터가 높을수록 자동사냥 보상이 눈에 띄게 커짐**
 - 자동사냥 처치 텀은 **1.5초**
 - 서버 `calc_idle_gold`도 동일 공식 반영
+- ⚠️ **경험치 하향 이력(사용자 요청)**: 원래 배율(0.25)에서 0.19로 하향(약 24% 감소). 골드는 그대로 유지
 - ⚠️ **버그 수정 이력(037)**: `grant_idle_reward(p_chapter, p_player_level)`가 이 두 파라미터를 client가 보낸 값 그대로 신뢰해서, devtools로 과장된 값을 반복 호출하면 실제 진행도와 무관하게 골드를 무제한 파밍할 수 있었음. 서버가 `owned_monsters`(실제 레벨)/`stage_progress`(실제 클리어한 최고 챕터)에서 직접 계산하도록 수정 — 함수 시그니처는 그대로라 클라이언트 코드 변경은 불필요했음
 - **🌟 황금 몬스터 이벤트 (migration 062, 신규 콘텐츠)**: 자동사냥 처치마다 서버가 자체적으로 5% 확률(`random() < 0.05`)을 판정해서, 당첨되면 그 처치의 골드 보상이 **3배**로 지급됨. 서버가 스스로 랜덤 판정하고 결과(`is_golden`)만 반환하는 구조라 클라이언트가 조작할 수 없음(2.5초 최소 간격 쿨다운과 결합해서 평균 약 50초에 1회꼴로 발생). 당첨되면 "🌟 황금 몬스터 발견! 골드 3배 획득" 토스트가 뜸. `grant_idle_reward`의 반환 타입이 `integer` → `table(gold, is_golden)`로 바뀌어서 `DROP FUNCTION` 선행 필요했음(062에 포함)
 
