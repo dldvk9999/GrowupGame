@@ -24,6 +24,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const [combatPower, setCombatPower] = useState(null);
   const [referralCount, setReferralCount] = useState(null);
   const [worldBossTotalDamage, setWorldBossTotalDamage] = useState(null);
+  const [manuallyToggledCategories, setManuallyToggledCategories] = useState({});
 
   function loadAchLeaderboard() {
     Promise.all([fetchAchievementLeaderboard(), fetchMyAchievementRank()])
@@ -150,12 +151,19 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
       {categories.map((cat) => {
         const catAchievements = ACHIEVEMENT_CATALOG.filter((a) => a.category === cat);
         const catClaimed = catAchievements.filter((a) => claimedKeys.has(a.key)).length;
+        const isFullyDone = catClaimed === catAchievements.length;
+        // 기본값: 이미 다 완료한 카테고리는 접어서 시작(스크롤 부담 완화), 사용자가 직접 누르면 그 선택을 우선함
+        const isCollapsed = manuallyToggledCategories[cat] ?? isFullyDone;
         return (
         <div key={cat} className="inventory-section">
-          <h3 className="inventory-section-title">
-            {ACHIEVEMENT_CATEGORY_LABEL[cat] ?? cat}
+          <h3
+            className="inventory-section-title achievement-category-header"
+            onClick={() => setManuallyToggledCategories((prev) => ({ ...prev, [cat]: !isCollapsed }))}
+          >
+            <span>{isCollapsed ? '▶' : '▼'} {ACHIEVEMENT_CATEGORY_LABEL[cat] ?? cat}</span>
             <span className="achievement-category-count"> {catClaimed}/{catAchievements.length}</span>
           </h3>
+          {!isCollapsed && (
           <div className="achievement-list">
             {catAchievements.map((a) => {
               const current = statsWithCombatPower?.[a.stat] ?? 0;
@@ -207,6 +215,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
               );
             })}
           </div>
+          )}
         </div>
         );
       })}

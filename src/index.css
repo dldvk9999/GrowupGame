@@ -1324,6 +1324,8 @@ button {
   border-bottom: 1px solid var(--border-soft);
   padding-bottom: 6px;
 }
+.achievement-category-header { cursor: pointer; display: flex; justify-content: space-between; user-select: none; }
+.achievement-category-header:hover { color: var(--text-primary); }
 .inventory-stat-group {
   display: flex;
   flex-direction: column;
