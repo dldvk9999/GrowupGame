@@ -1684,6 +1684,7 @@ button {
   margin-bottom: 16px;
 }
 .dungeon-progress-summary { margin-top: 16px; }
+.lucky-dungeon-banner { color: var(--accent-heal); font-weight: 600; }
 .dungeon-progress-label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; text-align: center; }
 .dungeon-progress-bar-track { display: block; height: 12px; }
 

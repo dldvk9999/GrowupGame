@@ -382,3 +382,8 @@
 
 **099_dungeon_combo_launch_coupon.sql**
 - `DUNGEONCOMBO` 쿠폰 시딩(골드12000+에픽무기, 무제한 사용, 2027-12-31 만료) — 던전 콤보보너스 출시 기념
+
+**100_dungeon_weekly_lucky_type.sql** — 신규 던전 콘텐츠
+- `claim_dungeon_reward` 재정의(반환타입에 `is_lucky_week` 추가, DROP FUNCTION 포함) — 이번 주 행운의 던전(exp/gold 중 하나, 매주 결정론적 선정) 클리어 시 골드 1.5배
+- `fetch_lucky_dungeon_type()` 신설 — 조회 전용, 개인정보 없음
+- ⚠️ 배포 전 검증 중 배율중첩 클램프 누락 버그 발견/즉시 수정(harness에 상세 기록)

@@ -1,5 +1,12 @@
 import { supabase } from './supabaseClient';
 
+/** 이번 주 행운의 던전 타입('exp' | 'gold') - 클라이언트가 선택 화면에서 미리 안내하는 용도 */
+export async function fetchLuckyDungeonType() {
+  const { data, error } = await supabase.rpc('fetch_lucky_dungeon_type');
+  if (error) throw error;
+  return data;
+}
+
 /** 오늘(서울시간 오전 8시 기준) 던전 타입별 남은 입장 횟수 { exp: n, gold: n } */
 export async function fetchDungeonAttemptsToday(userId) {
   const { data, error } = await supabase
@@ -48,5 +55,5 @@ export async function claimDungeonReward(sessionId) {
   const { data, error } = await supabase.rpc('claim_dungeon_reward', { p_session_id: sessionId });
   if (error) throw error;
   const row = data?.[0];
-  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus };
+  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus, isLuckyWeek: row.is_lucky_week };
 }

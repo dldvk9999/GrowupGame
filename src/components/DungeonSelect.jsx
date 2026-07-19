@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
+import { fetchLuckyDungeonType } from '../lib/dungeon';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
@@ -95,6 +96,13 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
   const d = getDungeonStage(type, currentStage);
   const allCleared = clearedStage >= DUNGEON_STAGE_COUNT;
   const resetIn = useCountdownToDaily8AM();
+  const [luckyType, setLuckyType] = useState(null);
+
+  useEffect(() => {
+    fetchLuckyDungeonType().then(setLuckyType).catch(() => setLuckyType(null));
+  }, []);
+
+  const isLuckyDungeon = luckyType === type;
 
   return (
     <div>
@@ -102,6 +110,9 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
         1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 하루 3번까지 입장 가능(오늘 {remaining}/3회 남음, {resetIn} 후 초기화).
         {allCleared && ` 최고층까지 전부 클리어했어요! ${DUNGEON_STAGE_COUNT}층을 반복 도전할 수 있어요.`}
       </p>
+      {isLuckyDungeon && (
+        <p className="stage-select-hint lucky-dungeon-banner">🍀 이번 주는 {type === 'gold' ? '골드' : '경험치'} 던전이 행운의 던전이에요! 골드 보상 1.5배</p>
+      )}
       {error && <p className="shop-error">{error}</p>}
 
       <div className="dungeon-current-card">
