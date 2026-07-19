@@ -6,6 +6,7 @@ import { getPvpTier } from '../lib/pvpTier';
 import { getNextGoals } from '../lib/nextGoals';
 import { speciesById } from '../lib/speciesData';
 import { scaleStats } from '../lib/growth';
+import { calculateCombatPower } from '../lib/combat';
 import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
@@ -161,6 +162,11 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
               towerHighestFloor,
               attendanceTotal: attendanceState?.total_claim_count,
               costumeCount,
+              combatPower: calculateCombatPower({
+                atk: activeMonster.atk + (equipmentBonus?.atk ?? 0) + (skillPossessionAtk ?? 0),
+                def: activeMonster.def + (equipmentBonus?.def ?? 0),
+                maxHp: activeMonster.maxHp + (equipmentBonus?.hp ?? 0),
+              }),
             }).map((goal) => (
               <span key={goal.label} className="character-card-next-goal-chip">
                 {goal.icon} {goal.label} {goal.remaining}{goal.unit} 남음
