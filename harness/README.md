@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다. (`dev-guide.md`의 "문서 관리 원칙" 참고)
 
-마지막 정리: migration 095까지 반영 (071 이후 대량 추가됨 — 던전 500층 확장/정예몬스터, 44개 업적 전체 카테고리 보강, 5탭 랭킹허브, BGM/효과음, 잠금해제 테마 9종, 컬렉션 진행률 시스템 등. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고)
+마지막 정리: migration 097까지 반영 (071 이후 대량 추가됨 — 던전 500층 확장/3모드 정예몬스터 이벤트, 45개 업적 전체 카테고리 보강, 5탭 랭킹허브+순위변동추적, BGM/효과음, 잠금해제 테마 9종, 컬렉션 진행률 시스템 등. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고)
 
 ## 문서 목차
 
@@ -22,12 +22,12 @@
 | [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 랭킹 통합허브(전투력/업적/탑/친구추천/골드), 순위변동 추적 |
 | [`mailbox-and-coupons.md`](./mailbox-and-coupons.md) | 정기 우편함, 쿠폰 시스템 |
 | [`guide-missions.md`](./guide-missions.md) | 가이드 미션(반복형+온보딩 우선순위) |
-| [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상, 365일 마일스톤), 업적 시스템(44개), 칭호 갤러리, 카테고리 접기 |
+| [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상, 365일 마일스톤), 업적 시스템(45개), 칭호 갤러리, 카테고리 접기 |
 | [`referral-system.md`](./referral-system.md) | 친구 추천 시스템, 추천 마일스톤 업적 |
 | [`account-and-settings.md`](./account-and-settings.md) | 인증(자동로그인 포함), 마이페이지, 설정 화면, 커뮤니티 현황판 |
 | [`ui-and-ux.md`](./ui-and-ux.md) | 키보드 단축키, 토스트 알림, PWA, 모바일 레이아웃 주의사항, 잠금해제 테마 9종 |
-| [`database-schema.md`](./database-schema.md) | migration 001~095 전체 히스토리, 클라이언트 쓰기권한 요약표 |
-| [`security.md`](./security.md) | 보안 감사에서 발견/수정한 취약점, 알려진 한계, 정기점검 로그(53차+) |
+| [`database-schema.md`](./database-schema.md) | migration 001~097 전체 히스토리, 클라이언트 쓰기권한 요약표 |
+| [`security.md`](./security.md) | 보안 감사에서 발견/수정한 취약점, 알려진 한계, 정기점검 로그(55차+) |
 | [`todo.md`](./todo.md) | 알려진 미구현 기능 목록 |
 | [`dev-guide.md`](./dev-guide.md) | 로컬 개발/배포 방법, CI(GitHub Actions), 과거 버그 노트, 문서 관리 원칙 |
 
