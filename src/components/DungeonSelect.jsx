@@ -107,6 +107,11 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
       <div className="dungeon-current-card">
         <div className="dungeon-stage-num">{currentStage}층 {allCleared ? '(최고층 반복)' : ''}</div>
         <div className="dungeon-stage-boss">{d.name}</div>
+        <div className="tower-opponent-stats" style={{ justifyContent: 'center' }}>
+          <span>❤️ HP {d.maxHp.toLocaleString()}</span>
+          <span>⚔️ ATK {d.atk.toLocaleString()}</span>
+          <span>🛡️ DEF {d.def.toLocaleString()}</span>
+        </div>
         <div className="dungeon-stage-reward">
           EXP +{d.expReward.toLocaleString()} · 💰 +{d.goldReward.toLocaleString()}
         </div>
