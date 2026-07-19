@@ -69,3 +69,15 @@
 ## 관련 업적 (migration 074)
 
 "탑의 초입"(10층, 4000골드) / "구름 위 수련자"(30층, 15000골드) — `claim_achievement`에 CASE만 추가하는 재정의(반환타입 그대로, DROP 불필요). `tower_progress.highest_floor`를 직접 조회해서 판정. 클라이언트/서버 29개 업적 키 diff로 완전 일치 재검증 완료.
+
+## ⚠️ 긴급 버그 수정: "column reference floor is ambiguous" (migration 078)
+
+**증상**: 무한의 탑에 입장하려고 하면 "column reference floor is ambiguous" 에러가 나서 입장 자체가 안 됨.
+
+**원인**: 073에서 추가한 중복세션 방지 로직(`select id, floor into v_existing from public.tower_sessions where ...`)이 테이블 별칭 없이 `floor`를 그대로 썼는데, `enter_tower()`의 `RETURNS TABLE(..., floor integer, ...)` OUT 파라미터 이름도 `floor`라서 PostgreSQL이 어느 쪽을 가리키는지 모호해서 배포 즉시 크래시남. **이건 harness에 이미 "재발 패턴"으로 기록해뒀던 것과 정확히 동일한 종류의 버그**(046/056에서 겪었던 것)인데, 073을 급하게 작성하면서 그 교훈을 다시 놓쳤음.
+
+**수정**: `tower_sessions`에 별칭(`ts`)을 붙여서 `select ts.id, ts.floor into v_existing from public.tower_sessions ts where ts.user_id = ... and ts.claimed = false`로 명시적으로 구분(078). 반환 컬럼 구성 그대로라 DROP FUNCTION 불필요.
+
+**자동 스캐너 커버리지 개선**: 기존 스캐너(`ambiguous 자기참조` 검사)는 `UPDATE ... SET col = col` 패턴만 검사했고, 이번 버그의 실제 패턴인 `SELECT col INTO ... FROM table`(별칭 없음)은 검사 대상이 아니어서 073을 배포하기 전에 못 잡았음. `SELECT ... INTO` 패턴도 검사하도록 스캐너를 확장해서 073의 버그를 정확히 재현 검출함을 확인 — 다만 이 확장된 스캐너는 **SQL 주석에 코드를 인용해서 설명하면 그 주석 텍스트를 실제 코드로 오인식**하는 한계가 있음을 078 검증 과정에서 발견함(078의 실제 코드는 이미 별칭이 붙어 안전한데, 주석에 073의 버그 코드를 인용해서 설명한 부분이 오탐을 유발함). **향후 마이그레이션 주석에서 예전 버그 코드를 인용할 때는 스캐너 오탐을 피하기 위해 SQL 코드 형태 그대로 쓰지 않는 게 안전함**(예: 백틱이나 다른 표기로 감싸거나, 컬럼명만 언급).
+
+**교훈**: "재발 패턴"으로 이미 문서화해둔 버그 유형도, 급하게 코드를 작성할 때는 다시 놓칠 수 있다는 걸 이번에 재확인함. 앞으로 `RETURNS TABLE`이 있는 함수에 새 `SELECT ... INTO` 문을 추가할 때는 **항상 테이블 별칭을 습관적으로 붙이는 것**이 가장 확실한 예방책임(반환 컬럼명과 겹치는지 매번 확인하는 것보다 실수 여지가 적음).
