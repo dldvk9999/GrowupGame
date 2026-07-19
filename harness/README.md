@@ -4,30 +4,30 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다. (`dev-guide.md`의 "문서 관리 원칙" 참고)
 
-마지막 정리: migration 071까지 반영 (071은 무한의 탑 - 신규 던전 콘텐츠. 067~070도 이 사이에 순차 반영됨: 쿠폰시딩/인기속성통계/출석마일스톤/얼리버드업적)
+마지막 정리: migration 095까지 반영 (071 이후 대량 추가됨 — 던전 500층 확장/정예몬스터, 44개 업적 전체 카테고리 보강, 5탭 랭킹허브, BGM/효과음, 잠금해제 테마 9종, 컬렉션 진행률 시스템 등. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고)
 
 ## 문서 목차
 
 | 파일 | 내용 |
 |---|---|
-| [`character-and-growth.md`](./character-and-growth.md) | 스타터/레벨업/진화/전직(1~5차) 시스템 |
-| [`skills.md`](./skills.md) | 스킬 카탈로그(50종), 스킬 타입별 전투 로직, 스킬 보유효과 |
-| [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과 |
+| [`character-and-growth.md`](./character-and-growth.md) | 스타터/레벨업/진화/전직(1~5차) 시스템, 캐릭터 카드, 다음 목표 위젯, 성장곡선 미리보기 |
+| [`skills.md`](./skills.md) | 스킬 카탈로그(50종), 스킬 타입별 전투 로직, 스킬 보유효과, 스킬 완전수집 업적, 뽑기 확률 투명공개 |
+| [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과, 최대강화 업적 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
-| [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드), 전직 던전 |
-| [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한 없는 도전 모드, 랭킹) |
+| [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
+| [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
 | [`audio.md`](./audio.md) | BGM/효과음 (Web Audio API 합성) |
-| [`world-boss.md`](./world-boss.md) | 주간 공유체력 월드보스, 용의 버프 |
-| [`pvp.md`](./pvp.md) | PvP 비동기 매칭전투, PvP 재화/코스튬 상점 |
-| [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 전투력 랭킹(명예의 전당) |
+| [`world-boss.md`](./world-boss.md) | 주간 공유체력 월드보스, 용의 버프, 누적 피해량 업적 |
+| [`pvp.md`](./pvp.md) | PvP 비동기 매칭전투, PvP 재화/코스튬 상점, PvP 티어, 다이아몬드 업적 |
+| [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 랭킹 통합허브(전투력/업적/탑/친구추천/골드), 순위변동 추적 |
 | [`mailbox-and-coupons.md`](./mailbox-and-coupons.md) | 정기 우편함, 쿠폰 시스템 |
 | [`guide-missions.md`](./guide-missions.md) | 가이드 미션(반복형+온보딩 우선순위) |
-| [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상), 업적 시스템 |
-| [`referral-system.md`](./referral-system.md) | 친구 추천 시스템 |
-| [`account-and-settings.md`](./account-and-settings.md) | 인증(자동로그인 포함), 마이페이지, 설정 화면 |
-| [`ui-and-ux.md`](./ui-and-ux.md) | 키보드 단축키, 토스트 알림, PWA, 모바일 레이아웃 주의사항 |
-| [`database-schema.md`](./database-schema.md) | migration 001~029 전체 히스토리, 클라이언트 쓰기권한 요약표 |
-| [`security.md`](./security.md) | 009/022/027 등 보안 감사에서 발견/수정한 취약점, 알려진 한계 |
+| [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상, 365일 마일스톤), 업적 시스템(44개), 칭호 갤러리, 카테고리 접기 |
+| [`referral-system.md`](./referral-system.md) | 친구 추천 시스템, 추천 마일스톤 업적 |
+| [`account-and-settings.md`](./account-and-settings.md) | 인증(자동로그인 포함), 마이페이지, 설정 화면, 커뮤니티 현황판 |
+| [`ui-and-ux.md`](./ui-and-ux.md) | 키보드 단축키, 토스트 알림, PWA, 모바일 레이아웃 주의사항, 잠금해제 테마 9종 |
+| [`database-schema.md`](./database-schema.md) | migration 001~095 전체 히스토리, 클라이언트 쓰기권한 요약표 |
+| [`security.md`](./security.md) | 보안 감사에서 발견/수정한 취약점, 알려진 한계, 정기점검 로그(53차+) |
 | [`todo.md`](./todo.md) | 알려진 미구현 기능 목록 |
 | [`dev-guide.md`](./dev-guide.md) | 로컬 개발/배포 방법, CI(GitHub Actions), 과거 버그 노트, 문서 관리 원칙 |
 
