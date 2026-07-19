@@ -367,3 +367,6 @@
 
 **094_pvp_diamond_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`에 PvP 100승(다이아몬드 티어) 업적 추가. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**095_achievement_milestone_coupon.sql**
+- `ACHIEVE44` 쿠폰 시딩(골드20000+레전더리장갑, 무제한 사용, 2027-12-31 만료) — 업적 44개 돌파 기념
