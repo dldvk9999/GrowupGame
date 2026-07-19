@@ -290,6 +290,8 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
 
   const nextFloor = (highestFloor ?? 0) + 1;
   const iAmInTop20 = leaderboard?.some((r) => r.is_me);
+  const achMilestones = [10, 30, 100];
+  const nextAchMilestone = achMilestones.find((m) => m > (highestFloor ?? 0));
 
   return (
     <div>
@@ -301,6 +303,9 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
       <div className="worldboss-hp-card">
         <div className="worldboss-hp-title">🗼 나의 최고 기록: {highestFloor ?? 0}층</div>
         <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>다음 도전: {nextFloor}층</p>
+        {nextAchMilestone && (
+          <p className="mypage-locked-hint" style={{ margin: '2px 0 0' }}>🏅 다음 업적까지 {nextAchMilestone - (highestFloor ?? 0)}층 남음</p>
+        )}
       </div>
 
       <div className="tower-opponent-preview">
