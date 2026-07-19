@@ -95,6 +95,13 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
             4슬롯을 <strong>전부 같은 등급으로 장착</strong>하면 세트 효과로 최종 스탯 <strong>+5%</strong> 보너스가 붙어요.
           </p>
 
+          <div className="costume-collection-progress">
+            🔨 최고 강화수치 +{inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0)} / +{MAX_ENHANCE_LEVEL}
+            <span className="bar-track costume-collection-track">
+              <span className="bar-fill" style={{ width: `${Math.min(100, (inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0) / MAX_ENHANCE_LEVEL) * 100)}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
+            </span>
+          </div>
+
           {(() => {
             const equippedRarities = {};
             for (const row of inventory) {
