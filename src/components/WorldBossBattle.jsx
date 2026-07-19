@@ -330,7 +330,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
         </div>
       ) : (
         <>
-        <div className="skills-row">
+        <div className="skills-row worldboss-skills-row">
           {availableSkills.map((skill, i) => (
             <SkillButton
               key={skill.id}
