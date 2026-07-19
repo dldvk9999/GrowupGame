@@ -83,6 +83,29 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
         <strong> {totalClaimed} / {totalCount}</strong> 달성
       </p>
 
+      {claimedKeys !== null && (
+        <div className="title-gallery">
+          <span className="title-gallery-header">
+            🎖️ 칭호 갤러리 ({Object.keys(TITLE_BY_ACHIEVEMENT).filter((k) => claimedKeys.has(k)).length} / {Object.keys(TITLE_BY_ACHIEVEMENT).length})
+          </span>
+          <div className="title-gallery-grid">
+            {Object.entries(TITLE_BY_ACHIEVEMENT).map(([achKey, title]) => {
+              const unlocked = claimedKeys.has(achKey);
+              const isEquipped = unlocked && equippedTitle === title;
+              return (
+                <span
+                  key={achKey}
+                  className={`title-gallery-chip ${unlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'equipped' : ''}`}
+                  title={unlocked ? title : '🔒 미해금 — 아래 업적 목록에서 조건 확인'}
+                >
+                  {unlocked ? title : '🔒 ???'}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div style={{ marginBottom: 16 }}>
         <button
           className="btn btn-ghost pvp-history-toggle"
