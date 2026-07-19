@@ -6,7 +6,7 @@ import PatchNotes from './PatchNotes';
 import GameGuide from './GameGuide';
 import { hasSeenLatestPatchNote, markLatestPatchNoteSeen } from '../lib/patchNotes';
 
-export default function Settings({ userId, gold, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange, onPatchNoteSeen }) {
+export default function Settings({ userId, gold, pvpWins, onGoldChange, onUnreadMailChange, achievementStats, equippedTitle, onTitleChange, onPatchNoteSeen }) {
   const [tab, setTab] = useState('mailbox');
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
 
@@ -41,7 +41,7 @@ export default function Settings({ userId, gold, onGoldChange, onUnreadMailChang
           onTitleChange={onTitleChange}
         />
       )}
-      {tab === 'guide' && <GameGuide />}
+      {tab === 'guide' && <GameGuide isFounder={achievementStats?.isFounder === 1} pvpWins={pvpWins} />}
       {tab === 'coupon' && <CouponRedeem />}
       {tab === 'patchnotes' && <PatchNotes />}
     </div>

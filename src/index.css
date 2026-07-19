@@ -1203,6 +1203,9 @@ button {
 }
 .theme-swatch:hover { transform: scale(1.08); }
 .theme-swatch.active { border-color: #fff; transform: scale(1.05); }
+.theme-swatch.locked { opacity: 0.35; filter: grayscale(0.6); }
+.theme-swatch.locked:hover { transform: none; }
+.theme-locked-hint { margin-top: 6px; font-size: 11px; }
 .sound-settings-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
 .sound-toggle-btn { opacity: 0.6; }
 .sound-toggle-btn.active { opacity: 1; border-color: var(--accent-gold); }

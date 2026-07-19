@@ -1,15 +1,30 @@
 import { GAME_GUIDE_SECTIONS } from '../lib/gameGuide';
 import { THEMES, getSavedTheme, applyTheme } from '../lib/theme';
 import { getAudioSettings, setBgmEnabled, setSfxEnabled, setAudioVolume, playClickSound } from '../lib/audio';
+import { getPvpTier } from '../lib/pvpTier';
+import { showToast } from '../lib/toast';
 import { useState } from 'react';
 
-export default function GameGuide() {
+export default function GameGuide({ isFounder, pvpWins }) {
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
   const [audioSettings, setAudioSettingsState] = useState(getAudioSettings());
 
+  function isThemeUnlocked(key) {
+    const unlock = THEMES[key]?.unlock;
+    if (!unlock) return true;
+    if (unlock.type === 'achievement') return unlock.key === 'founder' ? !!isFounder : false;
+    if (unlock.type === 'pvpTier') return getPvpTier(pvpWins).key === unlock.tier;
+    return true;
+  }
+
   function handleThemeClick(key) {
+    if (!isThemeUnlocked(key)) {
+      showToast(`🔒 ${THEMES[key].unlock.label} 시 사용할 수 있어요.`, 'error');
+      return;
+    }
     applyTheme(key);
     setCurrentTheme(key);
+    playClickSound();
   }
 
   function handleToggleBgm() {
@@ -56,20 +71,28 @@ export default function GameGuide() {
         <h3 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🎨 테마 컬러</h3>
         <p className="stage-select-hint" style={{ marginTop: 0 }}>취향에 맞게 앱의 포인트 컬러를 바꿔보세요. 이 기기에만 저장돼요.</p>
         <div className="theme-picker">
-          {Object.entries(THEMES).map(([key, theme]) => (
-            <button
-              key={key}
-              type="button"
-              className={`theme-swatch ${currentTheme === key ? 'active' : ''}`}
-              style={{ background: `linear-gradient(135deg, ${theme.fire}, ${theme.gold})` }}
-              onClick={() => handleThemeClick(key)}
-              title={theme.label}
-            >
-              {currentTheme === key && '✓'}
-            </button>
-          ))}
+          {Object.entries(THEMES).map(([key, theme]) => {
+            const unlocked = isThemeUnlocked(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`theme-swatch ${currentTheme === key ? 'active' : ''} ${!unlocked ? 'locked' : ''}`}
+                style={{ background: `linear-gradient(135deg, ${theme.fire}, ${theme.gold})` }}
+                onClick={() => handleThemeClick(key)}
+                title={unlocked ? theme.label : `🔒 ${theme.unlock.label} 시 해금`}
+              >
+                {!unlocked ? '🔒' : currentTheme === key && '✓'}
+              </button>
+            );
+          })}
         </div>
         <p className="stage-select-hint" style={{ marginBottom: 0 }}>{THEMES[currentTheme]?.label}</p>
+        {Object.entries(THEMES).some(([k]) => !isThemeUnlocked(k)) && (
+          <p className="stage-select-hint theme-locked-hint">
+            🔒 표시된 테마는 특별 조건 달성 시 해금돼요: {Object.entries(THEMES).filter(([k]) => !isThemeUnlocked(k)).map(([, t]) => t.unlock.label).join(', ')}
+          </p>
+        )}
       </div>
 
       {GAME_GUIDE_SECTIONS.map((section, i) => (
