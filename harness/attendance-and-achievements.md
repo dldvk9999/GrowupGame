@@ -162,4 +162,8 @@ PvP 코스튬 5종 이상 보유하면 달성. `pvp_costume_inventory` 개수를
 
 **원인**: 미션 보상을 수령(`claim_mission_reward`)하면 서버가 **곧바로 다음 미션을 새로 배정**함(가이드 미션은 4종이 계속 순환하는 구조). `DailyChecklist`는 "지금 이 순간 배정된 미션이 완료 상태인지"(`missionCompleted`, `isMissionComplete(mission, ...)`)만 보고 있었는데, 보상을 받자마자 `mission`이 새(아직 미완료인) 미션으로 교체되면서 `missionCompleted`가 다시 `false`가 되어버림 — "오늘 미션을 완료했었다"는 사실 자체가 다음 미션으로 넘어가는 순간 사라지는 구조였음.
 
-**수정**: `App.jsx`에 `hasClaimedMissionToday` state를 추가해서, 미션 보상을 실제로 수령하는 순간(`handleClaimMission`) `true`로 세팅. 체크리스트에는 `missionCompleted || hasClaimedMissionToday`를 전달해서, 다음 미션이 배정돼도 "오늘 이미 한 번 완료했다"는 사실이 유지되도록 함. 로그인 시점과 로그아웃 시점 양쪽에서 `false`로 초기화(하루가 지나 재접속하는 경우, 다른 계정으로 전환하는 경우 모두 깨끗하게 리셋됨).
+**수정(1차)**: `App.jsx`에 `hasClaimedMissionToday` state를 추가해서, 미션 보상을 실제로 수령하는 순간(`handleClaimMission`) `true`로 세팅. 체크리스트에는 `missionCompleted || hasClaimedMissionToday`를 전달해서, 다음 미션이 배정돼도 "오늘 이미 한 번 완료했다"는 사실이 유지되도록 함. 로그인 시점과 로그아웃 시점 양쪽에서 `false`로 초기화(하루가 지나 재접속하는 경우, 다른 계정으로 전환하는 경우 모두 깨끗하게 리셋됨).
+
+**⚠️ 1차 수정으로도 재발함(사용자 재제보) — 진짜 근본 원인은 따로 있었음**: `handleSession`이 앱을 백그라운드로 보냈다가 복귀하거나 토큰이 자동 갱신될 때도 다시 호출되는데, 이때마다 (탭 유지 버그와 동일한 원인으로) `setHasClaimedMissionToday(false)`가 함께 호출되어 매번 리셋되고 있었음 — "로그인 시점 초기화" 로직이 실제로는 "세션이 조금이라도 갱신될 때마다" 실행되고 있었던 것. 즉 미션을 완료한 뒤 앱을 잠깐이라도 백그라운드로 보냈다가 돌아오면 `hasClaimedMissionToday`가 다시 `false`로 리셋되어 체크리스트가 미완료로 되돌아갔음.
+
+**최종 해결**: [`ui-and-ux.md`](./ui-and-ux.md)의 "탭 전환/백그라운드 복귀 시 마지막 탭이 유지 안 되던 버그" 수정(`sessionRef`로 "같은 유저의 세션 재확인"을 판별해서 리셋 로직 전체를 건너뜀)이 이 문제도 함께 해결함 — 더 이상 세션 갱신만으로는 `hasClaimedMissionToday`가 리셋되지 않으므로, 별도 코드 변경 없이 자동으로 고쳐짐. **교훈**: 겉보기엔 다른 두 버그 제보(탭 리셋, 미션 재완료 표시)가 사실은 같은 근본 원인(세션 갱신 시 무차별 초기화)에서 나온 증상이었음 — 비슷한 시점에 리셋되는 여러 state가 있다면 그 초기화 로직 자체를 먼저 의심해볼 필요가 있음.
