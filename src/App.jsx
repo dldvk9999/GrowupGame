@@ -883,6 +883,7 @@ export default function App() {
                 towerHighestFloor={towerHighestFloor}
                 attendanceState={attendanceState}
                 loginStreak={loginStreak}
+                costumeCount={costumeCount}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}
