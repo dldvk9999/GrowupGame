@@ -10,7 +10,7 @@ import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, onMonsterNicknameChange }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, onMonsterNicknameChange }) {
   const [referrerInput, setReferrerInput] = useState('');
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
@@ -134,6 +134,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           </div>
           <div className="character-card-sub">
             {activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}
+            {loginStreak >= 2 && <span className="login-streak-badge"> 🔥{loginStreak}일 연속 접속</span>}
           </div>
           <div className="character-card-stats">
             <div className="character-card-stat">

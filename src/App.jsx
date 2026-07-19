@@ -9,6 +9,7 @@ import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
 import { getTodaysQuoteIfNotShown } from './lib/dailyQuote';
+import { updateLoginStreak } from './lib/loginStreak';
 import { playGoldenMonsterSound, playNewRecordSound, startBgm } from './lib/audio';
 import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
@@ -102,6 +103,7 @@ export default function App() {
   const [mission, setMission] = useState(null);
   const [claimingMission, setClaimingMission] = useState(false);
   const [hasClaimedMissionToday, setHasClaimedMissionToday] = useState(false);
+  const [loginStreak, setLoginStreak] = useState(0);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
@@ -234,6 +236,7 @@ export default function App() {
       setTowerHighestFloor(towerFloor);
       setHasClaimedMissionToday(false);
       setLoginAt(new Date().toISOString());
+      setLoginStreak(updateLoginStreak());
 
       const dailyQuote = getTodaysQuoteIfNotShown();
       if (dailyQuote) {
@@ -845,6 +848,7 @@ export default function App() {
                 dragonBuffActive={dragonBuffActive}
                 towerHighestFloor={towerHighestFloor}
                 attendanceState={attendanceState}
+                loginStreak={loginStreak}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}
