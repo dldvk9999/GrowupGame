@@ -370,3 +370,6 @@
 
 **095_achievement_milestone_coupon.sql**
 - `ACHIEVE44` 쿠폰 시딩(골드20000+레전더리장갑, 무제한 사용, 2027-12-31 만료) — 업적 44개 돌파 기념
+
+**096_stage_elite_monster_event.sql** — 신규 콘텐츠
+- `clear_stage` 재정의(반환타입 integer→table, DROP FUNCTION 포함) — 스테이지 클리어 시 8% 확률 골드 2배(황금몬스터/던전정예몬스터와 동일 설계로 일관성 확보)

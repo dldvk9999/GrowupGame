@@ -11,9 +11,10 @@ export async function fetchClearedStageIds(userId) {
   return new Set(data.map((r) => r.stage_id));
 }
 
-/** 스테이지 클리어 기록 - 서버가 열림여부 재검증 + 골드도 직접 계산해서 지급 (반환값 = 지급된 골드) */
+/** 스테이지 클리어 기록 - 서버가 열림여부 재검증 + 골드도 직접 계산해서 지급 */
 export async function markStageCleared(userId, stageId) {
   const { data, error } = await supabase.rpc('clear_stage', { p_stage_id: stageId });
   if (error) throw error;
-  return data; // 지급된 골드
+  const row = data?.[0];
+  return { gold: row.gold, isElite: row.is_elite };
 }
