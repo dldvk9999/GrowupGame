@@ -438,3 +438,6 @@
 
 **116_pvp_revamp_launch_coupon.sql**
 - `PVPREVENGE` 쿠폰 시딩(골드15000+에픽무기, 무제한 사용, 2027-12-31 만료) — PvP 개편 출시 기념
+
+**117_fix_pvp_reward_overflow_guard.sql** — 예방적 버그 수정
+- `start_pvp_battle`/`start_pvp_revenge_battle` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 상대 전투력이 매우 높으면(약 2165만+) 보상이 `add_gold`의 100만 상한을 넘어 크래시할 수 있던 문제를 90만 클램프로 예방. 자세한 내용은 [`pvp.md`](./pvp.md)
