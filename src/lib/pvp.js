@@ -79,3 +79,17 @@ export async function setCostumeLoadout(itemKeys) {
   const { error } = await supabase.rpc('set_costume_loadout', { p_item_keys: itemKeys });
   if (error) throw new Error(error.message);
 }
+
+/** PvP 승수 랭킹 TOP20 */
+export async function fetchPvpLeaderboard() {
+  const { data, error } = await supabase.rpc('fetch_pvp_leaderboard');
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** 내 PvP 승수 순위 (20위 밖이어도 알 수 있음, 0승이면 null) */
+export async function fetchMyPvpRank() {
+  const { data, error } = await supabase.rpc('fetch_my_pvp_rank');
+  if (error) throw error;
+  return data;
+}

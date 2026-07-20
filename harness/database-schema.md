@@ -423,3 +423,6 @@
 
 **111_world_boss_personal_best.sql** — 신규 콘텐츠
 - `profiles.world_boss_best_damage` 컬럼 추가, `report_world_boss_damage` 재정의(반환컬럼 `is_new_personal_best`/`personal_best` 추가, DROP FUNCTION 포함) — 한 판 기준 개인 최고 데미지 기록/갱신 알림. 자세한 내용은 [`world-boss.md`](./world-boss.md)
+
+**112_pvp_leaderboard.sql** — 신규 콘텐츠
+- `fetch_pvp_leaderboard()`/`fetch_my_pvp_rank()` 신설(tower/referral 랭킹과 동일 패턴) — 랭킹 화면에 6번째 탭 "🥊 PvP" 추가(`pvp_wins` 기준 TOP20). 자세한 내용은 [`social-chat.md`](./social-chat.md)

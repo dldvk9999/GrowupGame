@@ -56,6 +56,10 @@
 
 5번째 종류 "💰 재산" — 전체 유저 골드 보유량 TOP20. `profiles.gold`가 이미 공개 RLS라 직접 조회도 가능했지만, 다른 랭킹과 인터페이스 통일을 위해 동일한 RPC 패턴(`fetch_gold_leaderboard`/`fetch_my_gold_rank`)으로 만듦. `SimpleLeaderboard`에 `formatValue` prop 추가(골드 천단위 콤마). 극단값(9억대 골드+긴 닉네임+칭호) 모바일 실측 검증 완료.
 
+## PvP 승수 랭킹 추가 (migration 112, 신규 콘텐츠)
+
+6번째 종류 "🥊 PvP" — `profiles.pvp_wins` 기준 TOP20. 107~109로 PvP를 대폭 강화한 김에 랭킹 화면에도 추가해 경쟁 요소를 완성함. `fetch_pvp_leaderboard()`/`fetch_my_pvp_rank()`는 tower/referral 랭킹(071/084)과 완전히 동일한 패턴(security definer, `pvp_wins > 0`인 유저만 집계) — `SimpleLeaderboard`에 props만 새로 넘겨 그대로 재사용, 신규 함수라 DROP FUNCTION 불필요. 탭이 6개로 늘었지만 `.shop-tabs`가 이미 `flex-wrap: wrap`이라 모바일에서도 안전하게 줄바꿈됨(4탭 때부터 검증된 패턴 그대로 유지).
+
 ## 순위 변동 추적 (신규 콘텐츠, `lib/rankHistory.js`)
 
 랭킹 화면 진입 때마다 저번 대비 순위 변동을 "▲5" / "▼3" 배지로 표시. 5개 종류 전부 각각 독립 추적(localStorage에 종류별 키). **순위 판정 자체는 항상 서버값 그대로, 이 모듈은 순수하게 "직전 로컬 저장값과의 차이"만 계산**하는 순수 재미 요소. 헤드리스 브라우저로 첫조회/상승/하락/순위권이탈 시나리오 검증 완료, 큰 순위 숫자(1234위) 모바일 넘침도 재검증.

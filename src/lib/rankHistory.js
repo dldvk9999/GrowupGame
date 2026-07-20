@@ -8,7 +8,7 @@ const KEY_PREFIX = 'growupgame-last-rank-';
 
 /**
  * 새 순위를 기록하면서, 직전에 저장했던 순위 대비 변동을 반환.
- * @param {string} kind - 'power' | 'achievement' | 'tower' | 'referral' | 'gold'
+ * @param {string} kind - 'power' | 'achievement' | 'tower' | 'pvp' | 'referral' | 'gold'
  * @param {number|null} newRank - 이번에 서버에서 받은 순위(1위=1). null이면 순위권 밖.
  * @returns {number|null} 이전 대비 상승폭(양수=상승, 음수=하락), 처음 보는 경우 null
  */
