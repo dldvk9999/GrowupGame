@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { TOTAL_CHAPTERS, STAGES_PER_CHAPTER, toStageIndex, getChapterName, getChapterElement } from '../lib/stages';
 import { getChapterStory } from '../lib/stageStory';
 import MonsterSprite from './MonsterSprite';
+import StoryArtwork from './StoryArtwork';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 
 export default function StageSelect({ clearedStageIds, onSelectStage, currentStageIndex }) {
   const currentChapter = Math.floor((currentStageIndex - 1) / STAGES_PER_CHAPTER) + 1;
   const [selectedChapter, setSelectedChapter] = useState(currentChapter);
+  const [showStoryPopup, setShowStoryPopup] = useState(false);
   const cardRefs = useRef({});
   const trackRef = useRef(null);
 
@@ -104,6 +106,9 @@ export default function StageSelect({ clearedStageIds, onSelectStage, currentSta
               <div className="selected-chapter-title">{selectedChapter}. {getChapterName(selectedChapter)}</div>
               <div className="selected-chapter-sub">{selectedStory.title} · {selectedCleared}/{STAGES_PER_CHAPTER} 클리어</div>
             </div>
+            <button type="button" className="btn btn-ghost story-view-btn" onClick={() => setShowStoryPopup(true)}>
+              📖 스토리 보기
+            </button>
           </div>
 
           <div className="substage-grid">
@@ -125,6 +130,19 @@ export default function StageSelect({ clearedStageIds, onSelectStage, currentSta
                 </button>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {showStoryPopup && (
+        <div className="modal-backdrop" onClick={() => setShowStoryPopup(false)}>
+          <div className="story-card story-popup-card" onClick={(e) => e.stopPropagation()}>
+            <h2>{selectedStory.title}</h2>
+            {selectedStory.imageKey && <StoryArtwork imageKey={selectedStory.imageKey} />}
+            <p className="story-paragraph">{selectedStory.body}</p>
+            <button className="story-continue" onClick={() => setShowStoryPopup(false)}>
+              닫기
+            </button>
           </div>
         </div>
       )}

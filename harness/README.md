@@ -14,6 +14,7 @@
 | [`skills.md`](./skills.md) | 스킬 카탈로그(50종), 스킬 타입별 전투 로직, 스킬 보유효과, 스킬 완전수집 업적, 뽑기 확률 투명공개 |
 | [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과, 최대강화 업적 |
 | [`relics.md`](./relics.md) | 유물 시스템(50종, 강화실패확률, 최대3장착), 밸런스 설계, 전투력/골드/경험치 반영 범위 |
+| [`story.md`](./story.md) | 메인 스토리 아크(잊혀진 조율자), SVG 삽화, 인터루드, 스테이지선택 스토리 팝업 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -63,9 +64,10 @@ GrowupGame/
 │  ├─ index.css                    # 전역 반응형 스타일 (다크 테마)
 │  ├─ components/
 │  │  ├─ AuthScreen.jsx            # 로그인/회원가입 탭, 자동로그인 체크박스, 닉네임 실시간 중복확인
-│  │  ├─ StoryIntro.jsx            # 최초 진입 시 세계관 인트로 (story.js 사용)
+│  │  ├─ StoryIntro.jsx            # 최초 진입 시 세계관 인트로 (story.js 사용) - story.md
 │  │  ├─ StarterSelect.jsx         # 스타터 3종(fire_1/water_1/grass_1) 선택
-│  │  ├─ ChapterStory.jsx          # 새 챕터 진입 시 스토리 배너 (stageStory.js 사용, 화면 중앙 표시)
+│  │  ├─ ChapterStory.jsx          # 새 챕터 진입/인터루드 시 스토리 배너 (stageStory.js/storyArc.js 사용) - story.md
+│  │  ├─ StoryArtwork.jsx          # 스토리 삽화 - 9종 재사용 SVG 무드아트 - story.md
 │  │  ├─ BattleScreen.jsx          # 전투 화면 (자동사냥 + 스테이지 도전) - combat.md
 │  │  ├─ DungeonSelect.jsx         # 일일/전직 던전 선택 UI - stages-and-dungeons.md
 │  │  ├─ DungeonBattle.jsx         # 일일 던전 전투 화면
@@ -103,7 +105,8 @@ GrowupGame/
 │     ├─ skillCatalog.js           # 뽑기 스킬 카탈로그(50종) + 보유효과 계산
 │     ├─ skillGacha.js             # 스킬 뽑기 RPC 연동
 │     ├─ stages.js                 # 100챕터×10스테이지 절차적 생성 + 필드(자동사냥)몹 생성
-│     ├─ stageStory.js             # 챕터 진입 스토리 + 스테이지별 짧은 플레이버 텍스트
+│     ├─ stageStory.js             # 챕터 진입 스토리(주요 비트 우선) + 스테이지별 짧은 플레이버 텍스트 - story.md
+│     ├─ storyArc.js               # 메인 스토리 아크(12개 주요 비트) + 인터루드 풀 - story.md
 │     ├─ dungeonStages.js, dungeon.js  # 일일 던전 데이터/RPC 연동
 │     ├─ combat.js                 # 방어력 데미지 경감 공식(mitigateDamage) + 전투력 계산
 │     ├─ story.js                  # 최초 진입 세계관 인트로 텍스트

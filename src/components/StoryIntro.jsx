@@ -1,4 +1,5 @@
 import { STORY_INTRO } from '../lib/story';
+import StoryArtwork from './StoryArtwork';
 
 export default function StoryIntro({ onContinue }) {
   return (
@@ -6,6 +7,7 @@ export default function StoryIntro({ onContinue }) {
       <div className="story-card">
         <h2>{STORY_INTRO.title}</h2>
         <p className="story-subtitle">{STORY_INTRO.subtitle}</p>
+        <StoryArtwork imageKey="dawn" />
 
         {STORY_INTRO.paragraphs.map((p, i) => (
           <p key={i} className="story-paragraph">{p}</p>

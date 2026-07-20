@@ -1,4 +1,5 @@
 import { getChapterName, getChapterElement, TOTAL_CHAPTERS } from './stages';
+import { getStoryArcBeat } from './storyArc';
 
 const HOOK = [
   '이 지역 몬스터들의 눈빛이 심상치 않다.',
@@ -11,6 +12,16 @@ const HOOK = [
   '지도에 없는 길이 새로 열렸다.',
   '기운이 요동치는 게 피부로 느껴진다.',
   '오래된 전설이 다시 현실이 되려 한다.',
+  '대기 중에 낯선 기운이 옅게 스며있다 — 세 속성 중 어느 쪽도 아니다.',
+  '숲 전체가 숨죽인 듯 고요하다. 무언가를 기다리는 것처럼.',
+  '길가에 남은 발자국이 한 사람만의 것이 아니다.',
+  '멀리서 짐승들의 울음소리가 평소와 다르게 들린다.',
+  '땅이 미세하게 진동한다. 이유는 아직 알 수 없다.',
+  '이곳을 지배하던 존재가 최근 부쩍 사나워졌다는 소문이 돈다.',
+  '누군가 남긴 경고문이 나무에 새겨져 있다.',
+  '하늘 색이 평소보다 탁하다 — 좋은 징조는 아니다.',
+  '이 지역의 조련사 길드 지부가 문을 닫은 지 오래됐다.',
+  '싸늘한 정적 속에서, 다음 걸음을 내딛는 수밖에 없다.',
 ];
 
 const SUBSTAGE_FLAVOR = [
@@ -25,8 +36,11 @@ const SUBSTAGE_FLAVOR = [
   '심상치 않은 기운의 몬스터, 보스가 가까운 듯하다.',
 ];
 
-/** 챕터(대스테이지) 진입 시 보여줄 스토리 한 조각 */
+/** 챕터(대스테이지) 진입 시 보여줄 스토리 한 조각 - 주요 분기점(storyArc.js)이 있으면 그걸 우선 사용 */
 export function getChapterStory(chapter) {
+  const arcBeat = getStoryArcBeat(chapter);
+  if (arcBeat) return arcBeat;
+
   const name = getChapterName(chapter);
   const element = getChapterElement(chapter);
   const elementLabel = { fire: '화속성', water: '수속성', grass: '초속성' }[element];

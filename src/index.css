@@ -348,7 +348,16 @@ button {
   margin: 0 0 4px;
   font-size: 22px;
 }
+.story-popup-card { max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto; }
 .story-subtitle { color: var(--accent-gold); font-size: 13px; margin: 0 0 20px; }
+.story-artwork {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin: 4px 0 16px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-soft);
+}
+.story-artwork-svg { display: block; width: 100%; height: auto; }
 .story-paragraph {
   color: var(--text-secondary);
   line-height: 1.7;
@@ -1043,8 +1052,10 @@ button {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
 }
+.story-view-btn { margin-left: auto; font-size: 12px; padding: 5px 12px; flex-shrink: 0; }
 .selected-chapter-title { font-size: 15px; font-weight: 700; }
 .selected-chapter-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 

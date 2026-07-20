@@ -41,6 +41,7 @@ import AttendanceModal from './components/AttendanceModal';
 import DailyChecklist from './components/DailyChecklist';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
+import { maybeGetInterlude } from './lib/storyArc';
 
 import AuthScreen from './components/AuthScreen';
 import ToastContainer from './components/ToastContainer';
@@ -86,6 +87,7 @@ export default function App() {
   const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
   const [pendingStage, setPendingStage] = useState(null);
+  const [pendingStoryContent, setPendingStoryContent] = useState(null);
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
@@ -396,6 +398,16 @@ export default function App() {
     );
     if (!chapterHasProgress && chapter > 1) {
       setPendingStage({ chapter, stage: stageNum });
+      setPendingStoryContent(getChapterStory(chapter));
+      setStage(STAGE.CHAPTER_STORY);
+      return;
+    }
+    // 이미 진행 중인 챕터라도, 가끔(12%) 짧은 인터루드 장면을 보여줌(사용자 요청) -
+    // 스테이지 이동 자체를 막진 않고 "계속하기"를 누르면 그대로 이어짐
+    const interlude = maybeGetInterlude();
+    if (interlude) {
+      setPendingStage({ chapter, stage: stageNum });
+      setPendingStoryContent(interlude);
       setStage(STAGE.CHAPTER_STORY);
       return;
     }
@@ -408,6 +420,7 @@ export default function App() {
       setCurrentStageIndex(toStageIndex(pendingStage.chapter, pendingStage.stage));
       setPendingStage(null);
     }
+    setPendingStoryContent(null);
     setActiveTab('battle');
     setStage(STAGE.GAME);
   }
@@ -752,10 +765,10 @@ export default function App() {
           <StarterSelect onSelect={handlePickStarter} loading={starterLoading} />
         )}
 
-        {stage === STAGE.CHAPTER_STORY && pendingStage && (
+        {stage === STAGE.CHAPTER_STORY && pendingStage && pendingStoryContent && (
           <div className="center-viewport">
             <ChapterStory
-              {...getChapterStory(pendingStage.chapter)}
+              {...pendingStoryContent}
               onContinue={handleContinueFromChapterStory}
             />
           </div>
