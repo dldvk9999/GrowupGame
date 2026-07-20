@@ -31,6 +31,8 @@ import { claimComebackRewardIfEligible } from './lib/comeback';
 import { claimOfflineGoldReward } from './lib/offlineReward';
 import { shouldShowWeekendBonusToast } from './lib/weekendBonus';
 import { hasPlayedPvpToday } from './lib/dailyPvpFlag';
+import { fetchMyRelics } from './lib/relicGacha';
+import { getTotalRelicBonus } from './lib/relicBonus';
 import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
@@ -78,6 +80,7 @@ export default function App() {
   const [activeMonster, setActiveMonster] = useState(null);
   const [clearedStageIds, setClearedStageIds] = useState(new Set());
   const [inventory, setInventory] = useState([]);
+  const [userRelics, setUserRelics] = useState([]);
   const [equipmentDrawProgress, setEquipmentDrawProgress] = useState({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
   const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
@@ -213,6 +216,7 @@ export default function App() {
       setActiveMonster(null);
       setClearedStageIds(new Set());
       setInventory([]);
+      setUserRelics([]);
       setEquipmentDrawProgress({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
       setUserSkills([]);
       setCurrentStageIndex(1);
@@ -247,7 +251,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -265,10 +269,12 @@ export default function App() {
         fetchDailyFreeDrawState(userId).catch(() => []),
         fetchMyCostumes(userId).catch(() => new Set()),
         fetchMyTowerProgress(userId).catch(() => 0),
+        fetchMyRelics(userId).catch(() => []),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
+      setUserRelics(relics);
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
       setDungeonProgress(progress);
@@ -618,15 +624,16 @@ export default function App() {
   const { chapter, stage: stageNum } = fromStageIndex(currentStageIndex);
   const equipmentOnlyBonus = getTotalEquipmentBonus(inventory);
   const skillPossessionAtk = sumSkillPossessionBonus(userSkills);
+  const relicBonus = getTotalRelicBonus(userRelics);
   const dragonBuffActive = !!(profile?.dragon_buff_until && new Date(profile.dragon_buff_until) > new Date());
-  const baseAtkWithBonus = (activeMonster?.atk ?? 0) + equipmentOnlyBonus.atk + skillPossessionAtk;
-  const baseDefWithBonus = (activeMonster?.def ?? 0) + equipmentOnlyBonus.def;
+  const baseAtkWithBonus = (activeMonster?.atk ?? 0) + equipmentOnlyBonus.atk + skillPossessionAtk + relicBonus.atk;
+  const baseDefWithBonus = (activeMonster?.def ?? 0) + equipmentOnlyBonus.def + relicBonus.def;
   const equipmentBonus = {
     // 용의 버프(월드보스 클리어 보상)가 켜져 있으면 "지금의" 공격력/방어력이 그대로 20배가 되도록,
     // 기존 보너스에 19배만큼을 추가로 얹어줌 (base + bonus*20 = base*20 + equipBonus*20)
-    atk: equipmentOnlyBonus.atk + skillPossessionAtk + (dragonBuffActive ? baseAtkWithBonus * 19 : 0),
-    def: equipmentOnlyBonus.def + (dragonBuffActive ? baseDefWithBonus * 19 : 0),
-    hp: equipmentOnlyBonus.hp,
+    atk: equipmentOnlyBonus.atk + skillPossessionAtk + relicBonus.atk + (dragonBuffActive ? baseAtkWithBonus * 19 : 0),
+    def: equipmentOnlyBonus.def + relicBonus.def + (dragonBuffActive ? baseDefWithBonus * 19 : 0),
+    hp: equipmentOnlyBonus.hp + relicBonus.hp,
   };
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
@@ -787,6 +794,7 @@ export default function App() {
                 equipmentBonus={equipmentBonus}
                 equippedSkills={equippedSkills}
                 equippedCostumes={profile?.equipped_costumes}
+                relicBonus={relicBonus}
                 onClear={handleClear}
                 onIdleGain={handleIdleGain}
                 onAdvance={handleAdvance}
@@ -814,6 +822,7 @@ export default function App() {
                 gold={profile?.gold ?? 0}
                 equipmentDrawProgress={equipmentDrawProgress}
                 totalSkillDraws={profile?.total_skill_draws ?? 0}
+                totalRelicDraws={profile?.total_relic_draws ?? 0}
                 inventory={inventory}
                 freeDrawUsedMap={freeDrawUsedMap}
                 onFreeDrawUsedChange={(type) => setFreeDrawUsedMap((prev) => ({ ...prev, [type]: true }))}

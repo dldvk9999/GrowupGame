@@ -52,7 +52,7 @@ function growPlayer(effectivePlayer, exp, equipmentBonus) {
  * - onGoStageList(): "스테이지 목록" 버튼
  */
 export default function BattleScreen({
-  initialMonster, chapter, stage, equipmentBonus, equippedSkills, equippedCostumes,
+  initialMonster, chapter, stage, equipmentBonus, equippedSkills, equippedCostumes, relicBonus,
   onClear, onIdleGain, onAdvance, onGoStageList,
 }) {
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
@@ -151,16 +151,17 @@ export default function BattleScreen({
     if (mode !== 'idle') return;
     const timer = setInterval(() => {
       spawnParticles(0.75, 0.4, ELEMENT_COLORS[idleEnemy.element]);
-      const { grownBase, grownEffective } = growPlayer(player, idleEnemy.expReward, equipmentBonus);
+      const bonusExp = Math.round(idleEnemy.expReward * (1 + (relicBonus?.pctExp ?? 0) / 100));
+      const { grownBase, grownEffective } = growPlayer(player, bonusExp, equipmentBonus);
       setPlayer(grownEffective);
       const growthLog = grownBase.events.length ? ' ' + grownBase.events.join(' ') : '';
       const idleFlavorLine = maybePickIdleFlavor();
-      setIdleLog(idleFlavorLine ?? `${idleEnemy.name} 처치! 경험치 +${idleEnemy.expReward}, 골드 +${idleEnemy.goldReward}${growthLog}`);
+      setIdleLog(idleFlavorLine ?? `${idleEnemy.name} 처치! 경험치 +${bonusExp}, 골드 +${idleEnemy.goldReward}${growthLog}`);
       onIdleGain?.(grownBase, idleEnemy.goldReward);
       setIdleEnemy(getIdleMonster(chapter, grownBase.level));
     }, IDLE_KILL_INTERVAL);
     return () => clearInterval(timer);
-  }, [mode, player, idleEnemy, chapter, equipmentBonus]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [mode, player, idleEnemy, chapter, equipmentBonus, relicBonus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const damageEnemy = useCallback((amount) => {
     setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
@@ -277,17 +278,20 @@ export default function BattleScreen({
         setTimeout(() => damageEnemy(perTick), t * tickInterval);
       }
     } else if (skill.type === 'buff_atk') {
-      setPlayerBuffs((prev) => ({ ...prev, atkUntil: now + skill.duration, atkMult: 1 + skill.multiplier }));
+      const boosted = skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
+      setPlayerBuffs((prev) => ({ ...prev, atkUntil: now + skill.duration, atkMult: 1 + boosted }));
       setLog(`${player.name}의 ${skill.name}! 공격력이 상승했다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#ff8a4a');
     } else if (skill.type === 'buff_def') {
-      setPlayerBuffs((prev) => ({ ...prev, defUntil: now + skill.duration, defMult: 1 + skill.multiplier }));
+      const boosted = skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
+      setPlayerBuffs((prev) => ({ ...prev, defUntil: now + skill.duration, defMult: 1 + boosted }));
       setLog(`${player.name}의 ${skill.name}! 방어력이 상승했다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#4aa8ff');
     } else if (skill.type === 'haste') {
-      setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: skill.multiplier }));
+      const boosted = Math.min(0.95, skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100));
+      setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: boosted }));
       // haste 버프는 "Date.now() < hasteUntil" 조건으로 화면에 표시되는데, React는 시간이
       // 지났다고 저절로 리렌더하지 않으므로, 버프가 실제로 끝나는 정확한 시점에 강제로
       // 리렌더를 유발해서(같은 값이라도 새 객체로 set) "⚡ 쿨타임 감소 중" 표시가
@@ -300,7 +304,8 @@ export default function BattleScreen({
 
     bumpMission('use_skills', 1);
     const hasteActive = now < playerBuffs.hasteUntil;
-    const effectiveCooldown = hasteActive ? Math.round(skill.cooldown * (1 - playerBuffs.hasteReduction)) : skill.cooldown;
+    const relicCooldownMult = 1 - Math.min(0.9, (relicBonus?.pctCooldown ?? 0) / 100);
+    const effectiveCooldown = Math.round((hasteActive ? skill.cooldown * (1 - playerBuffs.hasteReduction) : skill.cooldown) * relicCooldownMult);
     setCooldowns((prev) => ({ ...prev, [skill.id]: true }));
     setCooldownStarts((prev) => ({ ...prev, [skill.id]: now }));
     setEffectiveCooldowns((prev) => ({ ...prev, [skill.id]: effectiveCooldown }));

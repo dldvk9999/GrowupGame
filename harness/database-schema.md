@@ -444,3 +444,9 @@
 
 **118_fix_weekend_idle_gold_clamp.sql** — 버그 수정(117 직후 자체 재검토로 발견)
 - `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) — 105에서 넣은 sanity 클램프가 500만으로 잘못 설정돼 실질적으로 무효했던 문제, 100만(add_gold 실제 상한)으로 정정. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**119_relic_system.sql** — 신규 콘텐츠(사용자 요청)
+- `relic_catalog`(50종 시드) / `user_relics` 테이블 신설, `profiles.total_relic_draws` 컬럼 추가. `draw_relic()`(뽑기+강화시도), `set_relic_loadout()`(최대 3개 장착), `calc_relic_bonus()`(장착 유물 효과 합산) 신규 함수. 전부 신규 함수라 DROP FUNCTION 불필요. 자세한 내용은 [`relics.md`](./relics.md)
+
+**120_relic_combat_integration.sql** — 신규 콘텐츠(사용자 요청)
+- `fetch_my_combat_power`/`fetch_leaderboard`/`start_pvp_battle`/`start_pvp_revenge_battle`/`grant_idle_reward` 5개 함수 재정의(전부 반환타입 그대로, DROP 불필요) — 유물 ATK/DEF/HP 보너스를 PvP·랭킹 전투력 계산에, 골드% 보너스를 자동사냥 골드에 반영. 자세한 내용은 [`relics.md`](./relics.md)

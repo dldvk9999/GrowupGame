@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 118까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 120까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -13,6 +13,7 @@
 | [`character-and-growth.md`](./character-and-growth.md) | 스타터/레벨업/진화/전직(1~5차) 시스템, 캐릭터 카드, 다음 목표 위젯, 성장곡선 미리보기 |
 | [`skills.md`](./skills.md) | 스킬 카탈로그(50종), 스킬 타입별 전투 로직, 스킬 보유효과, 스킬 완전수집 업적, 뽑기 확률 투명공개 |
 | [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과, 최대강화 업적 |
+| [`relics.md`](./relics.md) | 유물 시스템(50종, 강화실패확률, 최대3장착), 밸런스 설계, 전투력/골드/경험치 반영 범위 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -71,7 +72,8 @@ GrowupGame/
 │  │  ├─ JobDungeonBattle.jsx      # 전직 던전 전투 화면
 │  │  ├─ SkillButton.jsx           # 스킬 버튼 공용 컴포넌트 (쿨타임 링 UI, 전투화면 3곳 공유)
 │  │  ├─ StageSelect.jsx           # 100챕터×10스테이지 선택 UI (챕터 카드 캐러셀)
-│  │  ├─ Shop.jsx                  # 상점 - 뽑기 5탭(무기/방어구/장갑/신발/스킬) - equipment.md, skills.md
+│  │  ├─ Shop.jsx                  # 상점 - 뽑기 6탭(무기/방어구/장갑/신발/스킬/유물) - equipment.md, skills.md, relics.md
+│  │  ├─ RelicGacha.jsx             # 유물 뽑기+장착 편성 - relics.md
 │  │  ├─ EquipmentGacha.jsx        # 슬롯 고정 장비 뽑기 화면
 │  │  ├─ SkillGacha.jsx            # 스킬 뽑기 + 편성 화면
 │  │  ├─ Inventory.jsx             # 인벤토리(장착/해제/합성) - equipment.md
@@ -118,6 +120,9 @@ GrowupGame/
 │     ├─ weekendBonus.js           # 주말 골드 이벤트 안내(순수 클라이언트) - stages-and-dungeons.md
 │     ├─ dailyPvpFlag.js           # 오늘의 할 일 체크리스트용 "오늘 PvP 했는지" 로컬 추적 - ui-and-ux.md
 │     ├─ clipboard.js              # 클립보드 복사+피드백 공용 유틸(뽑기/PvP/월드보스 결과공유 등 5곳 통합) - equipment.md
+│     ├─ relicCatalog.js           # 유물 50종 카탈로그(서버 시드와 동일하게 유지) - relics.md
+│     ├─ relicGacha.js             # 유물 뽑기/장착 RPC 연동 - relics.md
+│     ├─ relicBonus.js             # 장착 유물 보너스 합산(클라이언트 전투 계산용) - relics.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동
 │     ├─ worldBoss.js               # 월드보스 RPC 연동
