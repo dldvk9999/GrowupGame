@@ -116,6 +116,8 @@ GrowupGame/
 │     ├─ comeback.js               # 복귀 유저 보상 RPC 연동 - mailbox-and-coupons.md
 │     ├─ offlineReward.js          # 오프라인 골드 보상 RPC 연동 - stages-and-dungeons.md
 │     ├─ weekendBonus.js           # 주말 골드 이벤트 안내(순수 클라이언트) - stages-and-dungeons.md
+│     ├─ dailyPvpFlag.js           # 오늘의 할 일 체크리스트용 "오늘 PvP 했는지" 로컬 추적 - ui-and-ux.md
+│     ├─ clipboard.js              # 클립보드 복사+피드백 공용 유틸(뽑기/PvP/월드보스 결과공유 등 5곳 통합) - equipment.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동
 │     ├─ worldBoss.js               # 월드보스 RPC 연동

@@ -4,9 +4,9 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
-import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound, playClickSound } from '../lib/audio';
+import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound } from '../lib/audio';
 import { reportWorldBossDamage } from '../lib/worldBoss';
-import { showToast } from '../lib/toast';
+import { copyToClipboardWithFeedback } from '../lib/clipboard';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900;
@@ -208,13 +208,9 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   async function handleCopyResult() {
     if (!personalBestResult?.isNewPersonalBest) return;
     const text = `🐉 월드보스 개인 최고 데미지 경신! ${personalBestResult.personalBest.toLocaleString()}`;
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyToClipboardWithFeedback(text)) {
       setResultCopied(true);
-      playClickSound();
       setTimeout(() => setResultCopied(false), 2000);
-    } catch {
-      showToast('복사에 실패했어요.', 'error');
     }
   }
 

@@ -3,8 +3,9 @@ import { getSkillDef, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch } from '../lib/skillGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
-import { playGachaRevealSound, playClickSound } from '../lib/audio';
+import { playGachaRevealSound } from '../lib/audio';
 import { getGachaProbability } from '../lib/gachaProbability';
+import { copyToClipboardWithFeedback } from '../lib/clipboard';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
@@ -137,13 +138,9 @@ function GachaResultList({ results }) {
       .map(([rarity, n]) => `${RARITY_LABEL[rarity]} ×${n}`)
       .join(', ');
     const text = `🎰 스킬 뽑기 ${results.length}회 결과 - ${summary}`;
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyToClipboardWithFeedback(text)) {
       setCopied(true);
-      playClickSound();
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      showToast('복사에 실패했어요.', 'error');
     }
   }
 

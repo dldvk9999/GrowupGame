@@ -3,8 +3,9 @@ import { SLOTS, RARITIES, getItem, getEnhancedStatBonus } from '../lib/itemCatal
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
-import { playGachaRevealSound, playClickSound } from '../lib/audio';
+import { playGachaRevealSound } from '../lib/audio';
 import { getGachaProbability } from '../lib/gachaProbability';
+import { copyToClipboardWithFeedback } from '../lib/clipboard';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
@@ -83,13 +84,9 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
       .map(([rarity, n]) => `${RARITIES[rarity].label} ×${n}`)
       .join(', ');
     const text = `🎰 ${slotMeta.label} 뽑기 ${lastResults.length}회 결과 - ${summary}`;
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyToClipboardWithFeedback(text)) {
       setResultCopied(true);
-      playClickSound();
       setTimeout(() => setResultCopied(false), 2000);
-    } catch {
-      showToast('복사에 실패했어요.', 'error');
     }
   }
 

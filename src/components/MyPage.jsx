@@ -8,9 +8,9 @@ import { speciesById } from '../lib/speciesData';
 import { scaleStats } from '../lib/growth';
 import { calculateCombatPower } from '../lib/combat';
 import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstimate';
-import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
 import { suggestMonsterName } from '../lib/nameSuggestion';
+import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
@@ -23,16 +23,13 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const [nicknameCopied, setNicknameCopied] = useState(false);
 
   async function handleCopyNickname() {
-    try {
-      // 그냥 닉네임만 복사하면 받는 사람이 "이게 뭐지" 할 수 있어서, 추천인 등록
-      // 방법까지 안내하는 짧은 초대 문구로 개선(사용자가 실제로 붙여넣기 좋게).
-      const inviteText = `키우기 게임 같이 해요! 마이페이지 > 친구 추천인 등록에서 제 닉네임 "${profile?.nickname ?? ''}" 입력해주세요 🎮`;
-      await navigator.clipboard.writeText(inviteText);
+    // 그냥 닉네임만 복사하면 받는 사람이 "이게 뭐지" 할 수 있어서, 추천인 등록
+    // 방법까지 안내하는 짧은 초대 문구로 개선(사용자가 실제로 붙여넣기 좋게).
+    const inviteText = `키우기 게임 같이 해요! 마이페이지 > 친구 추천인 등록에서 제 닉네임 "${profile?.nickname ?? ''}" 입력해주세요 🎮`;
+    const errorMsg = '복사에 실패했어요. 닉네임을 직접 알려주세요: ' + (profile?.nickname ?? '');
+    if (await copyToClipboardWithFeedback(inviteText, errorMsg)) {
       setNicknameCopied(true);
-      playClickSound();
       setTimeout(() => setNicknameCopied(false), 2000);
-    } catch {
-      showToast('복사에 실패했어요. 닉네임을 직접 알려주세요: ' + (profile?.nickname ?? ''), 'error');
     }
   }
 

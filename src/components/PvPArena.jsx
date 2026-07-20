@@ -3,8 +3,8 @@ import { fetchMyCombatPower, startPvpBattle, startPvpRevengeBattle, fetchPvpHist
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
 import { showToast } from '../lib/toast';
-import { playClickSound } from '../lib/audio';
 import { markPvpPlayedToday } from '../lib/dailyPvpFlag';
+import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import PvPBattleScene from './PvPBattleScene';
 
 export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
@@ -20,13 +20,9 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
   async function handleCopyResult() {
     if (!lastResult) return;
     const text = `⚔️ PvP 승리! vs ${lastResult.opponent_name}(전투력 ${lastResult.opponent_power.toLocaleString()}) - 재화 +${lastResult.reward.toLocaleString()}`;
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await copyToClipboardWithFeedback(text)) {
       setResultCopied(true);
-      playClickSound();
       setTimeout(() => setResultCopied(false), 2000);
-    } catch {
-      showToast('복사에 실패했어요.', 'error');
     }
   }
 
