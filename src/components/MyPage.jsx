@@ -24,7 +24,10 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
 
   async function handleCopyNickname() {
     try {
-      await navigator.clipboard.writeText(profile?.nickname ?? '');
+      // 그냥 닉네임만 복사하면 받는 사람이 "이게 뭐지" 할 수 있어서, 추천인 등록
+      // 방법까지 안내하는 짧은 초대 문구로 개선(사용자가 실제로 붙여넣기 좋게).
+      const inviteText = `키우기 게임 같이 해요! 마이페이지 > 친구 추천인 등록에서 제 닉네임 "${profile?.nickname ?? ''}" 입력해주세요 🎮`;
+      await navigator.clipboard.writeText(inviteText);
       setNicknameCopied(true);
       playClickSound();
       setTimeout(() => setNicknameCopied(false), 2000);
@@ -135,7 +138,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           <div className="character-card-title">
             {profile?.equipped_title && <span className="app-title-badge">[{profile.equipped_title}]</span>}
             {profile?.nickname}
-            <button type="button" className="nickname-copy-btn" onClick={handleCopyNickname} title="닉네임 복사(친구에게 추천인으로 공유해보세요)">
+            <button type="button" className="nickname-copy-btn" onClick={handleCopyNickname} title="친구 초대 문구 복사(추천인 등록 방법까지 포함)">
               {nicknameCopied ? '✅' : '📋'}
             </button>
           </div>
