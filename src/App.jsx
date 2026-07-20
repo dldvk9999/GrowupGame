@@ -282,23 +282,27 @@ export default function App() {
       setLoginAt(new Date().toISOString());
       setLoginStreak(updateLoginStreak());
 
+      // 로그인 시 뜰 수 있는 안내 토스트(오프라인/복귀/오늘의한마디/주말)가 최대 4개까지
+      // 동시에 겹칠 수 있어(특히 모바일 좁은 화면에서 읽기 힘듦), 조금씩 시차를 두고 표시함.
+      const loginToasts = [];
       if (offlineResult?.gold > 0) {
         const mins = Math.floor(offlineResult.offline_seconds / 60);
-        showToast(`💤 자리를 비운 ${mins}분 동안 골드 ${offlineResult.gold.toLocaleString()}을 벌어왔어요!`, 'success');
+        loginToasts.push([`💤 자리를 비운 ${mins}분 동안 골드 ${offlineResult.gold.toLocaleString()}을 벌어왔어요!`, 'success']);
       }
-
       if (comebackResult?.granted) {
-        showToast(`🎉 ${comebackResult.days_away}일 만의 복귀! 우편함에서 보너스를 받아가세요`, 'success');
+        loginToasts.push([`🎉 ${comebackResult.days_away}일 만의 복귀! 우편함에서 보너스를 받아가세요`, 'success']);
       }
-
       const dailyQuote = getTodaysQuoteIfNotShown();
       if (dailyQuote) {
-        showToast(`💭 ${dailyQuote}`, 'info');
+        loginToasts.push([`💭 ${dailyQuote}`, 'info']);
       }
 
       if (shouldShowWeekendBonusToast()) {
-        showToast('🎉 주말 이벤트! 자동사냥 골드 1.5배 진행중', 'success');
+        loginToasts.push(['🎉 주말 이벤트! 자동사냥 골드 1.5배 진행중', 'success']);
       }
+      loginToasts.forEach(([msg, type], i) => {
+        setTimeout(() => showToast(msg, type), i * 450);
+      });
 
       if (!monster) {
         setStage(STAGE.STORY);
