@@ -30,8 +30,6 @@ begin
     raise exception '로그인이 필요합니다.';
   end if;
 
-  end if;
-
   if exists (select 1 from public.achievement_claims where user_id = auth.uid() and achievement_key = p_achievement_key) then
     raise exception '이미 수령한 업적이에요.';
   end if;
