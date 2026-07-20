@@ -402,3 +402,6 @@
 
 **104_fix_dungeon_sessions_stage_check.sql** — 버그 수정(사용자 제보)
 - `dungeon_sessions.stage` 체크 제약이 009의 `1~10` 그대로 남아있어 079(500층 확장) 이후 11층 이상 진행한 유저는 던전 입장 자체가 실패하던 버그 수정. `stage between 1 and 500`으로 재정의. 자세한 내용은 [`security.md`](./security.md)
+
+**105_weekend_idle_gold_bonus.sql** — 신규 콘텐츠
+- `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) — 한국시간 토·일요일엔 자동사냥 골드 1.5배(황금몬스터 3배와 중첩 가능, 최종 500만 골드 클램프). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

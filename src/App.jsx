@@ -29,6 +29,7 @@ import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
 import { claimComebackRewardIfEligible } from './lib/comeback';
 import { claimOfflineGoldReward } from './lib/offlineReward';
+import { shouldShowWeekendBonusToast } from './lib/weekendBonus';
 import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
@@ -293,6 +294,10 @@ export default function App() {
       const dailyQuote = getTodaysQuoteIfNotShown();
       if (dailyQuote) {
         showToast(`💭 ${dailyQuote}`, 'info');
+      }
+
+      if (shouldShowWeekendBonusToast()) {
+        showToast('🎉 주말 이벤트! 자동사냥 골드 1.5배 진행중', 'success');
       }
 
       if (!monster) {
