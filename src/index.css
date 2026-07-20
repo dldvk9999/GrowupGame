@@ -795,6 +795,7 @@ button {
   margin-left: 4px;
 }
 .pvp-reward-line { color: var(--accent-gold); font-weight: 700; font-size: 14px; }
+.pvp-share-btn { font-size: 12px; padding: 5px 12px; margin-top: 8px; }
 
 /* ---------- PvP 최근 전적 ---------- */
 .pvp-history-toggle { width: 100%; margin-top: 12px; font-size: 13px; }

@@ -3,6 +3,7 @@ import { fetchMyCombatPower, startPvpBattle, startPvpRevengeBattle, fetchPvpHist
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
 import { showToast } from '../lib/toast';
+import { playClickSound } from '../lib/audio';
 import PvPBattleScene from './PvPBattleScene';
 
 export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
@@ -13,6 +14,20 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
   const [error, setError] = useState('');
   const [history, setHistory] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [resultCopied, setResultCopied] = useState(false);
+
+  async function handleCopyResult() {
+    if (!lastResult) return;
+    const text = `⚔️ PvP 승리! vs ${lastResult.opponent_name}(전투력 ${lastResult.opponent_power.toLocaleString()}) - 재화 +${lastResult.reward.toLocaleString()}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setResultCopied(true);
+      playClickSound();
+      setTimeout(() => setResultCopied(false), 2000);
+    } catch {
+      showToast('복사에 실패했어요.', 'error');
+    }
+  }
 
   useEffect(() => {
     fetchMyCombatPower().then(setMyPower).catch(() => {});
@@ -126,6 +141,11 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
               {lastResult.opponent_is_real && lastResult.result === 'win' && ' (실유저 3배!)'}
               {lastResult.opponent_is_real && lastResult.result === 'lose' && ' (실유저 위로보상)'}
             </p>
+          )}
+          {lastResult.opponent_is_real && lastResult.result === 'win' && (
+            <button type="button" className="btn btn-ghost pvp-share-btn" onClick={handleCopyResult}>
+              {resultCopied ? '✅ 복사됨' : '📋 결과 공유'}
+            </button>
           )}
         </div>
       )}
