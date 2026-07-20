@@ -408,3 +408,6 @@
 
 **106_fix_offline_reward_farming_exploit.sql** — [긴급/치명적] 보안 취약점 수정
 - `profiles.last_offline_claim_at` 신규 컬럼 추가, `claim_offline_gold_reward` 재정의(반환타입 그대로) — 103이 갱신을 102(comeback)에 의존하던 구조라 이 함수만 반복 호출하면 오프라인 보상을 무한 파밍 가능했던 치명적 취약점 수정. 전용 컬럼으로 분리해 자체 갱신 + `for update` 락. 자세한 내용은 [`security.md`](./security.md)
+
+**107_pvp_real_opponent_reward_boost.sql** — 신규 콘텐츠(사용자 요청)
+- `start_pvp_battle` 재정의(반환타입 그대로, DROP 불필요) — 상대가 실제 유저면 승리 보상 3배, 패배해도 기존 승리 보상(1배)만큼 위로 보상 지급. 가상 캐릭터 상대는 기존과 동일. 자세한 내용은 [`pvp.md`](./pvp.md)

@@ -47,7 +47,10 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     setFighting(false);
     loadHistory(); // 연승 스트릭 표시와 전적 목록 둘 다 즉시 반영되도록 항상 갱신
     if (res.result === 'win') {
-      showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}`, 'success');
+      const bonusTag = res.opponent_is_real ? ' (실유저 3배!)' : '';
+      showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}${bonusTag}`, 'success');
+    } else if (res.reward > 0) {
+      showToast(`패배했지만 실유저 대전 보상 +${res.reward.toLocaleString()}`, 'info');
     } else {
       showToast('패배했어요. 다시 도전해보세요!', 'error');
     }
@@ -86,6 +89,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
 
       <p className="stage-select-hint">
         전투력이 비슷한(±25%) 실제 유저와 매칭돼요. 마땅한 상대가 없으면 내 전투력과 비슷한 가상 캐릭터가 대신 나와요.
+        실제 유저와 붙으면 승리 시 재화 <strong>3배</strong>, 패배해도 위로 보상이 지급돼요!
       </p>
 
       {error && <p className="shop-error">{error}</p>}
@@ -114,8 +118,12 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
               <div className="pvp-result-power">{lastResult.opponent_power.toLocaleString()}</div>
             </div>
           </div>
-          {lastResult.result === 'win' && (
-            <p className="pvp-reward-line">💰 PvP 재화 +{lastResult.reward.toLocaleString()}</p>
+          {lastResult.reward > 0 && (
+            <p className="pvp-reward-line">
+              💰 PvP 재화 +{lastResult.reward.toLocaleString()}
+              {lastResult.opponent_is_real && lastResult.result === 'win' && ' (실유저 3배!)'}
+              {lastResult.opponent_is_real && lastResult.result === 'lose' && ' (실유저 위로보상)'}
+            </p>
           )}
         </div>
       )}
@@ -142,7 +150,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
                 {h.opponent_name}{!h.opponent_is_real && <span className="pvp-synthetic-tag">가상</span>}
               </span>
               <span className="pvp-history-power">{h.my_power.toLocaleString()} vs {h.opponent_power.toLocaleString()}</span>
-              {h.result === 'win' && <span className="pvp-history-reward">+{h.reward.toLocaleString()}</span>}
+              {h.reward > 0 && <span className="pvp-history-reward">+{h.reward.toLocaleString()}</span>}
             </div>
           ))}
         </div>
