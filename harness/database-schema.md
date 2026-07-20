@@ -441,3 +441,6 @@
 
 **117_fix_pvp_reward_overflow_guard.sql** — 예방적 버그 수정
 - `start_pvp_battle`/`start_pvp_revenge_battle` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 상대 전투력이 매우 높으면(약 2165만+) 보상이 `add_gold`의 100만 상한을 넘어 크래시할 수 있던 문제를 90만 클램프로 예방. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**118_fix_weekend_idle_gold_clamp.sql** — 버그 수정(117 직후 자체 재검토로 발견)
+- `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) — 105에서 넣은 sanity 클램프가 500만으로 잘못 설정돼 실질적으로 무효했던 문제, 100만(add_gold 실제 상한)으로 정정. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
