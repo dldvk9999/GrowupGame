@@ -463,3 +463,6 @@
 
 **124_relic_achievements.sql** — 신규 콘텐츠
 - `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 유물 업적 2종(20종 수집/200강 달성) 추가. 자세한 내용은 [`relics.md`](./relics.md)
+
+**125_set_bonus_by_rarity.sql** — 신규 콘텐츠(사용자 요청)
+- `calc_equipped_stat_bonus` 재정의(반환타입 그대로, DROP 불필요) — 세트 효과를 등급 상관없이 +5%였던 것에서 등급별 차등(노멀3%~신화18%)으로 변경. 자세한 내용은 [`equipment.md`](./equipment.md)

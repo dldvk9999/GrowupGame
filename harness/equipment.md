@@ -45,14 +45,14 @@
 
 ⚠️ **구현상 트레이드오프**: 원 요청은 "장비 10개를 합성하면 1개의 상위등급"이었지만, 이 게임은 뽑기 중복이 별도 인벤토리 행(재고)이 아니라 `enhance_level` 누적으로만 반영되는 구조(`unique(user_id, item_key)`)라 "같은 아이템 10개 보유" 개념 자체가 없음. "강화수치 10 = 모은 재료 10개"로 치환해서 매핑함 — "합성할수록 보유효과도 반영"은 상위 등급의 `enhance_level`이 실제로 오르므로 자연히 충족됨(보유효과가 `enhance_level`에 비례).
 
-## 세트 효과 (migration 057)
+## 세트 효과 (migration 057, 125에서 등급별 차등 적용)
 
-4슬롯(무기/방어구/장갑/신발)을 **전부 장착**하고 **등급이 모두 같으면** 최종 장착 보너스에 **+5%**가 추가됨. 등급이 하나라도 다르거나 슬롯이 비어있으면 없음.
+4슬롯(무기/방어구/장갑/신발)을 **전부 장착**하고 **등급이 모두 같으면** 최종 장착 보너스에 등급별 비율이 추가됨(사용자 요청, 125) — 노멀 +3% / 레어 +5% / 에픽 +8% / 전설 +12% / 신화 +18%(`itemCatalog.js`의 `RARITIES[등급].setBonus`). 등급이 하나라도 다르거나 슬롯이 비어있으면 없음. 처음엔 등급 상관없이 항상 +5%였는데, 높은 등급 세트일수록 그 가치가 더 커지도록 변경.
 
 - **장착 보너스에만 적용**, 보유효과(`sumPossessionBonus`)에는 미적용 — "실제로 다 갖춰 입어야" 받는 혜택
-- `lib/inventory.js`의 `isFullSetEquipped(equippedRarities)`가 판정, `sumEquippedBonus`가 합산 후 5% 곱연산으로 반영
-- **서버(`calc_equipped_stat_bonus`, 051/057)에도 동일 로직을 SQL로 포팅**해서 PvP/랭킹/`fetch_my_combat_power`에도 정확히 반영됨 — `user_inventory_one_equipped_per_slot`(003, `where equipped` 부분 유니크 인덱스)가 "슬롯당 최대 1개"를 DB 레벨에서 보장하므로 `count(distinct slot) = 4`가 "4슬롯 전부 장착"과 동치임을 이용
-- 인벤토리 장비 탭에 세트 활성화 시 "✨ 세트 효과 활성화! 최종 ATK/DEF/HP +5%" 배너. 마이페이지 능력치 상세도 `equipmentOnlyBonus`를 그대로 쓰므로 자동 반영
+- `lib/inventory.js`의 `isFullSetEquipped(equippedRarities)`가 판정, `sumEquippedBonus`가 합산 후 등급별 비율 곱연산으로 반영
+- **서버(`calc_equipped_stat_bonus`, 051/057/125)에도 동일 로직을 SQL로 포팅**해서 PvP/랭킹/`fetch_my_combat_power`에도 정확히 반영됨 — `user_inventory_one_equipped_per_slot`(003, `where equipped` 부분 유니크 인덱스)가 "슬롯당 최대 1개"를 DB 레벨에서 보장하므로 `count(distinct slot) = 4`가 "4슬롯 전부 장착"과 동치임을 이용. 반환타입 그대로라 DROP FUNCTION 불필요
+- 인벤토리 장비 탭에 세트 활성화 시 "✨ OO 세트 효과 활성화! 최종 ATK/DEF/HP +N%"(등급명+실제 비율 동적 표시) 배너. 마이페이지 능력치 상세도 `equipmentOnlyBonus`를 그대로 쓰므로 자동 반영
 
 ## 인벤토리 화면
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionBonus, ITEM_CATALOG } from '../lib/itemCatalog';
+import { getItem, SLOTS, MAX_ENHANCE_LEVEL, getEnhancedStatBonus, getPossessionBonus, ITEM_CATALOG, RARITIES } from '../lib/itemCatalog';
 import { equipItem, unequipItem, isFullSetEquipped } from '../lib/inventory';
 import { synthesizeEquipment, synthesizeEquipmentBatch } from '../lib/equipmentGacha';
 import { fetchMyCostumes, setCostumeLoadout } from '../lib/pvp';
@@ -92,7 +92,7 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
             같은 등급을 또 뽑으면 자동으로 강화(+1, 최대 +{MAX_ENHANCE_LEVEL})돼요.
             <strong> 보유효과는 장착하지 않아도 항상 적용</strong>되고, 강화될수록 같이 올라가요.
             강화수치 {SYNTHESIS_COST} 이상이면 <strong>합성</strong>해서 상위 등급의 강화수치를 1 올릴 수 있어요.
-            4슬롯을 <strong>전부 같은 등급으로 장착</strong>하면 세트 효과로 최종 스탯 <strong>+5%</strong> 보너스가 붙어요.
+            4슬롯을 <strong>전부 같은 등급으로 장착</strong>하면 세트 효과로 최종 스탯 보너스가 붙어요. 등급이 높을수록 더 큰 보너스예요(노멀 +3% ~ 신화 +18%).
           </p>
 
           <div className="costume-collection-progress">
@@ -110,7 +110,9 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
               if (item) equippedRarities[item.slot] = item.rarity;
             }
             return isFullSetEquipped(equippedRarities) && (
-              <div className="set-bonus-banner">✨ 세트 효과 활성화! 최종 ATK/DEF/HP +5%</div>
+              <div className="set-bonus-banner">
+                ✨ {RARITIES[equippedRarities.weapon]?.label} 세트 효과 활성화! 최종 ATK/DEF/HP +{Math.round((RARITIES[equippedRarities.weapon]?.setBonus ?? 0.05) * 100)}%
+              </div>
             );
           })()}
 
