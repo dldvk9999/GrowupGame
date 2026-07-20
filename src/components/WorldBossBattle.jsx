@@ -4,8 +4,9 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
-import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound } from '../lib/audio';
+import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound, playClickSound } from '../lib/audio';
 import { reportWorldBossDamage } from '../lib/worldBoss';
+import { showToast } from '../lib/toast';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const ENEMY_ATTACK_INTERVAL = 1900;
@@ -62,6 +63,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
   const [settling, setSettling] = useState(false);
   const [personalBestResult, setPersonalBestResult] = useState(null); // { isNewPersonalBest, personalBest } | null
+  const [resultCopied, setResultCopied] = useState(false);
   const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS);
 
   const damageDealtRef = useRef(0);
@@ -203,6 +205,19 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
     return () => clearInterval(timer);
   }, [enemy.atk, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
 
+  async function handleCopyResult() {
+    if (!personalBestResult?.isNewPersonalBest) return;
+    const text = `🐉 월드보스 개인 최고 데미지 경신! ${personalBestResult.personalBest.toLocaleString()}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setResultCopied(true);
+      playClickSound();
+      setTimeout(() => setResultCopied(false), 2000);
+    } catch {
+      showToast('복사에 실패했어요.', 'error');
+    }
+  }
+
   function useSkill(skill) {
     if (result || cooldowns[skill.id]) return;
     const now = Date.now();
@@ -336,7 +351,12 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
             {result === 'win' ? '마지막 일격 성공!' : result === 'timeout' ? '⏱️ 제한시간 종료' : '퇴각...'}
           </p>
           {personalBestResult?.isNewPersonalBest && (
-            <p className="new-record-badge">🏆 개인 최고 데미지 경신! {personalBestResult.personalBest.toLocaleString()}</p>
+            <>
+              <p className="new-record-badge">🏆 개인 최고 데미지 경신! {personalBestResult.personalBest.toLocaleString()}</p>
+              <button type="button" className="btn btn-ghost pvp-share-btn" onClick={handleCopyResult}>
+                {resultCopied ? '✅ 복사됨' : '📋 결과 공유'}
+              </button>
+            </>
           )}
           <div className="result-actions">
             <button className="btn btn-neutral" disabled={settling} onClick={onExit}>
