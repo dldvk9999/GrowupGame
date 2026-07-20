@@ -100,13 +100,16 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
               const unlocked = claimedKeys.has(achKey);
               const isEquipped = unlocked && equippedTitle === title;
               return (
-                <span
+                <button
                   key={achKey}
+                  type="button"
                   className={`title-gallery-chip ${unlocked ? 'unlocked' : 'locked'} ${isEquipped ? 'equipped' : ''}`}
-                  title={unlocked ? title : '🔒 미해금 — 아래 업적 목록에서 조건 확인'}
+                  title={unlocked ? (isEquipped ? `"${title}" 해제하기` : `"${title}" 바로 장착하기`) : '🔒 미해금 — 아래 업적 목록에서 조건 확인'}
+                  disabled={!unlocked || settingTitle}
+                  onClick={() => handleSetTitle(achKey, title)}
                 >
                   {unlocked ? title : '🔒 ???'}
-                </span>
+                </button>
               );
             })}
           </div>

@@ -1954,7 +1954,13 @@ button {
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
 }
+.title-gallery-chip:disabled { cursor: not-allowed; }
+.title-gallery-chip.unlocked:hover:not(:disabled) { filter: brightness(1.15); }
 .title-gallery-chip.unlocked { color: var(--accent-gold); border-color: var(--accent-gold); background: rgba(242, 183, 5, 0.1); }
 .title-gallery-chip.locked { color: var(--text-muted); opacity: 0.6; }
 .title-gallery-chip.equipped { background: var(--accent-gold); color: #10121c; font-weight: 700; }
