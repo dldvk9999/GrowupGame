@@ -414,3 +414,6 @@
 
 **108_pvp_revenge_battle.sql** — 신규 콘텐츠
 - `start_pvp_revenge_battle(p_opponent_id)` 신설 — 최근 전적의 실유저 상대를 지목해 재도전(무작위 매칭 대신 고정 상대, 스탯은 실시간 재조회). 항상 실유저이므로 107 보상 규칙 적용. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**109_pvp_revenge_notify_opponent.sql** — 신규 콘텐츠
+- `start_pvp_revenge_battle` 재정의(반환타입 그대로, DROP 불필요) — 복수전 당한 상대에게도 결과+소액 위로 골드를 우편으로 발송(재접속 유도). 자세한 내용은 [`pvp.md`](./pvp.md)
