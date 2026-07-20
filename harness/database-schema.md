@@ -435,3 +435,6 @@
 
 **115_fix_free_draw_lifetime_gold_pollution.sql** — 버그 수정(114 배포 직후 자체 발견)
 - `claim_daily_free_draw` 재정의(반환타입 그대로, DROP 불필요) — 뽑기용 임시 버퍼(10만골드, 즉시 리셋됨)가 `add_gold`를 거치면서 `lifetime_gold_earned`을 허수로 오염시키던 문제 수정. 버퍼 지급을 `profiles.gold` 직접 UPDATE로 변경
+
+**116_pvp_revamp_launch_coupon.sql**
+- `PVPREVENGE` 쿠폰 시딩(골드15000+에픽무기, 무제한 사용, 2027-12-31 만료) — PvP 개편 출시 기념
