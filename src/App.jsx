@@ -30,6 +30,7 @@ import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
 import { claimComebackRewardIfEligible } from './lib/comeback';
 import { claimOfflineGoldReward } from './lib/offlineReward';
 import { shouldShowWeekendBonusToast } from './lib/weekendBonus';
+import { fetchActiveSeasonEvent, shouldShowSeasonEventToast } from './lib/seasonEvent';
 import { hasPlayedPvpToday } from './lib/dailyPvpFlag';
 import { fetchMyRelics } from './lib/relicGacha';
 import { getTotalRelicBonus } from './lib/relicBonus';
@@ -311,6 +312,12 @@ export default function App() {
       if (shouldShowWeekendBonusToast()) {
         loginToasts.push(['🎉 주말 이벤트! 자동사냥 골드 1.5배 진행중', 'success', false]);
       }
+
+      const seasonEvent = await fetchActiveSeasonEvent().catch(() => null);
+      if (seasonEvent && shouldShowSeasonEventToast(seasonEvent.event_key)) {
+        loginToasts.push([`🎊 ${seasonEvent.label} 진행 중! (~${seasonEvent.ends_at})`, 'success', false]);
+      }
+
       loginToasts.forEach(([msg, type, withSound], i) => {
         setTimeout(() => {
           showToast(msg, type);

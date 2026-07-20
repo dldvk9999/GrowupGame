@@ -457,3 +457,6 @@
 
 **122_expedition_system.sql** — 신규 콘텐츠(사용자 요청)
 - `expeditions` 테이블 신설(유저당 1행), `start_expedition()`/`claim_expedition()`/`calc_expedition_gold_per_hour()` 신규 함수(전부 DROP 불필요) — 짧은/중간/긴(30분·4시간·12시간) 파견을 보내고 시간이 지나면 골드 수령. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**123_seasonal_event_gold_boost.sql** — 신규 콘텐츠(사용자 요청)
+- `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) + `fetch_active_season_event()` 신설 — 날짜 범위 하드코딩만으로 켜고 끄는 시즌 이벤트 프레임워크. 지금은 "유물 출시 기념 골드 부스트 위크"(2026-07-25~28) +50% 활성. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
