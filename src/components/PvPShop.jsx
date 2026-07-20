@@ -98,7 +98,8 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
           const isOwned = owned.has(listing.item_key);
           const canAfford = currency >= listing.price;
           return (
-            <div key={listing.id} className="pvp-shop-card" style={{ borderColor: item.color }}>
+            <div key={listing.id} className={`pvp-shop-card ${listing.is_on_sale ? 'pvp-shop-card--sale' : ''}`} style={{ borderColor: item.color }}>
+              {listing.is_on_sale && <span className="pvp-shop-sale-badge">🔥 20% 할인</span>}
               <span className="shop-card-icon">{item.icon}</span>
               <strong style={{ color: item.color }}>{item.name}</strong>
               <span className="pvp-shop-rarity" style={{ color: RARITIES[listing.item_key.split('_')[1]]?.color }}>

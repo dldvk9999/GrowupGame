@@ -466,3 +466,6 @@
 
 **125_set_bonus_by_rarity.sql** — 신규 콘텐츠(사용자 요청)
 - `calc_equipped_stat_bonus` 재정의(반환타입 그대로, DROP 불필요) — 세트 효과를 등급 상관없이 +5%였던 것에서 등급별 차등(노멀3%~신화18%)으로 변경. 자세한 내용은 [`equipment.md`](./equipment.md)
+
+**126_pvp_shop_discount.sql** — 신규 콘텐츠(사용자 요청)
+- `pvp_shop_listings.is_on_sale` 컬럼 추가, `sync_pvp_shop` 재정의(반환타입 그대로, DROP 불필요) — 전체 기준가 20% 인하 + 매시간 무작위 1~3칸 추가 20% 할인. 자세한 내용은 [`pvp.md`](./pvp.md)
