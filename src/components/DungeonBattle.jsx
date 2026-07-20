@@ -6,9 +6,9 @@ import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
+import { getDungeonAttackInterval } from '../lib/dungeonStages';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 1900;
 
 function withEquipment(monster, bonus) {
   const b = bonus ?? { atk: 0, def: 0, hp: 0 };
@@ -159,9 +159,9 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
       const defBuffActive = Date.now() < playerBuffs.defUntil;
       const effDef = player.def * (defBuffActive ? playerBuffs.defMult : 1);
       damagePlayer(mitigateDamage(enemy.atk, effDef));
-    }, ENEMY_ATTACK_INTERVAL);
+    }, getDungeonAttackInterval(enemy.stage));
     return () => clearInterval(timer);
-  }, [enemy.atk, enemy.name, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
+  }, [enemy.atk, enemy.name, enemy.stage, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
 
   function useSkill(skill) {
     if (result || cooldowns[skill.id]) return;

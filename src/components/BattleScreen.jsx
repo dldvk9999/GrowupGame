@@ -4,7 +4,7 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
-import { getStageEnemy, getIdleMonster, getChapterName } from '../lib/stages';
+import { getStageEnemy, getIdleMonster, getChapterName, getEnemyAttackInterval } from '../lib/stages';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -12,7 +12,6 @@ import { maybePickIdleFlavor } from '../lib/idleFlavor';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 1900; // ms, 스테이지 도전 중 적 공격 텀 (난이도 재상향)
 const IDLE_KILL_INTERVAL = 1500; // ms, 자동 사냥 처치 텀 (2배 상향)
 
 function withEquipment(monster, bonus) {
@@ -230,9 +229,9 @@ export default function BattleScreen({
       const defBuffActive = Date.now() < playerBuffs.defUntil;
       const effDef = player.def * (defBuffActive ? playerBuffs.defMult : 1);
       damagePlayer(mitigateDamage(enemy.atk, effDef));
-    }, ENEMY_ATTACK_INTERVAL);
+    }, getEnemyAttackInterval(enemy.stageIndex, enemy.isBoss));
     return () => clearInterval(timer);
-  }, [mode, enemy.atk, enemy.name, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
+  }, [mode, enemy.atk, enemy.name, enemy.stageIndex, enemy.isBoss, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
 
   function useSkill(skill) {
     if (mode !== 'challenge' || result || cooldowns[skill.id]) return;

@@ -23,7 +23,7 @@ chapterStep = 1 + (chapter-1)*0.05              // 챕터(10스테이지) 단위
 midChapterStep = stage >= 5 ? 1.15 : 1          // 같은 챕터 안에서도 5번째 스테이지부터 한 단계 더 상승
 stepMultiplier = chapterStep * midChapterStep
 hp  = round((30 + index*7.5*(isBoss?3.0:1)) * stepMultiplier)
-atk = round((4 + index*0.85*(isBoss?2.6:1)) * stepMultiplier)
+atk = round((4 + index*1.05*(isBoss?2.9:1)) * stepMultiplier)
 def = round((3 + index*0.4*(isBoss?2.2:1)) * stepMultiplier)
 ```
 
@@ -31,7 +31,7 @@ def = round((3 + index*0.4*(isBoss?2.2:1)) * stepMultiplier)
 - 040에서 **일반(비보스) 몹만 추가로 1.8배 상향**(`NORMAL_MONSTER_BOOST`) — 보스 배율에 비해 일반 몹이 너무 물렁해서(고레벨 기준 스킬 1방에 끝남) 보스는 그대로 두고 일반 몹만 별도 상향. `calc_stage_gold`도 동일 배율 동기화
 - `def`는 방어력 신설 시 추가, 몬스터/보스/일반던전보스/전직던전보스 전부 적용
 - 데미지 계산은 [`combat.md`](./combat.md)의 `mitigateDamage`로 경감
-- 적 공격 텀은 **1.9초**(`ENEMY_ATTACK_INTERVAL`)
+- **적 공격 텀이 스테이지 진행도에 비례해 빨라짐 + 공격력 계수 상향 (신규, 사용자 요청)**: 기존엔 공격 텀이 항상 고정(1.9초)이라 스테이지가 오를수록 "한 방이 세질" 뿐 "더 자주 맞진" 않았음 — `getEnemyAttackInterval(stageIndex, isBoss)`가 `max(700, round((1900 - stageIndex*1.1) * (isBoss ? 0.82 : 1)))`로 스테이지 인덱스에 비례해 공격 텀을 줄임(최저 700ms, 보스는 18% 더 빠름). 공격력 계수도 `0.85→1.05`(보스는 `2.6→2.9`)로 상향해서, "더 세게 + 더 자주" 맞는 만큼 방어구/신발(DEF/HP)의 상대적 가치가 커지도록 함. 던전(경험치/골드)도 동일 취지로 `getDungeonAttackInterval(stage) = max(700, round(1900 - stage*2.2))` 신설 + 공격력 계수 `13→15` 상향(`dungeonStages.js`) — 던전은 매 층이 이미 "보스"라 별도 보스 배율 없이 층수만으로 감소. 무한의 탑/월드보스/전직던전은 각자 독립된 스탯 공식을 쓰고 있어 이번 변경 범위 밖(의도적으로 손 안 댐)
 - ⚠️ 이 상향으로 최후반(챕터100/스테이지10) 보스 골드가 약 69만까지 치솟아 `add_gold` 상한도 400000→**1,000,000**으로 재상향(030)
 - 너무 세거나 약하면 `stages.js`/`dungeonStages.js`/`jobDungeon.js`의 계수를 조정하면 됨
 

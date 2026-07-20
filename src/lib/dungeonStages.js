@@ -3,8 +3,10 @@ const ELEMENTS = ['fire', 'water', 'grass'];
 function dungeonBoss(stage) {
   const element = ELEMENTS[stage % ELEMENTS.length];
   // 난이도 재상향: 체력/공격력/방어력 계수를 올림
+  // 공격력 계수를 체력/방어력보다 더 크게 올려서(13→15) 방어구/신발(DEF/HP)의 상대적
+  // 가치가 커지게 함(getDungeonAttackInterval의 공격속도 증가와 함께 적용, 사용자 요청)
   const hp = Math.round(220 + Math.pow(stage, 1.6) * 185);
-  const atk = Math.round(20 + Math.pow(stage, 1.5) * 13);
+  const atk = Math.round(20 + Math.pow(stage, 1.5) * 15);
   const def = Math.round(15 + Math.pow(stage, 1.4) * 9);
   return {
     name: `던전 ${stage}층 보스`,
@@ -16,6 +18,17 @@ function dungeonBoss(stage) {
     def,
     isBoss: true,
   };
+}
+
+/**
+ * 던전 층수에 비례해 적의 공격 텀(ms)이 점점 짧아짐(=더 빨리 때림) - 사용자 요청.
+ * 메인 스테이지(stages.js의 getEnemyAttackInterval)와 같은 취지 - 공격력만 오르는 게
+ * 아니라 공격 빈도도 늘어나야 방어구/신발(DEF/HP)의 "누적 피해 완화" 가치가 커짐.
+ * 던전은 매 층이 이미 "보스"라 별도 보스 배율은 안 두고, 최대 500층 범위에 맞춰
+ * 최저 700ms 바닥으로 감소폭만 다르게 잡음(메인 스테이지는 최대 1000이라 감소 기울기가 다름).
+ */
+export function getDungeonAttackInterval(stage) {
+  return Math.max(700, Math.round(1900 - stage * 2.2));
 }
 
 export const DUNGEON_STAGE_COUNT = 500;

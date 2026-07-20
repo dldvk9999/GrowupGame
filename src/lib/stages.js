@@ -53,6 +53,19 @@ export function getIdleMonster(chapter, playerLevel = 1) {
   };
 }
 
+/**
+ * 스테이지 진행도에 비례해 적의 공격 텀(ms)이 점점 짧아짐(=더 빨리 때림) - 사용자 요청.
+ * 기존엔 공격력만 스테이지에 비례해서 늘고 공격 텀은 항상 고정이라, 한 방 피해를 줄여주는
+ * 방어구보다 "덜 맞는" 회피/기절 계열 스킬 체감이 더 큰 편이었음. 공격 빈도 자체가 늘어나면
+ * 방어구/신발(DEF/HP)의 가치가 "누적 피해 완화"라는 측면에서 실질적으로 더 커짐.
+ * 최저 700ms로 바닥을 둬서 과도하게 빨라지지 않게 함(스킬 쿨타임보다 짧아지면 체감이 나빠짐).
+ */
+export function getEnemyAttackInterval(stageIndex, isBoss) {
+  const base = 1900 - stageIndex * 1.1;
+  const bossFactor = isBoss ? 0.82 : 1; // 보스는 같은 스테이지 기준으로도 18% 더 빠르게 공격
+  return Math.max(700, Math.round(base * bossFactor));
+}
+
 /** 특정 스테이지의 적 데이터 생성 (절차적 스케일링) */
 export function getStageEnemy(chapter, stage) {
   const index = toStageIndex(chapter, stage);
@@ -75,8 +88,11 @@ export function getStageEnemy(chapter, stage) {
   const chapterStep = 1 + (chapter - 1) * 0.05;
   const midChapterStep = stage >= 5 ? 1.15 : 1;
   const stepMultiplier = chapterStep * midChapterStep * (isBoss ? 1 : NORMAL_MONSTER_BOOST);
+  // 공격력 계수를 방어/체력 계수보다 더 크게 올려서(0.85→1.05, 보스 2.6→2.9) 방어구/신발
+  // (DEF/HP)의 상대적 가치가 커지게 함 - 공격속도(getEnemyAttackInterval)도 스테이지가
+  // 오를수록 빨라져서 "더 세게, 더 자주" 맞으므로 방어 스탯의 누적 완화 효과가 실질적으로 커짐
   const hp = Math.round((30 + index * 7.5 * (isBoss ? 3.0 : 1)) * stepMultiplier);
-  const atk = Math.round((4 + index * 0.85 * (isBoss ? 2.6 : 1)) * stepMultiplier);
+  const atk = Math.round((4 + index * 1.05 * (isBoss ? 2.9 : 1)) * stepMultiplier);
   const def = Math.round((3 + index * 0.4 * (isBoss ? 2.2 : 1)) * stepMultiplier);
 
   return {
