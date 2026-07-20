@@ -405,3 +405,6 @@
 
 **105_weekend_idle_gold_bonus.sql** — 신규 콘텐츠
 - `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) — 한국시간 토·일요일엔 자동사냥 골드 1.5배(황금몬스터 3배와 중첩 가능, 최종 500만 골드 클램프). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**106_fix_offline_reward_farming_exploit.sql** — [긴급/치명적] 보안 취약점 수정
+- `profiles.last_offline_claim_at` 신규 컬럼 추가, `claim_offline_gold_reward` 재정의(반환타입 그대로) — 103이 갱신을 102(comeback)에 의존하던 구조라 이 함수만 반복 호출하면 오프라인 보상을 무한 파밍 가능했던 치명적 취약점 수정. 전용 컬럼으로 분리해 자체 갱신 + `for update` 락. 자세한 내용은 [`security.md`](./security.md)

@@ -237,9 +237,10 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      // 오프라인 보상(offline) → 복귀 보상(comeback) 순서 반드시 지킬 것: comeback 쪽이
-      // last_login_at을 now()로 갱신해버리므로, 방치 시간을 정확히 재려면 offline을 먼저 호출해야 함.
-      // 우편함(fetchMails)보다도 먼저 완료되어야 방금 지급된 복귀 보상 우편이 바로 보임.
+      // 오프라인 보상(offline)과 복귀 보상(comeback)은 106부터 서로 다른 체크포인트 컬럼을
+      // 각자 자체 갱신하는 완전히 독립적인 함수라 호출 순서는 상관없음(둘 다 각 함수가 매
+      // 호출마다 자기 컬럼을 now()로 갱신해 반복 호출 파밍을 스스로 차단함).
+      // 우편함(fetchMails)보다는 먼저 완료되어야 방금 지급된 복귀 보상 우편이 바로 보임.
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
