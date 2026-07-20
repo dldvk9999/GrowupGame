@@ -4,6 +4,7 @@ import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
 import { showToast } from '../lib/toast';
 import { playClickSound } from '../lib/audio';
+import { markPvpPlayedToday } from '../lib/dailyPvpFlag';
 import PvPBattleScene from './PvPBattleScene';
 
 export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
@@ -61,6 +62,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     setLastResult(res);
     setMyPower(res.my_power);
     onBattleResolved(res);
+    markPvpPlayedToday(); // 오늘의 할 일 체크리스트용
     setFighting(false);
     loadHistory(); // 연승 스트릭 표시와 전적 목록 둘 다 즉시 반영되도록 항상 갱신
     if (res.result === 'win') {

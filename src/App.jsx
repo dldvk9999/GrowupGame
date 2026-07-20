@@ -30,6 +30,7 @@ import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
 import { claimComebackRewardIfEligible } from './lib/comeback';
 import { claimOfflineGoldReward } from './lib/offlineReward';
 import { shouldShowWeekendBonusToast } from './lib/weekendBonus';
+import { hasPlayedPvpToday } from './lib/dailyPvpFlag';
 import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
@@ -109,6 +110,7 @@ export default function App() {
   const [claimingMission, setClaimingMission] = useState(false);
   const [hasClaimedMissionToday, setHasClaimedMissionToday] = useState(false);
   const [loginStreak, setLoginStreak] = useState(0);
+  const [pvpAttemptedToday, setPvpAttemptedToday] = useState(false);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
@@ -230,6 +232,7 @@ export default function App() {
       setFreeDrawUsedMap(null);
       setCostumeCount(0);
       setHasClaimedMissionToday(false);
+      setPvpAttemptedToday(false);
       setTowerBattle(null);
       setTowerHighestFloor(0);
       setLoginAt(null);
@@ -282,6 +285,7 @@ export default function App() {
       setHasClaimedMissionToday(hasClaimedMissionTodayPersisted(newSession.user.id));
       setLoginAt(new Date().toISOString());
       setLoginStreak(updateLoginStreak());
+      setPvpAttemptedToday(hasPlayedPvpToday());
 
       // 로그인 시 뜰 수 있는 안내 토스트(오프라인/복귀/오늘의한마디/주말)가 최대 4개까지
       // 동시에 겹칠 수 있어(특히 모바일 좁은 화면에서 읽기 힘듦), 조금씩 시차를 두고 표시함.
@@ -755,10 +759,12 @@ export default function App() {
               missionCompleted={missionCompleted || hasClaimedMissionToday}
               worldBossAttempted={(worldBossProgress?.attemptsUsed ?? 0) > 0}
               dungeonAttempted={(dungeonAttempts?.exp ?? 3) < 3 || (dungeonAttempts?.gold ?? 3) < 3}
+              pvpAttempted={pvpAttemptedToday}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onOpenShop={() => setActiveTab('shop')}
               onOpenWorldBoss={() => { setActiveTab('dungeon'); setDungeonActiveType('worldboss'); }}
               onOpenDungeon={() => { setActiveTab('dungeon'); setDungeonActiveType('exp'); }}
+              onOpenPvp={() => setActiveTab('pvp')}
             />
 
             <nav className="tab-nav">
@@ -904,12 +910,15 @@ export default function App() {
                 profile={profile}
                 activeMonster={activeMonster}
                 onCurrencyChange={(newCurrency) => setProfile((p) => ({ ...p, pvp_currency: newCurrency }))}
-                onBattleResolved={(res) => setProfile((p) => ({
-                  ...p,
-                  pvp_currency: res.currency_balance,
-                  pvp_wins: (p.pvp_wins ?? 0) + (res.result === 'win' ? 1 : 0),
-                  pvp_losses: (p.pvp_losses ?? 0) + (res.result === 'lose' ? 1 : 0),
-                }))}
+                onBattleResolved={(res) => {
+                  setProfile((p) => ({
+                    ...p,
+                    pvp_currency: res.currency_balance,
+                    pvp_wins: (p.pvp_wins ?? 0) + (res.result === 'win' ? 1 : 0),
+                    pvp_losses: (p.pvp_losses ?? 0) + (res.result === 'lose' ? 1 : 0),
+                  }));
+                  setPvpAttemptedToday(true);
+                }}
               />
             )}
             {activeTab === 'chat' && (
