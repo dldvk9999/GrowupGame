@@ -532,6 +532,12 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 
 **전체 마이그레이션(001~128) 재스캔**: DROP FUNCTION 누락/ambiguous column 자동 스캐너 0건.
 
+### 65차 점검 — 친구 시스템 배치 후 재점검 (129)
+
+**129(친구시스템)**: 신규 테이블 2개(`friend_requests`/`friendships`) 모두 RLS 활성 + 본인 관련 행만 조회 허용, INSERT/UPDATE/DELETE는 `authenticated`에서 회수(실제 쓰기는 security definer 함수 내부에서만) - 기존 테이블 패턴과 동일. `perform add_gold(...)` 호출 없음(친구 추가에 재화 보상 없는 순수 소셜 기능, 리스크 없음). 8개 함수의 `RETURNS TABLE` 컬럼명(`friend_id`/`requester_id`/`target_id`/`created_at`)이 각각 `friendships`/`friend_requests` 테이블의 실제 컬럼명과 동일한 부분이 있어 ambiguous column 위험을 재검토 - 전부 `f.friend_id`/`fr.requester_id`처럼 **테이블 별칭으로 명시적 qualify**해서 작성됐음을 확인(안전). 100명 제한이 `send_friend_request`(요청 시)와 `accept_friend_request`(수락 시) 양쪽에서 이중 검증되는지도 재확인 - 정상.
+
+**전체 마이그레이션(001~129) 재스캔**: DROP FUNCTION 누락/ambiguous column 자동 스캐너 0건.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(이 프로젝트에서 가장 큰) 구조적 한계임.
