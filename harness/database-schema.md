@@ -399,3 +399,6 @@
 
 **103_offline_gold_reward.sql** — 신규 콘텐츠
 - `claim_offline_gold_reward()` 신설(102의 `last_login_at`을 읽기만 하고 갱신은 안 함) — 방치 5분~2시간 구간에 대해 `calc_idle_gold` 기준 50% 효율로 골드 즉시 지급. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**104_fix_dungeon_sessions_stage_check.sql** — 버그 수정(사용자 제보)
+- `dungeon_sessions.stage` 체크 제약이 009의 `1~10` 그대로 남아있어 079(500층 확장) 이후 11층 이상 진행한 유저는 던전 입장 자체가 실패하던 버그 수정. `stage between 1 and 500`으로 재정의. 자세한 내용은 [`security.md`](./security.md)
