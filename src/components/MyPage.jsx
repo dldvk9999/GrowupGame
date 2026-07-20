@@ -121,6 +121,10 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const joinedAt = session?.user?.created_at
     ? new Date(session.user.created_at).toLocaleDateString('ko-KR')
     : '-';
+  // "D+N일째" - 가입일부터 지금까지 며칠째인지, 흔한 앱 관습으로 소소한 애착/성취감을 줌
+  const daysSinceJoin = session?.user?.created_at
+    ? Math.max(1, Math.floor((Date.now() - new Date(session.user.created_at)) / (1000 * 60 * 60 * 24)) + 1)
+    : null;
 
   return (
     <div className="mypage-screen">
@@ -184,7 +188,10 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
       <div className="mypage-card">
         <div className="mypage-row"><span>닉네임</span><strong>{profile?.nickname}</strong></div>
         <div className="mypage-row"><span>이메일</span><strong>{session?.user?.email}</strong></div>
-        <div className="mypage-row"><span>가입일</span><strong>{joinedAt}</strong></div>
+        <div className="mypage-row">
+          <span>가입일</span>
+          <strong>{joinedAt}{daysSinceJoin != null && <span className="mypage-join-days"> · D+{daysSinceJoin}</span>}</strong>
+        </div>
         <div className="mypage-row"><span>보유 골드</span><strong>💰 {(profile?.gold ?? 0).toLocaleString()}</strong></div>
         {activeMonster && (
           <div className="mypage-row">

@@ -1422,6 +1422,7 @@ button {
 }
 .mypage-row:last-child { border-bottom: none; }
 .mypage-row span { color: var(--text-secondary); }
+.mypage-row .mypage-join-days { color: var(--accent-gold); font-weight: 600; font-size: 13px; }
 .mypage-row--petname { flex-wrap: wrap; gap: 8px; }
 .petname-edit-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .petname-edit-row input { width: 120px; padding: 6px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-soft); background: var(--bg-panel); color: var(--text-primary); font-size: 13px; transition: border-color 0.2s var(--ease-soft); }
