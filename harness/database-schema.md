@@ -393,3 +393,6 @@
 
 **101_daily_free_draw_split_5.sql** — 사용자 요청
 - `daily_free_draw_state` 테이블 재구성((user_id, draw_type) 복합키), `claim_daily_free_draw` 재정의(p_type이 슬롯/스킬 구분값 겸함, p_slot 파라미터 제거, DROP FUNCTION 포함) — 일일 무료뽑기를 무기/방어구/장갑/신발/스킬 5종 독립으로 분리. 자세한 내용은 [`skills.md`](./skills.md)
+
+**102_comeback_reward.sql** — 신규 콘텐츠(리텐션)
+- `profiles.last_login_at` 컬럼 추가(기본값 `now()`), `record_login_and_grant_comeback_reward()` 신설 — 3일 이상 미접속 후 복귀 시 축하 우편(골드 5,000~50,000)을 `comeback_YYYYMMDD` source_key로 발송. 자세한 내용은 [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)

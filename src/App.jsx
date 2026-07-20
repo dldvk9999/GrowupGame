@@ -27,6 +27,7 @@ import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
+import { claimComebackRewardIfEligible } from './lib/comeback';
 import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
@@ -234,6 +235,9 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
+      // 우편함(fetchMails)보다 먼저 완료되어야 방금 지급된 복귀 보상 우편이 바로 보이므로
+      // 아래 Promise.all과 분리해 순서를 보장함. 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
+      const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
       const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
@@ -272,6 +276,10 @@ export default function App() {
       setHasClaimedMissionToday(hasClaimedMissionTodayPersisted(newSession.user.id));
       setLoginAt(new Date().toISOString());
       setLoginStreak(updateLoginStreak());
+
+      if (comebackResult?.granted) {
+        showToast(`🎉 ${comebackResult.days_away}일 만의 복귀! 우편함에서 보너스를 받아가세요`, 'success');
+      }
 
       const dailyQuote = getTodaysQuoteIfNotShown();
       if (dailyQuote) {

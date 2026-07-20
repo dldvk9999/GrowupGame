@@ -24,6 +24,17 @@
 - **기존 계정에는 소급 지급되지 않음** — `create_starter_monster`는 계정당 정확히 1번만 실행되므로, 052 배포 이전 가입자는 받지 못함(의도된 동작, 신규 가입자 대상 장치)
 - 아이템 지급은 기존 우편 시스템(037에서 병합 버그 수정된 `claim_mail`)을 그대로 타므로 클라이언트 수정 불필요
 
+## 복귀 유저(윈백) 보상 (migration 102)
+
+3일 이상 접속하지 않았던 유저가 다시 로그인하면 축하 우편으로 보너스 골드를 지급하는 리텐션 장치. 이탈 직전/직후 유저를 다시 붙잡는 게 신규 유입보다 저렴하다는 모바일 게임 업계의 일반적 통념을 반영.
+
+- `profiles.last_login_at`(102 신규 컬럼, 기본값 `now()`) — `record_login_and_grant_comeback_reward()` RPC가 로그인마다 호출되어 갱신
+- 갱신 **전** 값과 현재 시각의 차이가 3일 이상이면 `v_days * 1500`(최소 5,000 ~ 최대 50,000) 골드를 `source_key = 'comeback_YYYYMMDD'` 우편으로 발송, 이후 무조건 `last_login_at = now()`로 갱신(보상 지급 여부와 무관하게 매번 갱신해야 다음 이탈 판정 기준일이 정확함)
+- 클라이언트: `comeback.js`의 `claimComebackRewardIfEligible()` — `App.jsx`의 `handleSession`에서 메인 데이터 로딩 `Promise.all`보다 **먼저** `await`로 단독 실행(우편함 조회보다 먼저 완료되어야 방금 지급된 우편이 바로 보임). 실패해도 로그인 자체는 막지 않도록 조용히 catch
+- `granted=true`면 로그인 직후 "🎉 N일 만의 복귀! 우편함에서 보너스를 받아가세요" 토스트 표시
+- 배포 시점 기존 유저는 컬럼 기본값이 `now()`라 즉시 지급되지 않고, 다음에 실제로 3일 이상 쉬어야 자연스럽게 트리거됨(의도된 동작)
+- 반환 컬럼(`granted`/`days_away`/`gold_reward`)이 `profiles`/`mails` 컬럼명과 겹치지 않아 "column reference is ambiguous" 패턴([`dev-guide.md`](./dev-guide.md) 참고) 위험 없음
+
 ## 쿠폰 시스템
 
 - `coupons` 테이블에 쿠폰코드/골드량/아이템/최대사용횟수/만료일을 직접 INSERT해서 발행(관리용 UI 없음, SQL 직접 발행)
