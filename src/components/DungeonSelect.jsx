@@ -6,8 +6,9 @@ import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worl
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
+import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpedition } from '../lib/expedition';
 
-const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss', 'tower'];
+const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss', 'tower', 'expedition'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
@@ -15,6 +16,7 @@ export default function DungeonSelect({
   activeType, onActiveTypeChange,
   worldBoss, worldBossProgress, onEnterWorldBoss, worldBossEntering, worldBossError,
   towerHighestFloor, onEnterTower, towerEntering, towerError,
+  userId, onExpeditionGoldChange,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -52,6 +54,9 @@ export default function DungeonSelect({
         <button className={`shop-tab ${activeType === 'tower' ? 'active' : ''}`} onClick={() => onActiveTypeChange('tower')}>
           🗼 무한의 탑
         </button>
+        <button className={`shop-tab ${activeType === 'expedition' ? 'active' : ''}`} onClick={() => onActiveTypeChange('expedition')}>
+          🧭 파견
+        </button>
       </div>
       <p className="keyboard-hint">Tab / Shift+Tab으로 탭 이동</p>
 
@@ -77,6 +82,8 @@ export default function DungeonSelect({
           entering={towerEntering}
           error={towerError}
         />
+      ) : activeType === 'expedition' ? (
+        <ExpeditionPanel userId={userId} onGoldChange={onExpeditionGoldChange} />
       ) : (
         <ProgressiveDungeon
           type={activeType}
@@ -375,4 +382,106 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
       )}
     </div>
   );
+}
+
+function ExpeditionPanel({ userId, onGoldChange }) {
+  const [expedition, setExpedition] = useState(undefined); // undefined=로딩중, null=없음, {}=진행중
+  const [starting, setStarting] = useState(false);
+  const [claiming, setClaiming] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchMyExpedition(userId).then(setExpedition).catch(() => setExpedition(null));
+  }, [userId]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  async function handleStart(tier) {
+    setError('');
+    setStarting(true);
+    try {
+      const res = await startExpedition(tier);
+      setExpedition({ tier, started_at: res.startedAt, duration_seconds: res.durationSeconds, claimed: false });
+    } catch (err) {
+      setError(err.message ?? '파견 시작에 실패했어요.');
+      showToast(err.message ?? '파견 시작에 실패했어요.', 'error');
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  async function handleClaim() {
+    setClaiming(true);
+    try {
+      const res = await claimExpedition();
+      showToast(`🧭 파견 완료! 골드 +${res.gold.toLocaleString()}`, 'success');
+      onGoldChange?.(res.gold);
+      setExpedition(null);
+    } catch (err) {
+      showToast(err.message ?? '수령에 실패했어요.', 'error');
+    } finally {
+      setClaiming(false);
+    }
+  }
+
+  if (expedition === undefined) {
+    return <p className="stage-select-hint">불러오는 중...</p>;
+  }
+
+  const remainingMs = expedition
+    ? new Date(expedition.started_at).getTime() + expedition.duration_seconds * 1000 - now
+    : 0;
+  const isDone = expedition && remainingMs <= 0;
+
+  return (
+    <div>
+      <p className="stage-select-hint">
+        몬스터를 잠깐 파견 보내면 시간이 지난 뒤 골드를 받을 수 있어요. 전투/자동사냥과 전혀 겹치지 않고
+        병행되는 별개의 타이머예요 — 앱을 꺼두고 있어도 시간은 그대로 흘러요. 오프라인 방치 보상보다
+        훨씬 긴 시간(최대 12시간)을 커버해요.
+      </p>
+
+      {error && <p className="shop-error">{error}</p>}
+
+      {!expedition ? (
+        <div className="gacha-draw-buttons">
+          {Object.entries(EXPEDITION_TIERS).map(([tier, meta]) => (
+            <button key={tier} className="btn btn-neutral" disabled={starting} onClick={() => handleStart(tier)}>
+              {meta.icon} {meta.label} ({meta.hours < 1 ? `${meta.hours * 60}분` : `${meta.hours}시간`})
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="worldboss-hp-card">
+          <div className="worldboss-hp-title">
+            {EXPEDITION_TIERS[expedition.tier].icon} {EXPEDITION_TIERS[expedition.tier].label} 진행 중
+          </div>
+          {isDone ? (
+            <button className="btn btn-challenge" disabled={claiming} onClick={handleClaim} style={{ marginTop: 10 }}>
+              {claiming ? '수령 중...' : '🎁 파견 완료! 보상 받기'}
+            </button>
+          ) : (
+            <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>
+              남은 시간: {formatRemaining(remainingMs)}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatRemaining(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if (h > 0) return `${h}시간 ${m}분`;
+  if (m > 0) return `${m}분 ${s}초`;
+  return `${s}초`;
 }

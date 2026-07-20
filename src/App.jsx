@@ -912,6 +912,8 @@ export default function App() {
                   onEnterTower={handleEnterTower}
                   towerEntering={towerEntering}
                   towerError={towerError}
+                  userId={session.user.id}
+                  onExpeditionGoldChange={(gained) => setProfile((p) => ({ ...p, gold: (p?.gold ?? 0) + gained }))}
                 />
               )
             )}

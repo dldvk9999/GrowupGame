@@ -454,3 +454,6 @@
 **121_equipment_collection_and_daily_dungeon.sql** — 신규 콘텐츠(사용자 요청)
 - `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 장비 컬렉션북 업적 2종(10종/20종 보유) 추가, 새 테이블 없이 기존 `user_inventory` 데이터 재활용
 - `claim_dungeon_reward` 재정의(반환컬럼 `is_daily_bonus` 추가, DROP FUNCTION 포함) + `fetch_daily_dungeon_bonus_type()` 신설 — 요일별(월/목=골드, 화/금=경험치) 던전 골드 1.3배 보너스. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`equipment.md`](./equipment.md)
+
+**122_expedition_system.sql** — 신규 콘텐츠(사용자 요청)
+- `expeditions` 테이블 신설(유저당 1행), `start_expedition()`/`claim_expedition()`/`calc_expedition_gold_per_hour()` 신규 함수(전부 DROP 불필요) — 짧은/중간/긴(30분·4시간·12시간) 파견을 보내고 시간이 지나면 골드 수령. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
