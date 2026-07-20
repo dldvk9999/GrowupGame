@@ -417,3 +417,6 @@
 
 **109_pvp_revenge_notify_opponent.sql** — 신규 콘텐츠
 - `start_pvp_revenge_battle` 재정의(반환타입 그대로, DROP 불필요) — 복수전 당한 상대에게도 결과+소액 위로 골드를 우편으로 발송(재접속 유도). 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**110_fix_world_boss_double_gold_payment.sql** — [긴급/치명적] 보안/버그 수정
+- `report_world_boss_damage`/`sync_world_boss` 재정의(반환타입 둘 다 그대로, DROP 불필요) — 기여자 보상 루프의 `add_gold` 직접호출이 `auth.uid()<>target_user`면 예외를 던지는 구조라, 기여자 2명 이상이면 클리어/미클리어 보상 처리 전체가 크래시하던 치명적 버그 + 이중지급 부차 버그 동시 수정. 자세한 내용은 [`security.md`](./security.md)
