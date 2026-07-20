@@ -1,10 +1,12 @@
 // 전직 시 statMultiplier가 growth.js의 레벨 성장 보정에 곱연산으로 추가 적용됨.
 // 전직 스킬은 SKILLS(기본 5종)에 추가로 사용 가능해짐 (해금될 때마다 +1개씩 누적).
 // 전직 배율은 대폭 강화됨(1차 2배/2차 3.5배/3차 6배/4차 10배/5차 16배) - save_monster_growth RPC의
-// 스탯 상한선 공식도 이 최대값(16.0)에 맞춰 함께 올려야 함 (009/006/011/021 참고, 029에서 갱신).
+// 스탯 상한선 공식도 이 최대값에 맞춰 함께 올려야 함 (009/006/011/021 참고, 029에서 갱신).
+// 6~10차 전직 추가(레벨 240/300/360/420/480, 최대배율 90배, 최대레벨 500) - 사용자 요청,
+// 최대배율이 16.0->90.0으로 바뀌어서 save_monster_growth 상한 공식도 127(마이그레이션)에서 갱신함.
 /** 전직 전용 스킬인지 판별하고, 맞다면 몇 차 전직 스킬인지 반환 (아니면 0) */
 export function getJobSkillTier(skillId) {
-  const m = /^(?:fire|water|grass)_job([1-5])$/.exec(skillId ?? '');
+  const m = /^(?:fire|water|grass)_job([1-9]|10)$/.exec(skillId ?? '');
   return m ? Number(m[1]) : 0;
 }
 
@@ -52,6 +54,16 @@ export const JOB_TIERS = {
       skill: { id: 'fire_job4', name: '종말의 불꽃 폭풍', icon: '🔥', type: 'damage', multiplier: 8.2, cooldown: 12500, description: '4차 전직 전용기' } },
     { tier: 5, level: 180, title: '불꽃의 초월자', statMultiplier: 16.0,
       skill: { id: 'fire_job5', name: '멸망의 업화', icon: '🔥', type: 'damage', multiplier: 10.6, cooldown: 15500, description: '5차 전직 전용기, 최강의 일격' } },
+    { tier: 6, level: 240, title: '멸화의 초월자', statMultiplier: 24.0,
+      skill: { id: 'fire_job6', name: '천지개벽의 불꽃', icon: '🔥', type: 'damage', multiplier: 13.0, cooldown: 18500, description: '6차 전직 전용기' } },
+    { tier: 7, level: 300, title: '불꽃의 종언자', statMultiplier: 34.0,
+      skill: { id: 'fire_job7', name: '종언의 폭염', icon: '☄️', type: 'damage', multiplier: 15.6, cooldown: 21500, description: '7차 전직 전용기' } },
+    { tier: 8, level: 360, title: '태양을 삼킨 자', statMultiplier: 48.0,
+      skill: { id: 'fire_job8', name: '태양 붕괴', icon: '💥', type: 'damage', multiplier: 18.4, cooldown: 24500, description: '8차 전직 전용기' } },
+    { tier: 9, level: 420, title: '업화의 신좌', statMultiplier: 66.0,
+      skill: { id: 'fire_job9', name: '업화의 심판', icon: '🌋', type: 'damage', multiplier: 21.4, cooldown: 27500, description: '9차 전직 전용기' } },
+    { tier: 10, level: 480, title: '조율자의 후계자 · 불꽃', statMultiplier: 90.0,
+      skill: { id: 'fire_job10', name: '조율자의 불꽃', icon: '👑', type: 'damage', multiplier: 25.0, cooldown: 31000, description: '10차 전직 전용기, 궁극의 일격' } },
   ],
   water: [
     { tier: 1, level: 30, title: '심연의 전사', statMultiplier: 2.0,
@@ -64,6 +76,16 @@ export const JOB_TIERS = {
       skill: { id: 'water_job4', name: '대해일의 심판', icon: '🌊', type: 'damage', multiplier: 8.2, cooldown: 12500, description: '4차 전직 전용기' } },
     { tier: 5, level: 180, title: '만해의 지배자', statMultiplier: 16.0,
       skill: { id: 'water_job5', name: '태초의 심연', icon: '🌊', type: 'damage', multiplier: 10.6, cooldown: 15500, description: '5차 전직 전용기, 최강의 일격' } },
+    { tier: 6, level: 240, title: '심연의 초월자', statMultiplier: 24.0,
+      skill: { id: 'water_job6', name: '천지개벽의 해일', icon: '🌊', type: 'damage', multiplier: 13.0, cooldown: 18500, description: '6차 전직 전용기' } },
+    { tier: 7, level: 300, title: '만해의 종언자', statMultiplier: 34.0,
+      skill: { id: 'water_job7', name: '종언의 폭풍우', icon: '🌪️', type: 'damage', multiplier: 15.6, cooldown: 21500, description: '7차 전직 전용기' } },
+    { tier: 8, level: 360, title: '대양을 삼킨 자', statMultiplier: 48.0,
+      skill: { id: 'water_job8', name: '대양 붕괴', icon: '💥', type: 'damage', multiplier: 18.4, cooldown: 24500, description: '8차 전직 전용기' } },
+    { tier: 9, level: 420, title: '심해의 신좌', statMultiplier: 66.0,
+      skill: { id: 'water_job9', name: '심해의 심판', icon: '🌀', type: 'damage', multiplier: 21.4, cooldown: 27500, description: '9차 전직 전용기' } },
+    { tier: 10, level: 480, title: '조율자의 후계자 · 물결', statMultiplier: 90.0,
+      skill: { id: 'water_job10', name: '조율자의 파도', icon: '👑', type: 'damage', multiplier: 25.0, cooldown: 31000, description: '10차 전직 전용기, 궁극의 일격' } },
   ],
   grass: [
     { tier: 1, level: 30, title: '숲의 전사', statMultiplier: 2.0,
@@ -76,6 +98,16 @@ export const JOB_TIERS = {
       skill: { id: 'grass_job4', name: '태초의 개화', icon: '🌿', type: 'damage', multiplier: 8.2, cooldown: 12500, description: '4차 전직 전용기' } },
     { tier: 5, level: 180, title: '태초의 화신', statMultiplier: 16.0,
       skill: { id: 'grass_job5', name: '만물의 근원', icon: '🌿', type: 'damage', multiplier: 10.6, cooldown: 15500, description: '5차 전직 전용기, 최강의 일격' } },
+    { tier: 6, level: 240, title: '태초의 초월자', statMultiplier: 24.0,
+      skill: { id: 'grass_job6', name: '천지개벽의 가시', icon: '🌿', type: 'damage', multiplier: 13.0, cooldown: 18500, description: '6차 전직 전용기' } },
+    { tier: 7, level: 300, title: '대지의 종언자', statMultiplier: 34.0,
+      skill: { id: 'grass_job7', name: '종언의 폭화', icon: '🌸', type: 'damage', multiplier: 15.6, cooldown: 21500, description: '7차 전직 전용기' } },
+    { tier: 8, level: 360, title: '만물을 삼킨 자', statMultiplier: 48.0,
+      skill: { id: 'grass_job8', name: '대지 붕괴', icon: '💥', type: 'damage', multiplier: 18.4, cooldown: 24500, description: '8차 전직 전용기' } },
+    { tier: 9, level: 420, title: '자연의 신좌', statMultiplier: 66.0,
+      skill: { id: 'grass_job9', name: '자연의 심판', icon: '🌳', type: 'damage', multiplier: 21.4, cooldown: 27500, description: '9차 전직 전용기' } },
+    { tier: 10, level: 480, title: '조율자의 후계자 · 대지', statMultiplier: 90.0,
+      skill: { id: 'grass_job10', name: '조율자의 뿌리', icon: '👑', type: 'damage', multiplier: 25.0, cooldown: 31000, description: '10차 전직 전용기, 궁극의 일격' } },
   ],
 };
 

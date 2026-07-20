@@ -36,13 +36,14 @@
 - **스탯 성장**: `base스탯 × (1 + (level-1)*0.12) × 전직배율`
 - `speciesKeyToDbId`/`dbIdToSpeciesKey`(`speciesDbIds.js`)로 클라이언트 키(`fire_1` 등)와 DB `species_id`(정수)를 매핑
 
-## 전직 시스템 (1~5차)
+## 전직 시스템 (1~10차, 127에서 6~10차 확장)
 
-- Lv.30/60/100/140/180에서 조건 충족 시 "✨ 전직 가능!" 배너가 뜨지만(`hasPendingJobAdvancement`), **레벨업만으로 자동 전직되지 않음** — 전직 던전([`stages-and-dungeons.md`](./stages-and-dungeons.md))을 클리어해야 실제 적용
-- `owned_monsters.unlocked_job_tier`(0~5)가 "실제 적용된" 전직 단계의 단일 진실 공급원
-- `jobAdvancement.js`가 두 개념을 분리 관리: `getEligibleTierNumber(element, level)`(레벨 기준 "조건 충족", 알림용), `getAppliedTier(element, unlockedJobTier)`(실제 적용, 스탯/스킬/외형 반영)
-- 전직할 때마다 **전용 스킬 1개씩 추가 습득**(누적, 기본 뽑기 스킬과 별개)
+- Lv.30/60/100/140/180/**240/300/360/420/480**(6~10차, 사용자 요청)에서 조건 충족 시 "✨ 전직 가능!" 배너가 뜨지만(`hasPendingJobAdvancement`), **레벨업만으로 자동 전직되지 않음** — 전직 던전([`stages-and-dungeons.md`](./stages-and-dungeons.md))을 클리어해야 실제 적용
+- `owned_monsters.unlocked_job_tier`(0~10, 127에서 체크제약 확장)가 "실제 적용된" 전직 단계의 단일 진실 공급원
+- `jobAdvancement.js`가 두 개념을 분리 관리: `getEligibleTierNumber(element, level)`(레벨 기준 "조건 충족", 알림용), `getAppliedTier(element, unlockedJobTier)`(실제 적용, 스탯/스킬/외형 반영) — 둘 다 `JOB_TIERS[element]` 배열 길이에만 의존하는 범용 로직이라 6~10차 추가 시 이 함수들 자체는 **손댈 필요가 없었음**(배열만 늘리면 자동으로 동작)
+- 전직할 때마다 **전용 스킬 1개씩 추가 습득**(누적, 기본 뽑기 스킬과 별개) — `getJobSkillTier`의 정규식을 `job1~5`에서 `job1~10`까지 인식하도록 확장
 - 전직 성공 시 **외형도 전용 그래픽으로 변경**(아래 "외형 변경" 참고)
+- **최대 레벨 500** 신설(`growth.js MAX_LEVEL`, 10차 전직 요구 레벨 480보다 여유 있게 설정) — 만렙 도달 후엔 경험치가 무의미하게 계속 쌓이지 않도록 0으로 고정
 
 ### 전직 단계별 수치
 
@@ -53,20 +54,41 @@
 | 3차 | 100 | 6.0배 | 6.2배 | 10초 |
 | 4차 | 140 | 10.0배 | 8.2배 | 12.5초 |
 | 5차 | 180 | 16.0배 | 10.6배 | 15.5초 |
+| 6차 | 240 | 24.0배 | 13.0배 | 18.5초 |
+| 7차 | 300 | 34.0배 | 15.6배 | 21.5초 |
+| 8차 | 360 | 48.0배 | 18.4배 | 24.5초 |
+| 9차 | 420 | 66.0배 | 21.4배 | 27.5초 |
+| 10차(최종) | 480 | 90.0배 | 25.0배 | 31초 |
 
 - statMultiplier는 `growth.js`의 레벨 성장 보정에 **곱연산**으로 추가 적용
-- 서버 `save_monster_growth`의 스탯 상한선 공식도 최대값(16.0배)에 맞춰 매 단계 확장마다 함께 상향(011/021/029)
-- 전직 스킬은 전부 `damage` 타입, 속성별로 다른 이름/아이콘(`JOB_TIERS` 참고)
+- 서버 `save_monster_growth`의 스탯 상한선 공식도 최대값(16.0배→**90.0배**)에 맞춰 상향(011/021/029/**127**), 동시에 레벨 500 초과 시도도 서버가 명시적으로 거부
+- 서버 `calc_monster_stats`(PvP/랭킹/`fetch_my_combat_power` 등 전투력 계산의 단일 진실 공급원)의 `job_mult` case도 6~10차 배율로 확장 — 이 함수 하나만 고치면 이걸 호출하는 모든 곳(PvP/랭킹/던전/월드보스)에 자동 반영됨
+- 전직 스킬은 전부 `damage` 타입, 속성별로 다른 이름/아이콘(`JOB_TIERS` 참고). 10차 스킬 이름은 메인 스토리 아크([`story.md`](./story.md))의 "조율자" 테마와 연결됨(예: "조율자의 불꽃")
 
 ### 외형 변경
 
 - `getDisplaySpriteKey(speciesId, element, unlockedJobTier)`가 `unlockedJobTier > 0`이면 `${element}_job${tier}` 키를 반환해 전직 전용 그림 표시
-- `JobTierSprite.jsx`(공용 렌더러)가 오라 크기/날개/왕관을 단계별로 화려하게 렌더링 — tier가 오를수록 오라가 커지고(tier≥2 날개, tier≥3 왕관+할로), **4~5차도 별도 아트 없이 같은 컴포넌트가 tier 값만 받아 확장됨**
-- `assets/sprites/index.jsx`에 3속성×5단계 = 15개 스프라이트 키 전부 등록
+- `JobTierSprite.jsx`(공용 렌더러)가 오라 크기/날개/왕관을 단계별로 화려하게 렌더링 — tier가 오를수록 오라가 커지고(tier≥2 날개, tier≥3 왕관+할로, **tier≥6 추가 백색 오라 링** 신설), 새로운 도형 없이 같은 컴포넌트가 tier 값만 받아 확장됨
+- `assets/sprites/index.jsx`에 3속성×10단계 = **30개** 스프라이트 키 전부 등록 — ⚠️ 이 레지스트리는 패턴 매칭이 아니라 **키를 하나하나 직접 등록하는 정적 객체**라, 6~10차 데이터만 추가하고 여기 등록을 빠뜨렸다면 캐릭터가 빈 placeholder로 보이는 조용한 버그가 났을 것(작업 중 자체 발견/반영)
+
+## 6~10차 전직의 추가 게이팅 (신규, 사용자 요청)
+
+"단순히 레벨만 조건으로 있는 게 아니라" 갈수록 여러 시스템에 걸친 조건이 필요하도록 설계:
+
+| 단계 | 추가 조건 |
+|---|---|
+| 6차 | 무한의 탑 20층 이상 |
+| 7차 | 무한의 탑 40층 이상 + 가이드미션 15개 이상 진행 |
+| 8차 | 무한의 탑 60층 이상 + 가이드미션 25개 이상 + 업적 "차원의 정복자"(`stage_clear_1000`) 보유 |
+| 9차 | 무한의 탑 80층 이상 + 가이드미션 35개 이상 + 업적 "종말의 위용"(`power_1m`) 보유 |
+| 10차 | 무한의 탑 100층 이상 + 가이드미션 50개 이상 + 업적 "정점의 지배자"(`level_180`) 보유 |
+
+- **서버(`start_job_dungeon`, 127)가 최종 검증** — `tower_progress.highest_floor`, `mission_state.mission_number`, `achievement_claims`를 직접 조회해서 확인. 클라이언트(`JobDungeonPanel`)는 탑층수/미션진행은 미리 체크해서 버튼을 비활성화하지만, **업적 보유 여부는 클라이언트에서 미리 확인하지 않음**(서버 에러 메시지로만 안내) — 굳이 클라이언트에 업적 목록을 따로 긁어오는 배선을 추가하지 않고, 이미 확립된 "서버가 최종 진실"이라는 원칙에 기댐
+- 판정식이 클라이언트(`JOB_DUNGEON_EXTRA_REQ`, 안내용)와 서버(`start_job_dungeon`, 실제 검증) 양쪽에 각각 있어 **하나를 바꾸면 반드시 둘 다 같이 바꿔야 함**(100/121의 "행운/요일 던전" 판정식 이중관리와 동일한 주의사항)
 
 ## 전직 던전과의 관계
 
-- 전직 던전 클리어(`claim_job_dungeon`)가 `unlocked_job_tier`를 실제로 올리는 유일한 경로
+- 전직 던전 클리어(`claim_job_dungeon`)가 `unlocked_job_tier`를 실제로 올리는 유일한 경로 — 이 함수 자체는 `unlocked_job_tier = v_session.tier`로 범용 대입이라 6~10차 확장 시 **손댈 필요 없었음**(체크 제약만 풀어주면 자동으로 동작)
 - 던전 난이도/보스 스탯/입장 규칙은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)의 "전직 던전" 참고
 
 ### 캐릭터 카드 요약 (신규 콘텐츠, `MyPage.jsx`)

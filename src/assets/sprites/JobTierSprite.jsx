@@ -23,6 +23,7 @@ export default function JobTierSprite({ element, tier, size = 90 }) {
 
       <circle cx="80" cy="80" r={auraRadius} fill="none" stroke={c.core} strokeWidth={2 + tier} opacity={0.25 + tier * 0.12} />
       {tier >= 3 && <circle cx="80" cy="80" r={auraRadius + 10} fill="none" stroke={c.core} strokeWidth="1.5" opacity="0.3" />}
+      {tier >= 6 && <circle cx="80" cy="80" r={auraRadius + 22} fill="none" stroke="#fff" strokeWidth="1" opacity="0.35" />}
 
       {tier >= 2 && (
         <>

@@ -1759,6 +1759,7 @@ button {
 .job-dungeon-tier { font-weight: 700; color: var(--accent-gold); min-width: 70px; }
 .job-dungeon-boss { flex: 1; min-width: 140px; font-size: 14px; }
 .job-dungeon-req { font-size: 12px; color: var(--text-muted); }
+.job-dungeon-extra-req { font-size: 11px; color: var(--accent-gold); margin-top: 2px; }
 .job-dungeon-done-badge { color: var(--accent-heal); font-weight: 700; font-size: 13px; }
 
 /* ---------- 토스트 알림 ---------- */

@@ -7,6 +7,7 @@ import { supabase } from './supabaseClient';
 export const TITLE_BY_ACHIEVEMENT = {
   level_180: '정점의 지배자',
   job_tier_5: '전설의 전사',
+  job_tier_10: '조율자의 계승자',
   stage_clear_1000: '차원의 정복자',
   gacha_5000: '행운의 화신',
   pvp_win_50: '투기장의 지배자',
@@ -40,7 +41,8 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'job_tier_1', category: 'job', icon: '🎖️', title: '1차 전직', desc: '1차 전직 달성', reward: 1000, target: 1, stat: 'jobTier' },
   { key: 'job_tier_3', category: 'job', icon: '🏅', title: '3차 전직', desc: '3차 전직 달성', reward: 5000, target: 3, stat: 'jobTier' },
-  { key: 'job_tier_5', category: 'job', icon: '🏆', title: '5차 전직 (최종)', desc: '5차 전직 달성', reward: 15000, target: 5, stat: 'jobTier' },
+  { key: 'job_tier_5', category: 'job', icon: '🏆', title: '5차 전직', desc: '5차 전직 달성', reward: 15000, target: 5, stat: 'jobTier' },
+  { key: 'job_tier_10', category: 'job', icon: '👑', title: '10차 전직 (최종)', desc: '10차 전직 달성 - 진정한 조율자의 계승자', reward: 100000, target: 10, stat: 'jobTier' },
 
   { key: 'stage_clear_10', category: 'stage', icon: '🗺️', title: '초보 모험가', desc: '스테이지 10개 클리어', reward: 500, target: 10, stat: 'stageCleared' },
   { key: 'stage_clear_100', category: 'stage', icon: '🧭', title: '숙련 모험가', desc: '스테이지 100개 클리어', reward: 3000, target: 100, stat: 'stageCleared' },

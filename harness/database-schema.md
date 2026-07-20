@@ -469,3 +469,9 @@
 
 **126_pvp_shop_discount.sql** — 신규 콘텐츠(사용자 요청)
 - `pvp_shop_listings.is_on_sale` 컬럼 추가, `sync_pvp_shop` 재정의(반환타입 그대로, DROP 불필요) — 전체 기준가 20% 인하 + 매시간 무작위 1~3칸 추가 20% 할인. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**127_job_tier_6_to_10.sql** — 신규 콘텐츠(사용자 요청)
+- `calc_monster_stats`/`save_monster_growth`/`start_job_dungeon` 재정의(전부 반환타입 그대로, DROP 불필요) — 전직 6~10차(레벨240~480, 배율24~90배) 확장, 최대레벨 500 신설, 6~10차 던전에 탑층수/미션진행/업적보유 추가 게이팅. `owned_monsters.unlocked_job_tier`/`job_dungeon_sessions.tier` 체크제약도 0~10/1~10으로 확장(빠뜨리면 던전 크래시 나는 패턴, 104 교훈 반영해 처음부터 포함). 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md), [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**128_job_tier_10_achievement.sql** — 신규 콘텐츠
+- `claim_achievement`/`set_equipped_title` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 진짜 최종 단계인 10차 전직 업적(칭호 "조율자의 계승자") 신설, 기존 5차 업적의 "(최종)" 오표기 수정

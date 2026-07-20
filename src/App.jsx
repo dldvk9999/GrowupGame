@@ -934,6 +934,7 @@ export default function App() {
                   towerError={towerError}
                   userId={session.user.id}
                   onExpeditionGoldChange={(gained) => setProfile((p) => ({ ...p, gold: (p?.gold ?? 0) + gained }))}
+                  missionNumber={mission?.mission_number}
                 />
               )
             )}

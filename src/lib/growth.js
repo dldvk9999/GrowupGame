@@ -1,6 +1,8 @@
 import { speciesById } from './speciesData';
 import { getAppliedTier, JOB_TIERS } from './jobAdvancement';
 
+export const MAX_LEVEL = 500; // 10차 전직(레벨480) 확장에 맞춰 최대 레벨을 500으로 설정(사용자 요청)
+
 /** 레벨 n에서 다음 레벨까지 필요한 경험치 */
 export function expToNextLevel(level) {
   return Math.round(20 * Math.pow(level, 1.5));
@@ -34,7 +36,7 @@ export function applyExpGain(monster, gainedExp) {
   const unlockedJobTier = monster.unlockedJobTier ?? 0;
   const events = [];
 
-  while (exp >= expToNextLevel(level)) {
+  while (level < MAX_LEVEL && exp >= expToNextLevel(level)) {
     exp -= expToNextLevel(level);
     level += 1;
     events.push(`레벨 ${level} 달성!`);
@@ -51,6 +53,7 @@ export function applyExpGain(monster, gainedExp) {
       events.push(`전직 조건 달성! (${crossedTier.title}) 전직 던전에 도전해보세요.`);
     }
   }
+  if (level >= MAX_LEVEL) exp = 0; // 만렙 도달 후엔 경험치가 무의미하게 계속 쌓이지 않도록 고정
 
   const species = speciesById[speciesId];
   const stats = scaleStats(species, level, unlockedJobTier);
