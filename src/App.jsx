@@ -953,6 +953,7 @@ export default function App() {
                     + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
                   pvpWins: profile?.pvp_wins ?? 0,
                   revengeWins: profile?.pvp_revenge_wins ?? 0,
+                  lifetimeGold: profile?.lifetime_gold_earned ?? 0,
                   worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
                   fullSetEquipped: (() => {
                     const equippedRarities = {};

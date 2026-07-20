@@ -61,6 +61,10 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'pvp_revenge_10', category: 'pvp', icon: '🔁', title: '복수의 화신', desc: '복수전 10승 달성', reward: 8000, target: 10, stat: 'revengeWins' },
 
+  { key: 'lifetime_gold_1m', category: 'special', icon: '🪙', title: '동전 모으기', desc: '누적 골드 획득 1,000,000 달성 (지금 보유액이 아니라 지금까지 번 총액)', reward: 2000, target: 1000000, stat: 'lifetimeGold' },
+  { key: 'lifetime_gold_50m', category: 'special', icon: '💰', title: '골드러시', desc: '누적 골드 획득 50,000,000 달성', reward: 15000, target: 50000000, stat: 'lifetimeGold' },
+  { key: 'lifetime_gold_500m', category: 'special', icon: '🏦', title: '재벌 조련사', desc: '누적 골드 획득 500,000,000 달성', reward: 50000, target: 500000000, stat: 'lifetimeGold' },
+
   { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
   { key: 'worldboss_damage_30m', category: 'worldboss', icon: '🗡️', title: '용의 사냥꾼', desc: '월드보스 누적 피해량 30,000,000 달성', reward: 8000, target: 30000000, stat: 'worldBossTotalDamage' },

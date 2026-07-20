@@ -429,3 +429,6 @@
 
 **113_pvp_revenge_achievement.sql** — 신규 콘텐츠
 - `profiles.pvp_revenge_wins` 컬럼 추가, `start_pvp_revenge_battle`/`claim_achievement` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 복수전 승리 10회 업적 "복수의 화신"(8000골드) 추가. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**114_lifetime_gold_achievements.sql** — 신규 콘텐츠
+- `profiles.lifetime_gold_earned` 컬럼 추가, `add_gold`/`claim_achievement` 재정의(둘 다 반환타입 그대로, DROP 불필요) — `add_gold` 호출 시마다 누적 골드를 같이 기록, 누적 1M/50M/500M 업적 3종 추가. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
