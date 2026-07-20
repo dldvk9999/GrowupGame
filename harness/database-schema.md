@@ -396,3 +396,6 @@
 
 **102_comeback_reward.sql** — 신규 콘텐츠(리텐션)
 - `profiles.last_login_at` 컬럼 추가(기본값 `now()`), `record_login_and_grant_comeback_reward()` 신설 — 3일 이상 미접속 후 복귀 시 축하 우편(골드 5,000~50,000)을 `comeback_YYYYMMDD` source_key로 발송. 자세한 내용은 [`mailbox-and-coupons.md`](./mailbox-and-coupons.md)
+
+**103_offline_gold_reward.sql** — 신규 콘텐츠
+- `claim_offline_gold_reward()` 신설(102의 `last_login_at`을 읽기만 하고 갱신은 안 함) — 방치 5분~2시간 구간에 대해 `calc_idle_gold` 기준 50% 효율로 골드 즉시 지급. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

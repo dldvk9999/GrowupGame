@@ -28,6 +28,7 @@ import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMiss
 import { fetchMails } from './lib/mail';
 import { fetchAttendanceState, hasClaimedToday } from './lib/attendance';
 import { claimComebackRewardIfEligible } from './lib/comeback';
+import { claimOfflineGoldReward } from './lib/offlineReward';
 import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDraw';
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
@@ -235,8 +236,11 @@ export default function App() {
     }
     try {
       const userId = newSession.user.id;
-      // 우편함(fetchMails)보다 먼저 완료되어야 방금 지급된 복귀 보상 우편이 바로 보이므로
-      // 아래 Promise.all과 분리해 순서를 보장함. 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
+      // 오프라인 보상(offline) → 복귀 보상(comeback) 순서 반드시 지킬 것: comeback 쪽이
+      // last_login_at을 now()로 갱신해버리므로, 방치 시간을 정확히 재려면 offline을 먼저 호출해야 함.
+      // 우편함(fetchMails)보다도 먼저 완료되어야 방금 지급된 복귀 보상 우편이 바로 보임.
+      // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
+      const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
       const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor] = await Promise.all([
         getMyProfile(),
@@ -276,6 +280,11 @@ export default function App() {
       setHasClaimedMissionToday(hasClaimedMissionTodayPersisted(newSession.user.id));
       setLoginAt(new Date().toISOString());
       setLoginStreak(updateLoginStreak());
+
+      if (offlineResult?.gold > 0) {
+        const mins = Math.floor(offlineResult.offline_seconds / 60);
+        showToast(`💤 자리를 비운 ${mins}분 동안 골드 ${offlineResult.gold.toLocaleString()}을 벌어왔어요!`, 'success');
+      }
 
       if (comebackResult?.granted) {
         showToast(`🎉 ${comebackResult.days_away}일 만의 복귀! 우편함에서 보너스를 받아가세요`, 'success');
