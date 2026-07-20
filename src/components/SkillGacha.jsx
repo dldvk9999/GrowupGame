@@ -3,7 +3,7 @@ import { getSkillDef, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch } from '../lib/skillGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
-import { playGachaRevealSound } from '../lib/audio';
+import { playGachaRevealSound, playClickSound } from '../lib/audio';
 import { getGachaProbability } from '../lib/gachaProbability';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
@@ -124,10 +124,27 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
 }
 
 function GachaResultList({ results }) {
+  const [copied, setCopied] = useState(false);
   const counts = { normal: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
   for (const r of results) {
     const def = getSkillDef(r.skill_key);
     if (def) counts[def.rarity] += 1;
+  }
+
+  async function handleCopyResult() {
+    const summary = Object.entries(counts)
+      .filter(([, n]) => n > 0)
+      .map(([rarity, n]) => `${RARITY_LABEL[rarity]} ×${n}`)
+      .join(', ');
+    const text = `🎰 스킬 뽑기 ${results.length}회 결과 - ${summary}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      playClickSound();
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      showToast('복사에 실패했어요.', 'error');
+    }
   }
 
   return (
@@ -139,6 +156,9 @@ function GachaResultList({ results }) {
           </span>
         ))}
         <span className="gacha-summary-total">총 {results.length}회</span>
+        <button type="button" className="btn btn-ghost gacha-share-btn" onClick={handleCopyResult}>
+          {copied ? '✅ 복사됨' : '📋 결과 공유'}
+        </button>
       </div>
       <div className="gacha-result-list">
         {results.map((r, i) => {

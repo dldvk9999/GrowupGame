@@ -1494,6 +1494,7 @@ button {
   padding: 3px 10px;
 }
 .gacha-summary-total { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+.gacha-share-btn { font-size: 11px; padding: 4px 10px; flex-shrink: 0; }
 .gacha-result-list {
   display: flex;
   flex-wrap: wrap;

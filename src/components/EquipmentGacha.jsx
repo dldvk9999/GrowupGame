@@ -3,7 +3,7 @@ import { SLOTS, RARITIES, getItem, getEnhancedStatBonus } from '../lib/itemCatal
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
-import { playGachaRevealSound } from '../lib/audio';
+import { playGachaRevealSound, playClickSound } from '../lib/audio';
 import { getGachaProbability } from '../lib/gachaProbability';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
@@ -13,6 +13,7 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
   const [showProbability, setShowProbability] = useState(false);
+  const [resultCopied, setResultCopied] = useState(false);
 
   const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
   const cost = 100 + (drawLevel - 1) * 30;
@@ -76,6 +77,22 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
   const counts = { normal: 0, rare: 0, epic: 0, legendary: 0, mythic: 0 };
   for (const r of lastResults) counts[r.rarity] += 1;
 
+  async function handleCopyResult() {
+    const summary = Object.entries(counts)
+      .filter(([, n]) => n > 0)
+      .map(([rarity, n]) => `${RARITIES[rarity].label} ×${n}`)
+      .join(', ');
+    const text = `🎰 ${slotMeta.label} 뽑기 ${lastResults.length}회 결과 - ${summary}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setResultCopied(true);
+      playClickSound();
+      setTimeout(() => setResultCopied(false), 2000);
+    } catch {
+      showToast('복사에 실패했어요.', 'error');
+    }
+  }
+
   return (
     <div className="skillgacha-screen">
       <div className="gacha-panel">
@@ -128,6 +145,9 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
                 </span>
               ))}
               <span className="gacha-summary-total">총 {lastResults.length}회</span>
+              <button type="button" className="btn btn-ghost gacha-share-btn" onClick={handleCopyResult}>
+                {resultCopied ? '✅ 복사됨' : '📋 결과 공유'}
+              </button>
             </div>
             <p className="gacha-hint" style={{ marginTop: 0 }}>▲ 표시는 지금 장착 중인 아이템보다 강하다는 뜻이에요. 인벤토리에서 장착해보세요!</p>
             <div className="gacha-result-list">
