@@ -952,6 +952,7 @@ export default function App() {
                   gachaTotal: (profile?.total_skill_draws ?? 0)
                     + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
                   pvpWins: profile?.pvp_wins ?? 0,
+                  revengeWins: profile?.pvp_revenge_wins ?? 0,
                   worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
                   fullSetEquipped: (() => {
                     const equippedRarities = {};

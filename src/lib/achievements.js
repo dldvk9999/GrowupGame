@@ -59,6 +59,8 @@ export const ACHIEVEMENT_CATALOG = [
 
   { key: 'pvp_win_100', category: 'pvp', icon: '👑', title: '투기장의 전설', desc: 'PvP 100승 달성 (다이아몬드 티어)', reward: 25000, target: 100, stat: 'pvpWins' },
 
+  { key: 'pvp_revenge_10', category: 'pvp', icon: '🔁', title: '복수의 화신', desc: '복수전 10승 달성', reward: 8000, target: 10, stat: 'revengeWins' },
+
   { key: 'world_boss_participate', category: 'worldboss', icon: '🐉', title: '용과의 조우', desc: '월드보스에게 피해를 입혀보기', reward: 500, target: 1, stat: 'worldBossDamage' },
 
   { key: 'worldboss_damage_30m', category: 'worldboss', icon: '🗡️', title: '용의 사냥꾼', desc: '월드보스 누적 피해량 30,000,000 달성', reward: 8000, target: 30000000, stat: 'worldBossTotalDamage' },

@@ -426,3 +426,6 @@
 
 **112_pvp_leaderboard.sql** — 신규 콘텐츠
 - `fetch_pvp_leaderboard()`/`fetch_my_pvp_rank()` 신설(tower/referral 랭킹과 동일 패턴) — 랭킹 화면에 6번째 탭 "🥊 PvP" 추가(`pvp_wins` 기준 TOP20). 자세한 내용은 [`social-chat.md`](./social-chat.md)
+
+**113_pvp_revenge_achievement.sql** — 신규 콘텐츠
+- `profiles.pvp_revenge_wins` 컬럼 추가, `start_pvp_revenge_battle`/`claim_achievement` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 복수전 승리 10회 업적 "복수의 화신"(8000골드) 추가. 자세한 내용은 [`pvp.md`](./pvp.md)
