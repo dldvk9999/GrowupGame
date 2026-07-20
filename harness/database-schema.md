@@ -411,3 +411,6 @@
 
 **107_pvp_real_opponent_reward_boost.sql** — 신규 콘텐츠(사용자 요청)
 - `start_pvp_battle` 재정의(반환타입 그대로, DROP 불필요) — 상대가 실제 유저면 승리 보상 3배, 패배해도 기존 승리 보상(1배)만큼 위로 보상 지급. 가상 캐릭터 상대는 기존과 동일. 자세한 내용은 [`pvp.md`](./pvp.md)
+
+**108_pvp_revenge_battle.sql** — 신규 콘텐츠
+- `start_pvp_revenge_battle(p_opponent_id)` 신설 — 최근 전적의 실유저 상대를 지목해 재도전(무작위 매칭 대신 고정 상대, 스탯은 실시간 재조회). 항상 실유저이므로 107 보상 규칙 적용. 자세한 내용은 [`pvp.md`](./pvp.md)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchMyCombatPower, startPvpBattle, fetchPvpHistory } from '../lib/pvp';
+import { fetchMyCombatPower, startPvpBattle, startPvpRevengeBattle, fetchPvpHistory } from '../lib/pvp';
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
 import { showToast } from '../lib/toast';
@@ -24,12 +24,14 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     fetchPvpHistory(profile.id).then(setHistory).catch(() => setHistory([]));
   }
 
-  async function handleFight() {
+  async function handleFight(revengeOpponentId) {
     setError('');
     setLastResult(null);
     setFighting(true);
     try {
-      const res = await startPvpBattle();
+      const res = revengeOpponentId
+        ? await startPvpRevengeBattle(revengeOpponentId)
+        : await startPvpBattle();
       setPendingBattle(res); // 결과는 이미 받았지만, 연출이 끝날 때까지 화면엔 안 보여줌
     } catch (err) {
       setError(err.message ?? '대결에 실패했어요.');
@@ -97,7 +99,7 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
       {pendingBattle ? (
         <PvPBattleScene battle={pendingBattle} mySpeciesKey={mySpeciesKey} equippedCostumes={profile?.equipped_costumes} onFinish={handleSceneFinish} />
       ) : (
-        <button className="btn btn-challenge pvp-fight-btn" disabled={fighting} onClick={handleFight}>
+        <button className="btn btn-challenge pvp-fight-btn" disabled={fighting} onClick={() => handleFight()}>
           {fighting ? '상대를 찾는 중...' : '⚔️ 대결 시작'}
         </button>
       )}
@@ -151,6 +153,16 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
               </span>
               <span className="pvp-history-power">{h.my_power.toLocaleString()} vs {h.opponent_power.toLocaleString()}</span>
               {h.reward > 0 && <span className="pvp-history-reward">+{h.reward.toLocaleString()}</span>}
+              {h.opponent_is_real && h.opponent_user_id && (
+                <button
+                  type="button"
+                  className="btn btn-ghost pvp-revenge-btn"
+                  disabled={fighting || !!pendingBattle}
+                  onClick={() => handleFight(h.opponent_user_id)}
+                >
+                  🔁 복수하기
+                </button>
+              )}
             </div>
           ))}
         </div>

@@ -14,6 +14,13 @@ export async function startPvpBattle() {
   return data?.[0];
 }
 
+/** PvP 복수전 - 최근 전적에서 지목한 실유저에게 재도전(항상 실유저 보상 규칙 적용) */
+export async function startPvpRevengeBattle(opponentId) {
+  const { data, error } = await supabase.rpc('start_pvp_revenge_battle', { p_opponent_id: opponentId });
+  if (error) throw new Error(error.message);
+  return data?.[0];
+}
+
 /** 최근 PvP 전적 */
 export async function fetchPvpHistory(userId, limit = 20) {
   const { data, error } = await supabase
