@@ -432,3 +432,6 @@
 
 **114_lifetime_gold_achievements.sql** — 신규 콘텐츠
 - `profiles.lifetime_gold_earned` 컬럼 추가, `add_gold`/`claim_achievement` 재정의(둘 다 반환타입 그대로, DROP 불필요) — `add_gold` 호출 시마다 누적 골드를 같이 기록, 누적 1M/50M/500M 업적 3종 추가. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**115_fix_free_draw_lifetime_gold_pollution.sql** — 버그 수정(114 배포 직후 자체 발견)
+- `claim_daily_free_draw` 재정의(반환타입 그대로, DROP 불필요) — 뽑기용 임시 버퍼(10만골드, 즉시 리셋됨)가 `add_gold`를 거치면서 `lifetime_gold_earned`을 허수로 오염시키던 문제 수정. 버퍼 지급을 `profiles.gold` 직접 UPDATE로 변경
