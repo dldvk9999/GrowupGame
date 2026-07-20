@@ -513,6 +513,7 @@ button {
 
 .result-panel { text-align: center; }
 .result-text { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+.new-record-badge { color: var(--accent-gold); font-weight: 700; font-size: 14px; margin: -6px 0 12px; }
 
 .skills-row {
   display: flex;

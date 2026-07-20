@@ -88,6 +88,14 @@
 - 조회 실패해도 `.catch(() => setTopContributors([]))`로 조용히 숨겨지고 나머지 화면은 정상(부분 장애가 전체를 안 깨뜨림)
 - ⚠️ **배포 전 자체 검토로 발견/수정한 버그**: 랭킹 화면의 `.leaderboard-row`(6컬럼 그리드)를 그대로 재사용해 3개 자식만 넣었더니 닉네임이 24px 칸에 짜부러지는 레이아웃 붕괴가 있었음 → 전용 flex 클래스(`worldboss-contributor-row`)로 분리해 해결. **다른 화면의 grid row 클래스를 자식 개수가 다른 곳에 재사용하지 말 것** — 컬럼 수가 안 맞으면 에러 없이 레이아웃만 조용히 깨짐
 
+## 개인 최고 데미지 기록 (migration 111, 신규 콘텐츠)
+
+무한의 탑처럼 "내 최고 기록"을 갱신하는 재미를 월드보스에도 적용. 누적 기여 피해량(`world_boss_contributions`, 매주 리셋)과는 별개로 **한 판에서 낸 최고 피해**를 `profiles.world_boss_best_damage`에 영구 기록.
+
+- `report_world_boss_damage`가 매 전투 종료 시 이번 판 `v_applied`(전투력 상한으로 클램프된 실제 반영 데미지)가 기존 최고 기록을 넘으면 즉시 갱신, `is_new_personal_best`/`personal_best`를 반환값에 추가(반환 컬럼 변경이라 DROP FUNCTION 필요, 110 크래시 수정본을 기준으로 재정의)
+- 클라이언트(`WorldBossBattle.jsx`)는 갱신됐을 때만 결과화면에 "🏆 개인 최고 데미지 경신! N" 배지 + 무한의 탑과 동일한 `playNewRecordSound()` 재생(전투 승/패/시간초과 세 경로 모두에서 동일하게 처리)
+- 보스가 이미 `cleared`된 상태로 들어온 경우(다른 유저가 그 사이 처치)엔 데미지 반영 없이 `is_new_personal_best=false`, 현재 개인기록만 그대로 반환
+
 ## 역대 참여 여부 조회 (`hasEverParticipatedInWorldBoss`, 053)
 
 `world_boss_contributions`가 공개 RLS라, 특정 유저가 **어떤 주든 한 번이라도 피해를 입힌 적 있는지**를 RPC 없이 직접 조회 가능. "월드보스 첫 참여" 업적(053, [`attendance-and-achievements.md`](./attendance-and-achievements.md)) 판정에 씀 — `fetchMyWorldBossProgress()`의 `myWeekDamage`는 이번 주만 보여줘서 과거 참여자 진행도가 잘못 0으로 보이는 문제 때문에 별도 분리.

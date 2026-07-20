@@ -4,7 +4,7 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
-import { playAttackSound, playHealSound, playBuffSound } from '../lib/audio';
+import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound } from '../lib/audio';
 import { reportWorldBossDamage } from '../lib/worldBoss';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
@@ -61,6 +61,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
   const [settling, setSettling] = useState(false);
+  const [personalBestResult, setPersonalBestResult] = useState(null); // { isNewPersonalBest, personalBest } | null
   const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS);
 
   const damageDealtRef = useRef(0);
@@ -141,7 +142,13 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
       setSettling(true);
       setLog(outcome === 'win' ? '월드보스에게 강력한 일격을 꽂아넣었다!' : `${player.name}가 쓰러졌다... 입힌 피해는 그대로 기록돼요.`);
       reportWorldBossDamage(session.sessionId, Math.round(damageDealtRef.current))
-        .then((res) => onSettled?.(res))
+        .then((res) => {
+          if (res.isNewPersonalBest) {
+            setPersonalBestResult(res);
+            playNewRecordSound();
+          }
+          onSettled?.(res);
+        })
         .catch((err) => setLog(err.message ?? '결과 반영에 실패했어요.'))
         .finally(() => setSettling(false));
     }
@@ -170,7 +177,13 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
     setSettling(true);
     setLog('제한시간 종료! 그동안 입힌 피해는 그대로 기록됐어요.');
     reportWorldBossDamage(session.sessionId, Math.round(damageDealtRef.current))
-      .then((res) => onSettled?.(res))
+      .then((res) => {
+        if (res.isNewPersonalBest) {
+          setPersonalBestResult(res);
+          playNewRecordSound();
+        }
+        onSettled?.(res);
+      })
       .catch((err) => setLog(err.message ?? '결과 반영에 실패했어요.'))
       .finally(() => setSettling(false));
   }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -322,6 +335,9 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
           <p className="result-text">
             {result === 'win' ? '마지막 일격 성공!' : result === 'timeout' ? '⏱️ 제한시간 종료' : '퇴각...'}
           </p>
+          {personalBestResult?.isNewPersonalBest && (
+            <p className="new-record-badge">🏆 개인 최고 데미지 경신! {personalBestResult.personalBest.toLocaleString()}</p>
+          )}
           <div className="result-actions">
             <button className="btn btn-neutral" disabled={settling} onClick={onExit}>
               {settling ? '결과 반영 중...' : '목록으로'} <span className="key-hint">Space</span>

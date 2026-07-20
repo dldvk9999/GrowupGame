@@ -420,3 +420,6 @@
 
 **110_fix_world_boss_double_gold_payment.sql** — [긴급/치명적] 보안/버그 수정
 - `report_world_boss_damage`/`sync_world_boss` 재정의(반환타입 둘 다 그대로, DROP 불필요) — 기여자 보상 루프의 `add_gold` 직접호출이 `auth.uid()<>target_user`면 예외를 던지는 구조라, 기여자 2명 이상이면 클리어/미클리어 보상 처리 전체가 크래시하던 치명적 버그 + 이중지급 부차 버그 동시 수정. 자세한 내용은 [`security.md`](./security.md)
+
+**111_world_boss_personal_best.sql** — 신규 콘텐츠
+- `profiles.world_boss_best_damage` 컬럼 추가, `report_world_boss_damage` 재정의(반환컬럼 `is_new_personal_best`/`personal_best` 추가, DROP FUNCTION 포함) — 한 판 기준 개인 최고 데미지 기록/갱신 알림. 자세한 내용은 [`world-boss.md`](./world-boss.md)

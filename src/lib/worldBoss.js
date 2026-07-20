@@ -107,6 +107,8 @@ export async function reportWorldBossDamage(sessionId, damage) {
     newCurrentHp: Number(row.new_current_hp),
     bossMaxHp: Number(row.boss_max_hp),
     clearedNow: row.cleared_now,
+    isNewPersonalBest: row.is_new_personal_best,
+    personalBest: Number(row.personal_best),
   };
 }
 
