@@ -74,6 +74,9 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'equip_collection_10', category: 'gear', icon: '📦', title: '수집가의 눈', desc: '역대 보유한 고유 장비 10종 달성 (20종 중)', reward: 4000, target: 10, stat: 'uniqueItemCount' },
   { key: 'equip_collection_20', category: 'gear', icon: '🏛️', title: '장비 명예의 전당', desc: '4슬롯×5등급 장비를 전부 한 번씩 보유하기 (20/20)', reward: 20000, target: 20, stat: 'uniqueItemCount' },
 
+  { key: 'relic_collector', category: 'special', icon: '🏺', title: '유물 수집가', desc: '유물 20종 보유 (50종 중)', reward: 6000, target: 20, stat: 'relicCount' },
+  { key: 'relic_master', category: 'special', icon: '💎', title: '유물의 대가', desc: '유물 하나를 200강까지 강화', reward: 30000, target: 200, stat: 'maxRelicLevel' },
+
   { key: 'max_enhance', category: 'gear', icon: '🔨', title: '만렙 대장장이', desc: '장비 하나를 +1000까지 강화하기', reward: 30000, target: 1000, stat: 'maxEnhanceLevel' },
 
   { key: 'costume_collector', category: 'gear', icon: '👗', title: '코스튬 수집가', desc: 'PvP 코스튬 5종 이상 보유하기', reward: 2000, target: 5, stat: 'costumeCount' },

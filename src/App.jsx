@@ -994,6 +994,8 @@ export default function App() {
                     return isFullSetEquipped(equippedRarities) ? 1 : 0;
                   })(),
                   uniqueItemCount: new Set(inventory.map((row) => row.item_key)).size,
+                  relicCount: userRelics.length,
+                  maxRelicLevel: userRelics.reduce((max, r) => Math.max(max, r.level ?? 0), 0),
                   costumeCount,
                   isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
                   towerHighestFloor,

@@ -460,3 +460,6 @@
 
 **123_seasonal_event_gold_boost.sql** — 신규 콘텐츠(사용자 요청)
 - `grant_idle_reward` 재정의(반환타입 그대로, DROP 불필요) + `fetch_active_season_event()` 신설 — 날짜 범위 하드코딩만으로 켜고 끄는 시즌 이벤트 프레임워크. 지금은 "유물 출시 기념 골드 부스트 위크"(2026-07-25~28) +50% 활성. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**124_relic_achievements.sql** — 신규 콘텐츠
+- `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 유물 업적 2종(20종 수집/200강 달성) 추가. 자세한 내용은 [`relics.md`](./relics.md)
