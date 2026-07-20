@@ -113,6 +113,9 @@ GrowupGame/
 │     ├─ equipmentGacha.js         # 장비 뽑기/합성 RPC 연동
 │     ├─ equipmentDrawProgress.js  # 슬롯별 뽑기레벨 진행도 조회
 │     ├─ mail.js, coupon.js        # 우편함/쿠폰 RPC 연동
+│     ├─ comeback.js               # 복귀 유저 보상 RPC 연동 - mailbox-and-coupons.md
+│     ├─ offlineReward.js          # 오프라인 골드 보상 RPC 연동 - stages-and-dungeons.md
+│     ├─ weekendBonus.js           # 주말 골드 이벤트 안내(순수 클라이언트) - stages-and-dungeons.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동
 │     ├─ worldBoss.js               # 월드보스 RPC 연동
