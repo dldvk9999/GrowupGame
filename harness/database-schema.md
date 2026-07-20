@@ -450,3 +450,7 @@
 
 **120_relic_combat_integration.sql** — 신규 콘텐츠(사용자 요청)
 - `fetch_my_combat_power`/`fetch_leaderboard`/`start_pvp_battle`/`start_pvp_revenge_battle`/`grant_idle_reward` 5개 함수 재정의(전부 반환타입 그대로, DROP 불필요) — 유물 ATK/DEF/HP 보너스를 PvP·랭킹 전투력 계산에, 골드% 보너스를 자동사냥 골드에 반영. 자세한 내용은 [`relics.md`](./relics.md)
+
+**121_equipment_collection_and_daily_dungeon.sql** — 신규 콘텐츠(사용자 요청)
+- `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 장비 컬렉션북 업적 2종(10종/20종 보유) 추가, 새 테이블 없이 기존 `user_inventory` 데이터 재활용
+- `claim_dungeon_reward` 재정의(반환컬럼 `is_daily_bonus` 추가, DROP FUNCTION 포함) + `fetch_daily_dungeon_bonus_type()` 신설 — 요일별(월/목=골드, 화/금=경험치) 던전 골드 1.3배 보너스. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`equipment.md`](./equipment.md)

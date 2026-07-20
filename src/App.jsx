@@ -493,6 +493,8 @@ export default function App() {
         showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       } else if (reward.isLuckyWeek) {
         showToast(`🍀 이번 주 행운의 던전! 골드 1.5배 획득 (+${reward.gold.toLocaleString()})`, 'success');
+      } else if (reward.isDailyBonus) {
+        showToast(`📅 오늘의 요일 보너스! 골드 1.3배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       }
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
@@ -982,6 +984,7 @@ export default function App() {
                     }
                     return isFullSetEquipped(equippedRarities) ? 1 : 0;
                   })(),
+                  uniqueItemCount: new Set(inventory.map((row) => row.item_key)).size,
                   costumeCount,
                   isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
                   towerHighestFloor,

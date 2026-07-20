@@ -7,6 +7,13 @@ export async function fetchLuckyDungeonType() {
   return data;
 }
 
+/** 오늘의 요일 던전 보너스 타입('exp' | 'gold' | null) - 121, 주간 행운과 별개로 매일 바뀜 */
+export async function fetchDailyDungeonBonusType() {
+  const { data, error } = await supabase.rpc('fetch_daily_dungeon_bonus_type');
+  if (error) throw error;
+  return data;
+}
+
 /** 오늘(서울시간 오전 8시 기준) 던전 타입별 남은 입장 횟수 { exp: n, gold: n } */
 export async function fetchDungeonAttemptsToday(userId) {
   const { data, error } = await supabase
@@ -55,5 +62,5 @@ export async function claimDungeonReward(sessionId) {
   const { data, error } = await supabase.rpc('claim_dungeon_reward', { p_session_id: sessionId });
   if (error) throw error;
   const row = data?.[0];
-  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus, isLuckyWeek: row.is_lucky_week };
+  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus, isLuckyWeek: row.is_lucky_week, isDailyBonus: row.is_daily_bonus };
 }

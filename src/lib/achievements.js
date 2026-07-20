@@ -71,6 +71,8 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'worldboss_damage_300m', category: 'worldboss', icon: '🐲', title: '용살자', desc: '월드보스 누적 피해량 300,000,000 달성', reward: 40000, target: 300000000, stat: 'worldBossTotalDamage' },
 
   { key: 'full_set_equipped', category: 'gear', icon: '🎽', title: '완벽한 세트', desc: '4슬롯을 전부 같은 등급으로 장착하기', reward: 3000, target: 1, stat: 'fullSetEquipped' },
+  { key: 'equip_collection_10', category: 'gear', icon: '📦', title: '수집가의 눈', desc: '역대 보유한 고유 장비 10종 달성 (20종 중)', reward: 4000, target: 10, stat: 'uniqueItemCount' },
+  { key: 'equip_collection_20', category: 'gear', icon: '🏛️', title: '장비 명예의 전당', desc: '4슬롯×5등급 장비를 전부 한 번씩 보유하기 (20/20)', reward: 20000, target: 20, stat: 'uniqueItemCount' },
 
   { key: 'max_enhance', category: 'gear', icon: '🔨', title: '만렙 대장장이', desc: '장비 하나를 +1000까지 강화하기', reward: 30000, target: 1000, stat: 'maxEnhanceLevel' },
 

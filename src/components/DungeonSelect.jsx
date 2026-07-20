@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
-import { fetchLuckyDungeonType } from '../lib/dungeon';
+import { fetchLuckyDungeonType, fetchDailyDungeonBonusType } from '../lib/dungeon';
 import { JOB_DUNGEON_BOSS } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
@@ -97,12 +97,15 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
   const allCleared = clearedStage >= DUNGEON_STAGE_COUNT;
   const resetIn = useCountdownToDaily8AM();
   const [luckyType, setLuckyType] = useState(null);
+  const [dailyBonusType, setDailyBonusType] = useState(null);
 
   useEffect(() => {
     fetchLuckyDungeonType().then(setLuckyType).catch(() => setLuckyType(null));
+    fetchDailyDungeonBonusType().then(setDailyBonusType).catch(() => setDailyBonusType(null));
   }, []);
 
   const isLuckyDungeon = luckyType === type;
+  const isDailyBonusDungeon = dailyBonusType === type;
 
   return (
     <div>
@@ -112,6 +115,9 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
       </p>
       {isLuckyDungeon && (
         <p className="stage-select-hint lucky-dungeon-banner">🍀 이번 주는 {type === 'gold' ? '골드' : '경험치'} 던전이 행운의 던전이에요! 골드 보상 1.5배</p>
+      )}
+      {isDailyBonusDungeon && (
+        <p className="stage-select-hint lucky-dungeon-banner">📅 오늘은 {type === 'gold' ? '골드' : '경험치'} 던전에 요일 보너스가 붙어요! 골드 보상 1.3배</p>
       )}
       {error && <p className="shop-error">{error}</p>}
 
