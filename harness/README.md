@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 123까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 129까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -15,6 +15,7 @@
 | [`equipment.md`](./equipment.md) | 장비 뽑기(4슬롯×5등급), 강화→합성 전환, 인벤토리, 장비 보유효과, 최대강화 업적 |
 | [`relics.md`](./relics.md) | 유물 시스템(50종, 강화실패확률, 최대3장착), 밸런스 설계, 전투력/골드/경험치 반영 범위 |
 | [`story.md`](./story.md) | 메인 스토리 아크(잊혀진 조율자), SVG 삽화, 인터루드, 스테이지선택 스토리 팝업 |
+| [`friends.md`](./friends.md) | 친구 시스템(UID 추가, 요청/수락, 최대100명, 페이지네이션) |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -80,6 +81,7 @@ GrowupGame/
 │  │  ├─ SkillGacha.jsx            # 스킬 뽑기 + 편성 화면
 │  │  ├─ Inventory.jsx             # 인벤토리(장착/해제/합성) - equipment.md
 │  │  ├─ MyPage.jsx                # 마이페이지 - account-and-settings.md
+│  │  ├─ Friends.jsx               # 친구 목록/요청함(UID 추가) - friends.md
 │  │  ├─ Settings.jsx              # 설정(우편함/쿠폰 서브탭) - mailbox-and-coupons.md
 │  │  ├─ Mailbox.jsx               # 우편함 화면
 │  │  ├─ CouponRedeem.jsx          # 쿠폰 입력 화면
@@ -127,6 +129,7 @@ GrowupGame/
 │     ├─ relicGacha.js             # 유물 뽑기/장착 RPC 연동 - relics.md
 │     ├─ relicBonus.js             # 장착 유물 보너스 합산(클라이언트 전투 계산용) - relics.md
 │     ├─ expedition.js             # 파견 시스템 RPC 연동 - stages-and-dungeons.md
+│     ├─ friends.js                # 친구 시스템 RPC 연동 - friends.md
 │     ├─ seasonEvent.js            # 시즌 한정 이벤트 조회(순수 조회, 켜고끄는 로직은 서버 함수 안에 있음) - stages-and-dungeons.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동

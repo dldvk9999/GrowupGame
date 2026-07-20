@@ -475,3 +475,6 @@
 
 **128_job_tier_10_achievement.sql** — 신규 콘텐츠
 - `claim_achievement`/`set_equipped_title` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 진짜 최종 단계인 10차 전직 업적(칭호 "조율자의 계승자") 신설, 기존 5차 업적의 "(최종)" 오표기 수정
+
+**129_friend_system.sql** — 신규 콘텐츠(사용자 요청)
+- `friend_requests`/`friendships` 테이블 신설, `send_friend_request`/`accept_friend_request`/`reject_friend_request`/`cancel_friend_request`/`remove_friend`/`fetch_my_friends`/`fetch_incoming_friend_requests`/`fetch_outgoing_friend_requests` 8개 함수(전부 신규, DROP 불필요) — UID로 친구 요청, 상대 수락 필요, 최대 100명, 페이지네이션 조회. 자세한 내용은 [`friends.md`](./friends.md)

@@ -55,6 +55,7 @@ import Shop from './components/Shop';
 import SkillLoadout from './components/SkillLoadout';
 import Inventory from './components/Inventory';
 import MyPage from './components/MyPage';
+import Friends from './components/Friends';
 import DungeonSelect from './components/DungeonSelect';
 import WorldBossBattle from './components/WorldBossBattle';
 import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
@@ -181,7 +182,7 @@ export default function App() {
     function handleKeyDown(e) {
       if (e.key !== 'Escape') return;
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-      if (stage === STAGE.GAME && (activeTab === 'mypage' || activeTab === 'settings')) {
+      if (stage === STAGE.GAME && (activeTab === 'mypage' || activeTab === 'settings' || activeTab === 'friends')) {
         setActiveTab('battle');
       }
     }
@@ -979,6 +980,9 @@ export default function App() {
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
               />
             )}
+            {activeTab === 'friends' && (
+              <Friends userId={session.user.id} />
+            )}
             {activeTab === 'settings' && (
               <Settings
                 userId={session.user.id}
@@ -1045,6 +1049,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
         📅 출석체크{!attendanceClaimedToday && <span className="mail-unread-dot" aria-label="오늘 출석 안 함" />}
       </button>
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
+      <button className="btn btn-ghost" onClick={() => onNavigate('friends')}>👥 친구</button>
       <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
         ⚙️ 설정{(hasUnreadMail || hasNewPatchNote) && <span className="mail-unread-dot" aria-label="미수령 우편 또는 새 패치노트 있음" />}
       </button>
