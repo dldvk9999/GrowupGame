@@ -2,11 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useLobbyChat } from '../lib/useLobbyChat';
 import Leaderboard from './Leaderboard';
 
+// 매번 직접 타이핑하기 귀찮을 때 한 탭으로 바로 보낼 수 있는 짧은 인사/반응 문구.
+// 채팅 참여 장벽을 낮춰서 로비가 더 활기차 보이게 하는 목적(순수 클라이언트 상수, 서버 로직 없음).
+const QUICK_CHAT_PRESETS = ['안녕하세요 👋', '화이팅! 🔥', '축하해요 🎉', 'ㅋㅋㅋ', '오늘도 화이팅', '같이 던전 가실 분?'];
+
 export default function LobbyChat({ profile, sinceIso, activeMonster }) {
   const { messages, sendMessage, onlineCount } = useLobbyChat(profile, sinceIso);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
   const [subTab, setSubTab] = useState('chat');
+  const [quickSending, setQuickSending] = useState(false);
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +27,19 @@ export default function LobbyChat({ profile, sinceIso, activeMonster }) {
       setText('');
     } catch (err) {
       setError(err.message ?? '전송에 실패했어요.');
+    }
+  }
+
+  async function handleQuickSend(preset) {
+    if (quickSending) return;
+    setError('');
+    setQuickSending(true);
+    try {
+      await sendMessage(preset);
+    } catch (err) {
+      setError(err.message ?? '전송에 실패했어요.');
+    } finally {
+      setQuickSending(false);
     }
   }
 
@@ -50,6 +68,20 @@ export default function LobbyChat({ profile, sinceIso, activeMonster }) {
       </div>
 
       {error && <p className="shop-error">{error}</p>}
+
+      <div className="lobby-quick-chat-row">
+        {QUICK_CHAT_PRESETS.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            className="btn btn-ghost lobby-quick-chat-btn"
+            disabled={quickSending}
+            onClick={() => handleQuickSend(preset)}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
 
       <form className="lobby-chat-form" onSubmit={handleSubmit}>
         <input

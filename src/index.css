@@ -729,6 +729,8 @@ button {
 .lobby-chat-nickname { font-weight: 700; color: var(--text-secondary); flex-shrink: 0; }
 .lobby-chat-content { color: var(--text-primary); word-break: break-word; }
 .lobby-chat-form { display: flex; gap: 8px; }
+.lobby-quick-chat-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.lobby-quick-chat-btn { font-size: 12px; padding: 5px 10px; flex-shrink: 0; }
 .lobby-chat-form input {
   flex: 1;
   padding: 10px 12px;
