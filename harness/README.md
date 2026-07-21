@@ -82,7 +82,8 @@ GrowupGame/
 │  │  ├─ Inventory.jsx             # 인벤토리(장착/해제/합성) - equipment.md
 │  │  ├─ MyPage.jsx                # 마이페이지 - account-and-settings.md
 │  │  ├─ Friends.jsx               # 친구 목록/요청함(UID 추가) - friends.md
-│  │  ├─ Settings.jsx              # 설정(우편함/쿠폰 서브탭) - mailbox-and-coupons.md
+│  │  ├─ Settings.jsx              # 설정(우편함/쿠폰/키보드구성 서브탭) - mailbox-and-coupons.md
+│  │  ├─ KeybindSettings.jsx       # 전직스킬 키보드 단축키 설정(PC전용) - skills.md
 │  │  ├─ Mailbox.jsx               # 우편함 화면
 │  │  ├─ CouponRedeem.jsx          # 쿠폰 입력 화면
 │  │  ├─ MissionFloatingButton.jsx # 가이드 미션 플로팅 버튼 - guide-missions.md
@@ -130,6 +131,7 @@ GrowupGame/
 │     ├─ relicBonus.js             # 장착 유물 보너스 합산(클라이언트 전투 계산용) - relics.md
 │     ├─ expedition.js             # 파견 시스템 RPC 연동 - stages-and-dungeons.md
 │     ├─ friends.js                # 친구 시스템 RPC 연동 - friends.md
+│     ├─ keybinds.js               # 전직스킬 키보드 단축키 설정(localStorage) - skills.md
 │     ├─ seasonEvent.js            # 시즌 한정 이벤트 조회(순수 조회, 켜고끄는 로직은 서버 함수 안에 있음) - stages-and-dungeons.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동

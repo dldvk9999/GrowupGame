@@ -5,6 +5,7 @@ import { getDisplaySpriteKey, getJobSkillTier, buildInitialJobSkillCooldowns } f
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName, getEnemyAttackInterval } from '../lib/stages';
+import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -62,6 +63,7 @@ export default function BattleScreen({
   );
 
   const [mode, setMode] = useState('idle'); // 'idle' | 'challenge'
+  const [jobKeybinds] = useState(() => getJobSkillKeybinds());
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [idleEnemy, setIdleEnemy] = useState(() => getIdleMonster(chapter, initialMonster.level));
   const [idleLog, setIdleLog] = useState('자동 사냥 중...');
@@ -314,7 +316,7 @@ export default function BattleScreen({
   const displayEnemy = mode === 'challenge' ? enemy : idleEnemy;
   const displayLog = mode === 'challenge' ? log : idleLog;
 
-  // 키보드 단축키: 1~5 스킬 즉발, Space(상황별 진행), R(재도전)
+  // 키보드 단축키: 1~9 스킬 즉발, 전직스킬 전용 문자키(Q/W/E/R/A/S/D/F/Z/X 등), Space(상황별 진행), R(재도전)
   // 리스너는 1번만 등록하고, 최신 상태는 ref로 읽어서 클로저 문제 없이 처리
   const keyStateRef = useRef();
   keyStateRef.current = { mode, result, availableSkills, useSkill, startChallenge, onAdvance };
@@ -330,6 +332,13 @@ export default function BattleScreen({
           if (skill) { e.preventDefault(); useSkill(skill); }
         }
         return;
+      }
+
+      const pressedKey = e.key.toLowerCase();
+      if (mode === 'challenge' && !result && jobKeybinds.includes(pressedKey)) {
+        const jobTier = jobKeybinds.indexOf(pressedKey) + 1;
+        const skill = availableSkills.find((s) => getJobSkillTier(s.id) === jobTier);
+        if (skill) { e.preventDefault(); useSkill(skill); return; }
       }
 
       if (e.code === 'Space') {
@@ -402,18 +411,24 @@ export default function BattleScreen({
       {mode === 'challenge' && !result && (
         <>
           <div className="skills-row">
-            {availableSkills.map((skill, i) => (
-              <SkillButton
-                key={skill.id}
-                skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
-                disabled={!!cooldowns[skill.id]}
-                startedAt={cooldownStarts[skill.id]}
-                onUse={useSkill}
-                hotkey={i < 9 ? i + 1 : undefined}
-              />
-            ))}
+            {availableSkills.map((skill, i) => {
+              const jobTier = getJobSkillTier(skill.id);
+              const hotkey = jobTier > 0
+                ? getKeyForJobTier(jobKeybinds, jobTier).toUpperCase()
+                : (i < 9 ? i + 1 : undefined);
+              return (
+                <SkillButton
+                  key={skill.id}
+                  skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
+                  disabled={!!cooldowns[skill.id]}
+                  startedAt={cooldownStarts[skill.id]}
+                  onUse={useSkill}
+                  hotkey={hotkey}
+                />
+              );
+            })}
           </div>
-          <p className="keyboard-hint">숫자키 1~5로 스킬 사용</p>
+          <p className="keyboard-hint">숫자키 1~9로 스킬 사용, 전직스킬은 배정된 문자키(설정 &gt; 키보드 구성에서 변경 가능)</p>
         </>
       )}
 

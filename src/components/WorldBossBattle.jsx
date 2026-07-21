@@ -7,6 +7,7 @@ import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound } from '../lib/audio';
 import { reportWorldBossDamage } from '../lib/worldBoss';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
+import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 // 월드보스 공격 대폭 강화(사용자 요청): 일반 공격 고정 데미지 9000, 스킬 공격 고정 데미지 20000
@@ -67,6 +68,7 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   const [log, setLog] = useState('월드보스가 그 거대한 모습을 드러냈다!');
   const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
+  const [jobKeybinds] = useState(() => getJobSkillKeybinds());
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
   const [settling, setSettling] = useState(false);
@@ -312,6 +314,12 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
         }
         return;
       }
+      const pressedKey = e.key.toLowerCase();
+      if (!result && jobKeybinds.includes(pressedKey)) {
+        const jobTier = jobKeybinds.indexOf(pressedKey) + 1;
+        const skill = availableSkills.find((s) => getJobSkillTier(s.id) === jobTier);
+        if (skill) { e.preventDefault(); useSkill(skill); return; }
+      }
       if (e.code === 'Space' && result) {
         e.preventDefault();
         onExit?.();
@@ -377,18 +385,24 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
       ) : (
         <>
         <div className="skills-row">
-          {availableSkills.map((skill, i) => (
+          {availableSkills.map((skill, i) => {
+            const jobTier = getJobSkillTier(skill.id);
+            const hotkey = jobTier > 0
+              ? getKeyForJobTier(jobKeybinds, jobTier).toUpperCase()
+              : (i < 9 ? i + 1 : undefined);
+            return (
             <SkillButton
               key={skill.id}
               skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
               disabled={!!cooldowns[skill.id]}
               startedAt={cooldownStarts[skill.id]}
               onUse={useSkill}
-              hotkey={i < 9 ? i + 1 : undefined}
+              hotkey={hotkey}
             />
-          ))}
+            );
+          })}
         </div>
-        <p className="keyboard-hint">숫자키 1~9로 스킬 사용</p>
+        <p className="keyboard-hint">숫자키 1~9로 스킬 사용, 전직스킬은 배정된 문자키(설정 &gt; 키보드 구성)</p>
         </>
       )}
     </div>
