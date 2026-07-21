@@ -11,6 +11,7 @@ import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstim
 import { playClickSound } from '../lib/audio';
 import { suggestMonsterName } from '../lib/nameSuggestion';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
+import AccountSecurityModal from './AccountSecurityModal';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
@@ -21,6 +22,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
   const [myReferralCount, setMyReferralCount] = useState(null);
   const [myAchievementCount, setMyAchievementCount] = useState(null);
   const [nicknameCopied, setNicknameCopied] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
 
   async function handleCopyNickname() {
     // 그냥 닉네임만 복사하면 받는 사람이 "이게 뭐지" 할 수 있어서, 추천인 등록
@@ -394,6 +396,16 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             {saving ? '변경 중...' : '닉네임 변경하기'}
           </button>
         </form>
+      )}
+
+      <h3 className="mypage-subtitle">계정 관리</h3>
+      <p className="stage-select-hint">이메일 변경, 비밀번호 변경은 본인 확인(현재 비밀번호 재입력) 후 진행할 수 있어요.</p>
+      <button type="button" className="btn btn-neutral" onClick={() => setShowAccountModal(true)}>
+        🔒 이메일 · 비밀번호 변경
+      </button>
+
+      {showAccountModal && (
+        <AccountSecurityModal currentEmail={session.user.email} onClose={() => setShowAccountModal(false)} />
       )}
     </div>
   );

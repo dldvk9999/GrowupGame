@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 134까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 135까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -92,6 +92,7 @@ GrowupGame/
 │  │  ├─ LobbyChat.jsx             # 로비 채팅 UI - social-chat.md
 │  │  ├─ ToastContainer.jsx        # 토스트 알림 - ui-and-ux.md
 │  │  ├─ WelcomeModal.jsx          # 최초 접속 환영 팝업 - ui-and-ux.md
+│  │  ├─ AccountSecurityModal.jsx  # 이메일/비밀번호 변경(본인확인 후) - account-and-settings.md
 │  │  ├─ Footer.jsx                # 사이트 푸터(GitHub/저작권) - ui-and-ux.md
 │  │  └─ MonsterSprite.jsx         # 몬스터 이미지 렌더링 (벡터→외부이미지 자동 폴백)
 │  ├─ assets/sprites/

@@ -10,6 +10,24 @@
 - 새 계정 첫 방문(플래그 없음)은 기본 sessionStorage 취급(브라우저 재시작 시 로그아웃) — 명시적으로 체크해야 영구 유지되는 흔한 "로그인 유지" UX 패턴
 - 닉네임 중복확인은 실시간(`is_nickname_taken` RPC), 회원가입 시 `options.data.nickname`으로 서버에 전달됨
 
+## 이메일 찾기 / 비밀번호 초기화 (신규, 사용자 요청)
+
+로그인 화면 하단에 "이메일 찾기" / "비밀번호 찾기" 링크 — `AuthScreen.jsx`가 `mode` 상태를 `'find-email'`/`'reset-password'`로 바꿔서 같은 화면 안에서 전용 미니 폼으로 전환(라우팅 없이 화면 자체가 3갈래).
+
+- **이메일 찾기**: 닉네임을 입력하면 서버가 `find_masked_email_by_nickname(p_nickname)`(migration 135)로 이메일을 조회 — `auth.users`는 클라이언트가 직접 못 읽는 스키마라 security definer 함수 내부에서만 접근(001의 트리거가 이미 `auth.users`를 참조하는 전례가 있어 같은 패턴 재사용). **원문 이메일을 그대로 주지 않고 로컬파트 앞 2글자만 남기고 마스킹**(`ab***@gmail.com`)해서 반환 — 대량 이메일 수집에 악용되는 걸 막기 위함. 일치하는 계정이 없어도 `null` 반환(있는 닉네임인지 없는 닉네임인지로 계정 존재 여부를 유추하기 어렵게)
+- **비밀번호 찾기**: Supabase 표준 흐름 그대로 — `sendPasswordResetEmail(email)`이 `supabase.auth.resetPasswordForEmail()`을 호출해서 재설정 링크 이메일을 보냄. 새 서버 함수 불필요(클라이언트 SDK 기능만 사용)
+- ⚠️ **알려진 한계**: `find_masked_email_by_nickname`에 별도 요청 제한(rate limit)이 없음 — 같은 닉네임을 계속 조회해도 서버가 막지 않음(마스킹된 결과만 주므로 이메일 원문 유출 위험은 없지만, 존재 여부 확인용 무차별 대입에는 이론적으로 취약). 심각도가 낮다고 판단해 우선 문서화만 하고 별도 조치는 안 함
+
+## 마이페이지 계정 관리 (신규, 사용자 요청)
+
+마이페이지 하단 "계정 관리" — `AccountSecurityModal.jsx`가 2단계로 동작:
+
+1. **본인 확인**: 현재 비밀번호를 입력하면 `verifyCurrentPassword(email, password)`가 `supabase.auth.signInWithPassword()`를 다시 호출해서 검증(이미 세션이 있어도, "지금 이 사람이 진짜 비밀번호를 아는지"를 한 번 더 확인하는 게이트 — 통과 못하면 예외로 막힘)
+2. **변경**: 확인되면 이메일 변경/비밀번호 변경 폼이 열림
+   - **이메일 변경**: `changeEmail(newEmail)` → `supabase.auth.updateUser({ email })` — Supabase가 새 이메일로 확인 메일을 보내고, **그 메일의 링크를 눌러야 실제로 반영됨**(즉시 바뀌는 게 아님, UI에 안내 문구로 명시)
+   - **비밀번호 변경**: `changePassword(newPassword)` → `supabase.auth.updateUser({ password })` — 즉시 반영, 클라이언트에서 6자 이상 + 확인란 일치 검증 후 요청
+- 서버 마이그레이션 없음(전부 Supabase Auth SDK 표준 기능 조합, 커스텀 RPC 불필요)
+
 ## 로그인 화면 전체 가입자 수 표시 (신규 콘텐츠)
 
 로그인/회원가입 화면 상단에 "👥 N명의 조련사가 함께하고 있어요" 표시 — 커뮤니티가 활발하다는 첫인상. `profiles`의 SELECT RLS(`using (true)`)가 로그인 전(anon)에도 적용되어, `fetchTotalUserCount()`가 별도 RPC 없이 `count(*)` 쿼리로 조회. 조회 실패/0명이면 문구 자체를 숨김.

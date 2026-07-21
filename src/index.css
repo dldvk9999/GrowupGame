@@ -350,6 +350,19 @@ button {
   font-size: 15px;
 }
 .auth-submit:disabled { opacity: 0.6; }
+.auth-helper-links { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+.auth-helper-divider { color: var(--text-muted); font-size: 12px; }
+.auth-back-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+  font-family: inherit;
+}
+.auth-back-link:hover { color: var(--accent-fire); }
 
 /* ---------- 스토리 화면 ---------- */
 .story-screen { width: 100%; max-width: 620px; margin: 0 auto; }
@@ -2155,6 +2168,7 @@ button {
 }
 .welcome-modal { max-width: 420px; }
 .welcome-github-btn { display: block; width: 100%; text-align: center; text-decoration: none; margin-top: 6px; }
+.account-security-modal { max-width: 420px; max-height: 85vh; overflow-y: auto; }
 
 /* ---------- 키보드 구성 설정 (PC 전용) ---------- */
 .keybind-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }

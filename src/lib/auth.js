@@ -108,3 +108,39 @@ export async function fetchTotalAchievementClaims() {
   if (error) throw error;
   return data ?? 0;
 }
+
+/** 닉네임으로 마스킹된 이메일 찾기(로그인 화면 "이메일 찾기") - 못 찾으면 null.
+ * 원문 이메일 전체를 그대로 알려주면 대량 수집에 악용될 수 있어 서버가 이미 마스킹해서 줌. */
+export async function findMaskedEmailByNickname(nickname) {
+  const { data, error } = await supabase.rpc('find_masked_email_by_nickname', { p_nickname: nickname });
+  if (error) throw error;
+  return data;
+}
+
+/** 비밀번호 재설정 이메일 발송(Supabase 표준 흐름 - 메일의 링크를 눌러야 실제로 바뀜) */
+export async function sendPasswordResetEmail(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** 민감한 계정 설정(이메일/비밀번호 변경) 전에 현재 비밀번호를 재확인하는 게이트.
+ * 이미 로그인된 세션이 있어도, "진짜 본인이 지금 입력하고 있는지"를 한 번 더 검증하기 위해
+ * signInWithPassword를 다시 호출함(비밀번호가 틀리면 여기서 예외가 남). */
+export async function verifyCurrentPassword(email, password) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error('현재 비밀번호가 일치하지 않아요.');
+}
+
+/** 이메일 변경 - Supabase가 새 이메일로 확인 메일을 보내고, 그 링크를 눌러야 실제로 바뀜 */
+export async function changeEmail(newEmail) {
+  const { error } = await supabase.auth.updateUser({ email: newEmail });
+  if (error) throw new Error(error.message);
+}
+
+/** 비밀번호 변경(즉시 반영) */
+export async function changePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
+}

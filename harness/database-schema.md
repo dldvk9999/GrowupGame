@@ -493,3 +493,6 @@
 
 **134_idle_gold_half.sql** — 사용자 요청
 - `calc_idle_gold` 재정의(반환타입 그대로, DROP 불필요) — 자동사냥 골드 수급 절반 감소. 이 함수가 자동사냥/오프라인보상/주말보너스/황금몬스터/유물골드%/시즌이벤트 전부의 기반값이라 단일 지점 수정으로 일괄 반영됨. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**135_find_email_by_nickname.sql** — 신규 콘텐츠(사용자 요청)
+- `find_masked_email_by_nickname(p_nickname)` 신설(신규 함수, DROP 불필요) — 닉네임으로 마스킹된 이메일 조회("이메일 찾기"). `auth.users`를 security definer 함수 내부에서만 조회, `anon`/`authenticated` 둘 다 실행 권한 부여(로그인 전 화면에서도 호출 가능해야 함). 자세한 내용은 [`account-and-settings.md`](./account-and-settings.md)
