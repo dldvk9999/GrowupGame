@@ -478,3 +478,9 @@
 
 **129_friend_system.sql** — 신규 콘텐츠(사용자 요청)
 - `friend_requests`/`friendships` 테이블 신설, `send_friend_request`/`accept_friend_request`/`reject_friend_request`/`cancel_friend_request`/`remove_friend`/`fetch_my_friends`/`fetch_incoming_friend_requests`/`fetch_outgoing_friend_requests` 8개 함수(전부 신규, DROP 불필요) — UID로 친구 요청, 상대 수락 필요, 최대 100명, 페이지네이션 조회. 자세한 내용은 [`friends.md`](./friends.md)
+
+**130_relic_price_and_free_draw.sql** — 신규 콘텐츠(사용자 요청)
+- `draw_relic` 재정의(반환타입 그대로, DROP 불필요) — 가격을 뽑기 중 최고가(레벨1=1000골드, +300/레벨)로 인상. `daily_free_draw_state` 체크제약에 `relic` 추가, `claim_daily_free_draw` 재정의(반환컬럼 3개 추가, DROP FUNCTION 포함) — 유물도 일일 무료뽑기 대상에 포함. 자세한 내용은 [`relics.md`](./relics.md)
+
+**131_relic_equip_slots_5.sql** — 사용자 요청
+- `set_relic_loadout` 재정의(반환타입 그대로, DROP 불필요) — 유물 장착 슬롯 3개→5개로 확장. 자세한 내용은 [`relics.md`](./relics.md)
