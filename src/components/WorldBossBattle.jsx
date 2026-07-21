@@ -9,7 +9,15 @@ import { reportWorldBossDamage } from '../lib/worldBoss';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
-const ENEMY_ATTACK_INTERVAL = 1900;
+// 월드보스 공격 대폭 강화(사용자 요청): 일반 공격 고정 데미지 9000, 스킬 공격 고정 데미지 20000
+// (플레이어 방어력에 영향받지 않는 고정 피해 - "기본 데미지가 9000씩 들어가게" 요청을 그대로 반영).
+// 공격 텀도 기존 1.9초 -> 0.7초로 대폭 단축(다른 전투화면의 최저 텀과 동일 수준).
+// 매 4번째 공격마다 스킬 공격으로 교체(일반 공격 사이사이에 훨씬 센 일격이 섞임).
+// 전투 시작 후 10초가 지날 때마다 데미지가 10%씩 누적 상향(복리, 1.1^n) - 장기전일수록 위험해짐.
+const WORLD_BOSS_NORMAL_DAMAGE = 9000;
+const WORLD_BOSS_SKILL_DAMAGE = 20000;
+const WORLD_BOSS_ATTACK_INTERVAL = 700;
+const WORLD_BOSS_SKILL_EVERY_N_ATTACKS = 4;
 const TIME_LIMIT_MS = 60000; // 1분 제한시간
 
 function withEquipment(monster, bonus) {
@@ -67,6 +75,8 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS);
 
   const damageDealtRef = useRef(0);
+  const battleStartRef = useRef(Date.now());
+  const enemyAttackCountRef = useRef(0);
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
   const rafRef = useRef(null);
@@ -197,13 +207,17 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
         setLog('월드보스가 기절해서 움직이지 못한다!');
         return;
       }
-      setLog('월드보스의 포효!');
-      const defBuffActive = Date.now() < playerBuffs.defUntil;
-      const effDef = player.def * (defBuffActive ? playerBuffs.defMult : 1);
-      damagePlayer(mitigateDamage(enemy.atk, effDef));
-    }, ENEMY_ATTACK_INTERVAL);
+      enemyAttackCountRef.current += 1;
+      const isSkillAttack = enemyAttackCountRef.current % WORLD_BOSS_SKILL_EVERY_N_ATTACKS === 0;
+      const elapsedSeconds = (Date.now() - battleStartRef.current) / 1000;
+      const escalation = Math.pow(1.1, Math.floor(elapsedSeconds / 10)); // 10초마다 10%씩 복리 누적
+      const baseDamage = isSkillAttack ? WORLD_BOSS_SKILL_DAMAGE : WORLD_BOSS_NORMAL_DAMAGE;
+      const finalDamage = Math.round(baseDamage * escalation);
+      setLog(isSkillAttack ? '월드보스가 강력한 스킬을 사용했다!' : '월드보스의 포효!');
+      damagePlayer(finalDamage);
+    }, WORLD_BOSS_ATTACK_INTERVAL);
     return () => clearInterval(timer);
-  }, [enemy.atk, result, damagePlayer, player.def, enemyStunnedUntil, playerBuffs]);
+  }, [result, damagePlayer, enemyStunnedUntil]);
 
   async function handleCopyResult() {
     if (!personalBestResult?.isNewPersonalBest) return;
