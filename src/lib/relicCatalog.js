@@ -60,7 +60,7 @@ export function getRelic(relicKey) {
 export const RELIC_CATEGORY_LABEL = {"hp": "체력", "atk": "공격력", "def": "방어력", "cooldown": "스킬 쿨타임", "gold": "골드 획득", "exp": "경험치 획득", "buff": "버프 효과"};
 
 export const MAX_RELIC_LEVEL = 200;
-export const MAX_RELIC_EQUIP = 3;
+export const MAX_RELIC_EQUIP = 5;
 
 /** 강화 레벨 반영된 실제 효과치 (server calc_relic_bonus와 동일 공식: base*rarityMult*(1+level*0.03)) */
 export function getRelicEffectiveValue(relic, level) {

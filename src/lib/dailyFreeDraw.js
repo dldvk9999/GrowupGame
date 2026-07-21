@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-export const FREE_DRAW_TYPES = ['weapon', 'armor', 'gloves', 'shoes', 'skill'];
+export const FREE_DRAW_TYPES = ['weapon', 'armor', 'gloves', 'shoes', 'skill', 'relic'];
 
 /** 5종(무기/방어구/장갑/신발/스킬) 각각 오늘 무료뽑기를 이미 썼는지 조회 */
 export async function fetchDailyFreeDrawState(userId) {

@@ -11,7 +11,7 @@ const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 const RARITY_LABEL = { normal: '노멀', rare: '레어', epic: '에픽', legendary: '전설', mythic: '신화' };
 const RARITY_COLOR = { normal: '#9aa0b8', rare: '#3aa8e0', epic: '#b566e0', legendary: '#f2b705', mythic: '#ff5a7a' };
 
-export default function RelicGacha({ userId, gold, totalDraws, onGoldChange }) {
+export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, refreshSignal }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange }) {
   const [savingLoadout, setSavingLoadout] = useState(false);
 
   const drawLevel = Math.min(50, 1 + Math.floor((totalDraws ?? 0) / 1000));
-  const cost = 300 + (drawLevel - 1) * 90;
+  const cost = 1000 + (drawLevel - 1) * 300;
 
   function loadRelics() {
     if (!userId) return;
@@ -31,7 +31,7 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange }) {
     }).catch(() => setMyRelics([]));
   }
 
-  useEffect(() => { loadRelics(); }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadRelics(); }, [userId, refreshSignal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDraw(count) {
     setError('');
@@ -137,6 +137,9 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange }) {
           </button>
           <button className={`btn btn-neutral ${gold < cost * 10 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(10)}>
             10회 뽑기 (💰 {(cost * 10).toLocaleString()})
+          </button>
+          <button className={`btn btn-neutral ${gold < cost * 100 ? 'btn-unaffordable' : ''}`} disabled={drawing} onClick={() => handleDraw(100)}>
+            100회 뽑기 (💰 {(cost * 100).toLocaleString()})
           </button>
         </div>
 

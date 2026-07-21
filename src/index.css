@@ -1566,7 +1566,7 @@ button {
 }
 .relic-card--equipped { background: rgba(242, 183, 5, 0.12); box-shadow: 0 0 0 2px var(--accent-gold) inset; }
 .relic-card-icon { font-size: 22px; }
-.relic-card-name { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.relic-card-name { font-size: 11px; font-weight: 600; line-height: 1.3; color: var(--text-primary); }
 .relic-card-effect { font-size: 10px; font-weight: 600; }
 .relic-card-level { font-size: 10px; color: var(--text-muted); }
 .relic-card-badge {
@@ -2092,7 +2092,20 @@ button {
   overflow-wrap: anywhere;
 }
 .friends-add-form { display: flex; gap: 8px; flex-wrap: wrap; }
-.friends-add-form input { flex: 1; min-width: 160px; }
+.friends-add-form input {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.2s var(--ease-soft), box-shadow 0.2s var(--ease-soft);
+}
+.friends-add-form input::placeholder { color: var(--text-muted); }
+.friends-add-form input:focus { outline: none; border-color: var(--accent-fire); box-shadow: 0 0 0 3px rgba(255, 90, 31, 0.2); }
 .friends-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .friends-list-row {
   display: flex;
