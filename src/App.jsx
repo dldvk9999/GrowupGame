@@ -92,6 +92,7 @@ export default function App() {
   const [equipmentDrawProgress, setEquipmentDrawProgress] = useState({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
   const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
+  const [autoPushEnabled, setAutoPushEnabled] = useState(false);
   const [pendingStage, setPendingStage] = useState(null);
   const [pendingStoryContent, setPendingStoryContent] = useState(null);
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
@@ -880,6 +881,9 @@ export default function App() {
                 onIdleGain={handleIdleGain}
                 onAdvance={handleAdvance}
                 onGoStageList={() => setActiveTab('stage')}
+                autoPush={autoPushEnabled}
+                onAutoPushStart={() => setAutoPushEnabled(true)}
+                onAutoPushStop={() => setAutoPushEnabled(false)}
               />
             )}
             {activeTab === 'stage' && (

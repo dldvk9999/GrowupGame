@@ -565,6 +565,16 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 
 **전체 마이그레이션(001~134) 재스캔**: DROP FUNCTION 누락/ambiguous column 자동 스캐너 0건. 이번 점검에서 새로 발견된 문제는 없음(직전 배치들에서 이미 대부분의 신규 위험을 자체 발견/수정해둔 상태였음).
 
+### 68차 — 사용자 제보로 발견한 새로운 버그 클래스: "record is not assigned yet" (migration 136)
+
+**배경**: 사용자가 PvP 대전 시 `record "v_opp_row" is not assigned yet` 에러를 제보. 지금까지 자동 스캐너가 잡아온 "DROP FUNCTION 누락"/"ambiguous column"과는 **완전히 다른 새로운 클래스의 버그**라 스캐너에 안 걸렸음 — 이번 기회에 패턴을 문서화해둠.
+
+**원인**: `select ... into v_record from ... limit 1`처럼 record 변수에 조회 결과를 담는 쿼리가 **0행을 반환하면**, 그 변수는 "한 번도 할당된 적 없음" 상태로 남음. 이 상태에서 `v_record.column_name`처럼 필드를 참조하면(NULL 체크를 위해서라도) PL/pgSQL이 즉시 예외를 던짐 — `v_record := null`로 **명시적으로** null을 대입한 뒤에 필드를 읽는 것과는 별개 상황(그건 안전함). `start_pvp_battle`(임의 상대 매칭, 0행일 수 있음)과 `start_pvp_revenge_battle`(특정 상대 조회, 상대가 몬스터를 바꿨으면 0행) 둘 다 이 함정에 걸려있었음 — 특히 복수전은 상대를 못 찾을 때마다 의도한 "상대를 찾을 수 없어요" 안내 대신 **항상 이 크래시가 났을 것**(정상 에러 메시지가 한 번도 안 떴을 가능성).
+
+**수정**: `select ... into v_record ...` 직후 `if not found then v_record := null; end if;`를 추가해서, 0행이었던 경우에도 항상 "명시적으로 NULL 할당된 상태"로 통일시킴.
+
+**교훈(향후 세션 참고용)**: record 타입 변수를 단일행 서브쿼리(`limit 1`, 또는 PK 단일 매치 등 0행 가능성이 있는 조건)로 채울 때는, **그 직후 반드시 `if not found then v_x := null; end if;`(또는 `FOUND` 자체를 별도 boolean에 저장)로 명시적 NULL 처리부터 하고 나서** 필드를 참조할 것 — "row가 없으면 필드도 자연히 null이겠지"라는 가정은 PL/pgSQL에서 성립하지 않음. 전체 마이그레이션에서 이 패턴(`select ... into v_record`, 단일행 매치, 이후 필드 접근)을 쓰는 다른 함수들도 전수 재검토 — 대부분 `select * into v_x from ... where id = ...`(PK 단일 매치)는 이미 `if v_x is null then` 형태로 **레코드 전체**를 null 체크하고 있어 안전(레코드 전체를 IS NULL로 비교하는 건 할당 여부와 무관하게 항상 가능), 위험한 건 **레코드의 개별 필드**를 곧바로 참조하는 경우뿐이었음 — `start_pvp_battle`/`start_pvp_revenge_battle` 외에 동일 위험 패턴을 가진 곳은 못 찾음.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 ⚠️ **037 재점검에서 재확인된 핵심 한계**: `claim_dungeon_reward`/`claim_job_dungeon`은 여전히 "전투에서 실제로 이겼는지"를 완전히 검증하지 못함(최소 시간 게이트만 있음). 근본적으로는 전투 판정을 서버가 직접 재현/검증해야 완전히 막을 수 있는데, 이건 아래 항목들과 같은 성격의(이 프로젝트에서 가장 큰) 구조적 한계임.

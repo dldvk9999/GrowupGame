@@ -496,3 +496,9 @@
 
 **135_find_email_by_nickname.sql** — 신규 콘텐츠(사용자 요청)
 - `find_masked_email_by_nickname(p_nickname)` 신설(신규 함수, DROP 불필요) — 닉네임으로 마스킹된 이메일 조회("이메일 찾기"). `auth.users`를 security definer 함수 내부에서만 조회, `anon`/`authenticated` 둘 다 실행 권한 부여(로그인 전 화면에서도 호출 가능해야 함). 자세한 내용은 [`account-and-settings.md`](./account-and-settings.md)
+
+**136_fix_pvp_unassigned_record.sql** — 버그 수정(사용자 제보)
+- `start_pvp_battle`/`start_pvp_revenge_battle` 재정의(둘 다 반환타입 그대로, DROP 불필요) — "record is not assigned yet" 크래시 수정. 자세한 내용은 [`pvp.md`](./pvp.md), [`security.md`](./security.md)(68차 점검)
+
+**137_offline_reward_10h_and_clamp_fix.sql** — 사용자 요청 + 예방적 버그 수정
+- `claim_offline_gold_reward` 재정의(반환타입 그대로, DROP 불필요) — 오프라인 보상 최대 인정시간 2시간→10시간 상향, 누락돼있던 최종 100만 클램프 추가. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

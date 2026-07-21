@@ -53,7 +53,7 @@ function growPlayer(effectivePlayer, exp, equipmentBonus) {
  */
 export default function BattleScreen({
   initialMonster, chapter, stage, equipmentBonus, equippedSkills, equippedCostumes, relicBonus,
-  onClear, onIdleGain, onAdvance, onGoStageList,
+  onClear, onIdleGain, onAdvance, onGoStageList, autoPush, onAutoPushStart, onAutoPushStop,
 }) {
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
   const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
@@ -219,6 +219,45 @@ export default function BattleScreen({
       setLog(`${player.name}가 쓰러졌다... 다시 도전해보세요!`);
     }
   }, [mode, enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 자동사냥 스테이지 자동진행(신규, 사용자 요청) - "자동사냥" 버튼을 켜두면 유휴모드에서
+  // 자동으로 실제 스테이지 전투(challenge)를 시작함. idleMonster(공격력0, 항상 이김)가
+  // 아니라 진짜 스테이지 몬스터와 동일한 스탯으로 붙기 때문에 실제로 못 이길 수도 있음.
+  useEffect(() => {
+    if (autoPush && mode === 'idle' && !result) {
+      startChallenge();
+    }
+  }, [autoPush, mode, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 승리 시 자동으로 다음 스테이지로(자동사냥 활성 상태일 때만) - 로그를 잠깐 보여준 뒤 진행
+  useEffect(() => {
+    if (autoPush && mode === 'challenge' && result === 'win') {
+      const t = setTimeout(() => onAdvance?.(), 900);
+      return () => clearTimeout(t);
+    }
+  }, [autoPush, mode, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 패배 시 자동사냥은 그 자리에서 멈추고, 유휴(약한 몬스터) 사냥으로 되돌아가서 계속
+  // 경험치/골드는 벌게 해줌 - "자동사냥" 버튼을 다시 눌러야 스테이지 진행을 재시도함
+  useEffect(() => {
+    if (autoPush && mode === 'challenge' && result === 'lose') {
+      onAutoPushStop?.();
+      const t = setTimeout(() => backToIdle(), 1400);
+      return () => clearTimeout(t);
+    }
+  }, [autoPush, mode, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 자동사냥 중 스킬 자동 사용 - 사람이 클릭하는 것처럼, 대기시간이 끝난 스킬이 있으면
+  // 순서대로 하나씩 자동으로 사용함(데미지 스킬 우선 - 체력/기절/버프 계열보다 먼저 순회)
+  useEffect(() => {
+    if (!autoPush || mode !== 'challenge' || result) return;
+    const timer = setInterval(() => {
+      const ordered = [...availableSkills].sort((a, b) => (a.type === 'damage' ? -1 : 1) - (b.type === 'damage' ? -1 : 1));
+      const ready = ordered.find((s) => !cooldowns[s.id]);
+      if (ready) useSkill(ready);
+    }, 550);
+    return () => clearInterval(timer);
+  }, [autoPush, mode, result, availableSkills, cooldowns]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (mode !== 'challenge' || result) return;
@@ -404,6 +443,9 @@ export default function BattleScreen({
           <p className="idle-hint">약한 필드 몬스터를 자동으로 잡으며 경험치를 조금씩 얻고 있어요.</p>
           <button className="btn btn-challenge" onClick={startChallenge}>
             ⚔️ {chapter}-{stage} 스테이지 도전하기 <span className="key-hint">Space</span>
+          </button>
+          <button className="btn btn-neutral" onClick={onAutoPushStart} disabled={autoPush}>
+            {autoPush ? '🔁 자동사냥 진행 중...' : '🔁 자동사냥 (스테이지 자동 진행)'}
           </button>
         </div>
       )}
