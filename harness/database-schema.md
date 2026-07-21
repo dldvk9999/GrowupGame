@@ -487,3 +487,6 @@
 
 **132_expedition_multi_slot.sql** — 사용자 요청
 - `expeditions` 테이블을 `user_id` 단독 PK → 별도 `id` PK로 변경(유저당 다중 행 허용), `calc_expedition_slots()`/`fetch_my_expeditions()` 신설, `start_expedition`/`claim_expedition` 재정의(반환/인자 변경, DROP FUNCTION 포함) — 레벨 100마다 파견 슬롯 +1(최대 6개). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**133_stage_difficulty_boost_2.sql** — 사용자 요청 + 예방적 버그 수정
+- `calc_stage_gold`/`clear_stage` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 스테이지 몬스터/보스 체력·방어력 대폭 상향(HP 계수 7.5→11.0, DEF 계수 0.4→0.6)에 맞춰 골드 공식 동기화. 이 상향으로 최후반 보스 골드가 `add_gold` 상한(100만)을 넘어설 뻔했는데 `clear_stage`의 클램프가 "정예" 분기에만 걸려있던 걸 발견해 무조건 클램프로 수정. `draw_relic_batch()` 신설(반환타입은 `draw_relic`과 동일, 신규 함수라 DROP 불필요) — 유물 100회뽑기가 장비/스킬보다 느리던 성능 문제 수정(서버 배치 처리로 전환). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`relics.md`](./relics.md)

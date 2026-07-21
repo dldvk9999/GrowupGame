@@ -91,9 +91,12 @@ export function getStageEnemy(chapter, stage) {
   // 공격력 계수를 방어/체력 계수보다 더 크게 올려서(0.85→1.05, 보스 2.6→2.9) 방어구/신발
   // (DEF/HP)의 상대적 가치가 커지게 함 - 공격속도(getEnemyAttackInterval)도 스테이지가
   // 오를수록 빨라져서 "더 세게, 더 자주" 맞으므로 방어 스탯의 누적 완화 효과가 실질적으로 커짐
-  const hp = Math.round((30 + index * 7.5 * (isBoss ? 3.0 : 1)) * stepMultiplier);
+  // 클리어 난이도 추가 상향(신규, 사용자 요청) - 체력/방어력 계수를 큰 폭으로 올려서
+  // "잡기 힘들고(HP↑) 내 공격이 잘 안 먹히는(DEF↑)" 방향으로 클리어 자체를 어렵게 만듦
+  // (공격력은 지난 상향에서 이미 크게 올렸으니 이번엔 건드리지 않음)
+  const hp = Math.round((30 + index * 11.0 * (isBoss ? 3.6 : 1)) * stepMultiplier);
   const atk = Math.round((4 + index * 1.05 * (isBoss ? 2.9 : 1)) * stepMultiplier);
-  const def = Math.round((3 + index * 0.4 * (isBoss ? 2.2 : 1)) * stepMultiplier);
+  const def = Math.round((3 + index * 0.6 * (isBoss ? 2.7 : 1)) * stepMultiplier);
 
   return {
     stageIndex: index,

@@ -7,21 +7,14 @@ export async function drawRelic() {
   return data?.[0];
 }
 
-/** 여러 번 뽑기(순차 호출) - equipmentGacha.js의 drawEquipmentBatch와 달리 서버 배치 RPC가
- * 없어서 클라이언트에서 반복 호출함(유물은 실패 연출 등으로 결과가 더 다양해서 배치
- * RPC로 압축하기보다 개별 결과를 전부 보존하는 쪽을 택함). 골드 부족하면 중간에 멈춤. */
+/** 여러 번 뽑기(1/10/100) - 서버 draw_relic_batch가 반복문을 한 번에 처리해서 반환.
+ * ⚠️ 예전엔 draw_relic()을 N번 순차 await로 호출했는데, 매번 왕복 네트워크 레이턴시가
+ * 그대로 누적돼서 100회뽑기가 장비/스킬 뽑기(둘 다 서버측 배치 RPC가 있음)보다
+ * 눈에 띄게 오래 걸렸음(사용자 제보) - 서버 배치 RPC로 교체해서 한 번의 요청으로 끝남. */
 export async function drawRelicBatch(count) {
-  const results = [];
-  for (let i = 0; i < count; i++) {
-    try {
-      const res = await drawRelic();
-      results.push(res);
-    } catch (err) {
-      if (results.length === 0) throw err;
-      break;
-    }
-  }
-  return results;
+  const { data, error } = await supabase.rpc('draw_relic_batch', { p_count: count });
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 /** 내 유물 보유 목록(레벨/장착여부 포함) */
