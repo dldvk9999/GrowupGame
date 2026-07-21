@@ -4,6 +4,8 @@
 
 ## 인증
 
+- ⚠️ **가입/이메일변경 확인메일 리다이렉트 URL(사용자 요청/제보)**: `signUp`/`changeEmail` 둘 다 `emailRedirectTo: window.location.origin`을 명시 — Supabase 프로젝트의 기본 Site URL이 개발 중 localhost로 설정된 채 남아있으면 확인 메일 링크가 localhost를 가리키는 문제가 생길 수 있어서, 코드에서 "지금 접속한 주소"로 항상 덮어쓰게 함(배포 환경, `https://growup-game.vercel.app`에서는 자동으로 이 값이 됨). ⚠️ **Supabase 대시보드의 Site URL/Redirect URLs 설정 자체는 이 세션에서 직접 못 고침(코드 바깥 영역)** — 혹시 이 코드 수정 후에도 여전히 localhost가 보이면 Supabase 프로젝트 설정에서 Site URL을 직접 운영 주소로 바꿔야 함
+
 - **자동 로그인 체크박스**: 체크하면 세션이 `localStorage`(브라우저를 껐다 켜도 유지)에, 해제하면 `sessionStorage`(탭/브라우저 닫으면 사라짐)에 저장됨. 기본값 체크됨(true)
 - `supabaseClient.js`의 커스텀 storage 어댑터(`customStorage`)가 `growupgame-remember-me` 플래그(항상 localStorage)를 보고 세션 토큰 저장 위치를 결정
 - `setRememberMe(true/false)`를 로그인 시도 **직전**에 호출해야 함(`signInWithPassword`가 세션을 저장할 때 올바른 storage로 가도록) — `auth.js`의 `signIn()`이 이 순서를 보장

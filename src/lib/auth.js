@@ -19,7 +19,13 @@ export async function signUp({ email, password, nickname }) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { nickname } },
+    options: {
+      data: { nickname },
+      // Supabase 프로젝트의 기본 Site URL이 개발 중 localhost로 남아있으면 가입 확인
+      // 메일의 링크가 localhost를 가리키는 문제가 생김 - emailRedirectTo를 명시해서
+      // 항상 "지금 접속한 주소"(배포 환경에선 자동으로 운영 주소)로 덮어씀
+      emailRedirectTo: window.location.origin,
+    },
   });
   if (error) throw error;
   return data;
@@ -135,7 +141,10 @@ export async function verifyCurrentPassword(email, password) {
 
 /** 이메일 변경 - Supabase가 새 이메일로 확인 메일을 보내고, 그 링크를 눌러야 실제로 바뀜 */
 export async function changeEmail(newEmail) {
-  const { error } = await supabase.auth.updateUser({ email: newEmail });
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: window.location.origin }
+  );
   if (error) throw new Error(error.message);
 }
 
