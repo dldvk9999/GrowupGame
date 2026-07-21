@@ -1,6 +1,7 @@
 import { GAME_GUIDE_SECTIONS } from '../lib/gameGuide';
 import { THEMES, getSavedTheme, applyTheme } from '../lib/theme';
 import { getAudioSettings, setBgmEnabled, setSfxEnabled, setAudioVolume, playClickSound } from '../lib/audio';
+import { isPushSupported, isCurrentlySubscribed, subscribeToPush, unsubscribeFromPush } from '../lib/push';
 import { getPvpTier } from '../lib/pvpTier';
 import { fetchClaimedAchievements } from '../lib/achievements';
 import { showToast } from '../lib/toast';
@@ -10,6 +11,33 @@ export default function GameGuide({ userId, isFounder, pvpWins }) {
   const [currentTheme, setCurrentTheme] = useState(getSavedTheme());
   const [audioSettings, setAudioSettingsState] = useState(getAudioSettings());
   const [claimedKeys, setClaimedKeys] = useState(null);
+  const [pushSupported, setPushSupported] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    setPushSupported(isPushSupported());
+    isCurrentlySubscribed().then(setPushSubscribed).catch(() => setPushSubscribed(false));
+  }, []);
+
+  async function handleTogglePush() {
+    setPushLoading(true);
+    try {
+      if (pushSubscribed) {
+        await unsubscribeFromPush();
+        setPushSubscribed(false);
+        showToast('알림을 껐어요.', 'info');
+      } else {
+        await subscribeToPush();
+        setPushSubscribed(true);
+        showToast('알림을 켰어요! 아침·점심·저녁 보상 소식을 보내드릴게요.', 'success');
+      }
+    } catch (err) {
+      showToast(err.message ?? '알림 설정에 실패했어요.', 'error');
+    } finally {
+      setPushLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!userId) return;
@@ -76,6 +104,23 @@ export default function GameGuide({ userId, isFounder, pvpWins }) {
           <input type="range" min="0" max="1" step="0.05" value={audioSettings.volume} onChange={handleVolumeChange} className="sound-volume-slider" />
         </div>
       </div>
+
+      {pushSupported && (
+        <div className="game-guide-section">
+          <h3 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🔔 알림</h3>
+          <p className="stage-select-hint" style={{ marginTop: 0 }}>
+            켜두면 아침·점심·저녁 보상 시간대에 알림을 보내드려요. 브라우저 알림 권한이 필요해요.
+          </p>
+          <button
+            type="button"
+            className={`btn btn-neutral sound-toggle-btn ${pushSubscribed ? 'active' : ''}`}
+            onClick={handleTogglePush}
+            disabled={pushLoading}
+          >
+            {pushLoading ? '처리 중...' : pushSubscribed ? '🔔 알림 켜짐' : '🔕 알림 꺼짐'}
+          </button>
+        </div>
+      )}
 
       <div className="game-guide-section">
         <h3 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🎨 테마 컬러</h3>

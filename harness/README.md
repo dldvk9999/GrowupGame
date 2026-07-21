@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 137까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 138까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -16,6 +16,7 @@
 | [`relics.md`](./relics.md) | 유물 시스템(50종, 강화실패확률, 최대3장착), 밸런스 설계, 전투력/골드/경험치 반영 범위 |
 | [`story.md`](./story.md) | 메인 스토리 아크(잊혀진 조율자), SVG 삽화, 인터루드, 스테이지선택 스토리 팝업 |
 | [`friends.md`](./friends.md) | 친구 시스템(UID 추가, 요청/수락, 최대100명, 페이지네이션) |
+| [`push-notifications.md`](./push-notifications.md) | 푸시 알림(Web Push, 서비스워커, 아침/점심/저녁 - 배포 시 수동설정 필요) |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -136,6 +137,7 @@ GrowupGame/
 │     ├─ friends.js                # 친구 시스템 RPC 연동 - friends.md
 │     ├─ keybinds.js               # 전직스킬 키보드 단축키 설정(localStorage) - skills.md
 │     ├─ welcome.js                # 최초 접속 환영팝업 표시여부(localStorage) - ui-and-ux.md
+│     ├─ push.js                   # 푸시 알림 구독/해제 - push-notifications.md
 │     ├─ seasonEvent.js            # 시즌 한정 이벤트 조회(순수 조회, 켜고끄는 로직은 서버 함수 안에 있음) - stages-and-dungeons.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동

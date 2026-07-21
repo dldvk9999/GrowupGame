@@ -1,0 +1,58 @@
+-- ============================================
+-- 139: 아침/점심/저녁 푸시 알림 pg_cron 스케줄 - 사용자 요청
+--
+-- ⚠️ 이 마이그레이션은 그대로 실행해도 "당장 작동하는 알림"이 되지 않음 - 아래 안내대로
+-- 직접 값을 채워넣고 다시 실행해야 함(Supabase 프로젝트 URL/서비스키를 이 저장소에
+-- 그대로 커밋하면 전체 공개돼서 위험하므로, 실제 값은 SQL Editor에서 직접 실행하는
+-- 걸 권장 - 이 파일 자체를 그대로 배포 파이프라인에 올리지 말 것).
+--
+-- ============================================
+-- 사전 준비 (Supabase 대시보드에서 1회, 이 세션에서는 직접 못 함):
+--   1. Database > Extensions에서 pg_cron, pg_net 활성화
+--   2. supabase functions deploy send-daily-push (Edge Function 배포)
+--   3. supabase secrets set VAPID_PRIVATE_KEY=... VAPID_PUBLIC_KEY=... VAPID_SUBJECT=mailto:...
+--   4. 아래 <PROJECT_REF>/<SERVICE_ROLE_KEY>를 실제 값으로 바꿔서 SQL Editor에서 실행
+--      (이 파일 그대로 두면 안 됨 - 플레이스홀더 상태로는 아무 효과 없음)
+-- ============================================
+
+-- 매일 08:00 KST(=UTC 23:00 전날) 아침 알림
+select cron.schedule(
+  'push-morning',
+  '0 23 * * *', -- UTC 기준, KST 08:00
+  $$
+  select net.http_post(
+    url := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-daily-push',
+    headers := jsonb_build_object('Authorization', 'Bearer <SERVICE_ROLE_KEY>', 'Content-Type', 'application/json'),
+    body := jsonb_build_object('slot', 'morning')
+  );
+  $$
+);
+
+-- 매일 12:00 KST(=UTC 03:00) 점심 알림
+select cron.schedule(
+  'push-lunch',
+  '0 3 * * *',
+  $$
+  select net.http_post(
+    url := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-daily-push',
+    headers := jsonb_build_object('Authorization', 'Bearer <SERVICE_ROLE_KEY>', 'Content-Type', 'application/json'),
+    body := jsonb_build_object('slot', 'lunch')
+  );
+  $$
+);
+
+-- 매일 18:00 KST(=UTC 09:00) 저녁 알림
+select cron.schedule(
+  'push-dinner',
+  '0 9 * * *',
+  $$
+  select net.http_post(
+    url := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-daily-push',
+    headers := jsonb_build_object('Authorization', 'Bearer <SERVICE_ROLE_KEY>', 'Content-Type', 'application/json'),
+    body := jsonb_build_object('slot', 'dinner')
+  );
+  $$
+);
+
+-- 스케줄 확인: select * from cron.job;
+-- 스케줄 제거(재설정하고 싶을 때): select cron.unschedule('push-morning');

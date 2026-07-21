@@ -502,3 +502,6 @@
 
 **137_offline_reward_10h_and_clamp_fix.sql** — 사용자 요청 + 예방적 버그 수정
 - `claim_offline_gold_reward` 재정의(반환타입 그대로, DROP 불필요) — 오프라인 보상 최대 인정시간 2시간→10시간 상향, 누락돼있던 최종 100만 클램프 추가. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**138_push_subscriptions.sql** — 신규 콘텐츠(사용자 요청)
+- `push_subscriptions` 테이블 신설, `save_push_subscription`/`remove_push_subscription`/`has_push_subscription` 3개 함수(전부 신규, DROP 불필요) — 푸시 알림 구독 정보 저장. 실제 발송 인프라(Edge Function/pg_cron)는 별도 수동 배포 필요. 자세한 내용은 [`push-notifications.md`](./push-notifications.md)
