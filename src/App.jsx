@@ -5,6 +5,7 @@ import { getActiveMonster, createStarter, persistMonsterGrowth } from './lib/mon
 import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib/inventory';
+import { ACHIEVEMENT_CATALOG, fetchClaimedAchievements } from './lib/achievements';
 import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
@@ -84,6 +85,7 @@ export default function App() {
   const [clearedStageIds, setClearedStageIds] = useState(new Set());
   const [inventory, setInventory] = useState([]);
   const [userRelics, setUserRelics] = useState([]);
+  const [claimedAchievementKeys, setClaimedAchievementKeys] = useState(new Set());
   const [equipmentDrawProgress, setEquipmentDrawProgress] = useState({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
   const [userSkills, setUserSkills] = useState([]);
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
@@ -221,6 +223,7 @@ export default function App() {
       setClearedStageIds(new Set());
       setInventory([]);
       setUserRelics([]);
+      setClaimedAchievementKeys(new Set());
       setEquipmentDrawProgress({ weapon: 0, armor: 0, gloves: 0, shoes: 0 });
       setUserSkills([]);
       setCurrentStageIndex(1);
@@ -255,7 +258,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -274,10 +277,12 @@ export default function App() {
         fetchMyCostumes(userId).catch(() => new Set()),
         fetchMyTowerProgress(userId).catch(() => 0),
         fetchMyRelics(userId).catch(() => []),
+        fetchClaimedAchievements(userId).catch(() => new Set()),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
+      setClaimedAchievementKeys(claimedAch);
       setUserRelics(relics);
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
@@ -658,6 +663,41 @@ export default function App() {
     def: equipmentOnlyBonus.def + relicBonus.def + (dragonBuffActive ? baseDefWithBonus * 19 : 0),
     hp: equipmentOnlyBonus.hp + relicBonus.hp,
   };
+  // 설정 화면에만 쓰던 걸 최상위로 끌어올림 - 헤더의 "수령 가능한 업적 있음" 알림점(신규,
+  // 사용자 요청) 계산에도 이 데이터가 필요해서 컴포넌트 어디서든 재사용 가능하게 함
+  const achievementStats = {
+    level: activeMonster?.level ?? 0,
+    jobTier: activeMonster?.unlockedJobTier ?? 0,
+    stageCleared: clearedStageIds.size,
+    gachaTotal: (profile?.total_skill_draws ?? 0)
+      + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
+    pvpWins: profile?.pvp_wins ?? 0,
+    revengeWins: profile?.pvp_revenge_wins ?? 0,
+    lifetimeGold: profile?.lifetime_gold_earned ?? 0,
+    worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
+    fullSetEquipped: (() => {
+      const equippedRarities = {};
+      for (const row of inventory) {
+        if (!row.equipped) continue;
+        const item = getItem(row.item_key);
+        if (item) equippedRarities[item.slot] = item.rarity;
+      }
+      return isFullSetEquipped(equippedRarities) ? 1 : 0;
+    })(),
+    uniqueItemCount: new Set(inventory.map((row) => row.item_key)).size,
+    relicCount: userRelics.length,
+    maxRelicLevel: userRelics.reduce((max, r) => Math.max(max, r.level ?? 0), 0),
+    costumeCount,
+    isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
+    towerHighestFloor,
+    attendanceTotal: attendanceState?.total_claim_count ?? 0,
+    dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
+    maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),
+    ownedSkillCount: new Set(userSkills.map((s) => s.skill_key ?? s.skillKey)).size,
+  };
+  const hasClaimableAchievement = ACHIEVEMENT_CATALOG.some(
+    (a) => !claimedAchievementKeys.has(a.key) && (achievementStats[a.stat] ?? 0) >= a.target
+  );
   const resolvedSkills = resolveLoadout(profile?.equipped_skills, userSkills);
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
   const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];
@@ -705,6 +745,7 @@ export default function App() {
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
               hasNewPatchNote={hasNewPatchNote}
+              hasClaimableAchievement={hasClaimableAchievement}
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={setActiveTab}
@@ -736,6 +777,7 @@ export default function App() {
               dragonBuffActive={dragonBuffActive}
               hasUnreadMail={hasUnreadMail}
               hasNewPatchNote={hasNewPatchNote}
+              hasClaimableAchievement={hasClaimableAchievement}
               attendanceClaimedToday={hasClaimedToday(attendanceState)}
               onOpenAttendance={() => setShowAttendanceModal(true)}
               onNavigate={(tab) => { setActiveTab(tab); setMobileMenuOpen(false); }}
@@ -992,36 +1034,9 @@ export default function App() {
                 onGoldChange={handleGoldChange}
                 onUnreadMailChange={setHasUnreadMail}
                 onPatchNoteSeen={() => setHasNewPatchNote(false)}
-                achievementStats={{
-                  level: activeMonster?.level ?? 0,
-                  jobTier: activeMonster?.unlockedJobTier ?? 0,
-                  stageCleared: clearedStageIds.size,
-                  gachaTotal: (profile?.total_skill_draws ?? 0)
-                    + Object.values(equipmentDrawProgress ?? {}).reduce((sum, n) => sum + (n ?? 0), 0),
-                  pvpWins: profile?.pvp_wins ?? 0,
-                  revengeWins: profile?.pvp_revenge_wins ?? 0,
-                  lifetimeGold: profile?.lifetime_gold_earned ?? 0,
-                  worldBossDamage: (everParticipatedWorldBoss || (worldBossProgress?.myWeekDamage ?? 0) > 0) ? 1 : 0,
-                  fullSetEquipped: (() => {
-                    const equippedRarities = {};
-                    for (const row of inventory) {
-                      if (!row.equipped) continue;
-                      const item = getItem(row.item_key);
-                      if (item) equippedRarities[item.slot] = item.rarity;
-                    }
-                    return isFullSetEquipped(equippedRarities) ? 1 : 0;
-                  })(),
-                  uniqueItemCount: new Set(inventory.map((row) => row.item_key)).size,
-                  relicCount: userRelics.length,
-                  maxRelicLevel: userRelics.reduce((max, r) => Math.max(max, r.level ?? 0), 0),
-                  costumeCount,
-                  isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
-                  towerHighestFloor,
-                  attendanceTotal: attendanceState?.total_claim_count ?? 0,
-                  dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
-                  maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),
-                  ownedSkillCount: new Set(userSkills.map((s) => s.skill_key ?? s.skillKey)).size,
-                }}
+                onAchievementClaim={(key) => setClaimedAchievementKeys((prev) => new Set(prev).add(key))}
+                hasClaimableAchievement={hasClaimableAchievement}
+                achievementStats={achievementStats}
                 equippedTitle={profile?.equipped_title}
                 onTitleChange={(title) => setProfile((p) => (p ? { ...p, equipped_title: title } : p))}
               />
@@ -1033,7 +1048,7 @@ export default function App() {
   );
 }
 
-function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, hasNewPatchNote, attendanceClaimedToday, onOpenAttendance, onNavigate, onLogout }) {
+function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, hasUnreadMail, hasNewPatchNote, hasClaimableAchievement, attendanceClaimedToday, onOpenAttendance, onNavigate, onLogout }) {
   return (
     <>
       {canInstall && (
@@ -1051,7 +1066,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
       <button className="btn btn-ghost" onClick={() => onNavigate('friends')}>👥 친구</button>
       <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
-        ⚙️ 설정{(hasUnreadMail || hasNewPatchNote) && <span className="mail-unread-dot" aria-label="미수령 우편 또는 새 패치노트 있음" />}
+        ⚙️ 설정{(hasUnreadMail || hasNewPatchNote || hasClaimableAchievement) && <span className="mail-unread-dot" aria-label="미수령 우편, 새 패치노트 또는 수령 가능한 업적 있음" />}
       </button>
       <button className="btn btn-ghost" onClick={onLogout}>로그아웃</button>
     </>

@@ -13,7 +13,7 @@ import { playLevelUpSound, playGoldSound } from '../lib/audio';
  * 전투력만 예외 — App.jsx가 안 들고 있는 값이라, 여기서 fetchMyCombatPower()(PvP와 동일한
  * 서버 계산, 장비 보너스 포함)로 직접 조회해서 stats에 병합함
  */
-export default function Achievements({ userId, stats, onGoldChange, gold, equippedTitle, onTitleChange }) {
+export default function Achievements({ userId, stats, onGoldChange, gold, equippedTitle, onTitleChange, onClaim }) {
   const [claimedKeys, setClaimedKeys] = useState(null);
   const [claimingKey, setClaimingKey] = useState(null);
   const [settingTitle, setSettingTitle] = useState(false);
@@ -51,6 +51,7 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
       const reward = await claimAchievement(achievement.key);
       onGoldChange(gold + reward);
       setClaimedKeys((prev) => new Set(prev).add(achievement.key));
+      onClaim?.(achievement.key);
       playLevelUpSound();
       showToast(`업적 달성! "${achievement.title}" 💰 ${reward.toLocaleString()} 획득!`, 'success');
     } catch (err) {

@@ -61,6 +61,14 @@
 
 레벨/전직/스테이지클리어/뽑기횟수/PvP승수/출석 등 장기 목표로 플레이 동기를 부여하는 장치. 설정 탭 안 "🏆 업적" 서브탭.
 
+### 수령 가능 알림점 (신규, 사용자 요청)
+
+우편함(`hasUnreadMail`)/패치노트(`hasNewPatchNote`)와 동일한 빨간 점 패턴을 업적에도 적용 — 수령 가능한(조건 달성했지만 아직 안 받은) 업적이 하나라도 있으면 헤더의 "⚙️ 설정" 버튼과 설정 화면 안 "🏆 업적" 탭 버튼 둘 다에 점이 뜸.
+
+- `App.jsx`가 `achievementStats` 객체를 (기존엔 `<Settings>` 호출부에 인라인으로만 있던 걸) **컴포넌트 최상위 변수로 끌어올려서** 헤더 알림점 계산에도 재사용 — `ACHIEVEMENT_CATALOG.some(a => !claimedKeys.has(a.key) && stats[a.stat] >= a.target)`로 판정
+- `claimedAchievementKeys`를 로그인 시 `fetchClaimedAchievements(userId)`로 별도 조회해서 App.jsx에도 보관(기존엔 `Achievements.jsx`만 갖고 있었음) — 업적을 수령하면 `Achievements.jsx`의 `handleClaim`이 `onClaim` 콜백으로 App.jsx에 알려서 그 자리에서 바로 점이 사라짐(다음 로그인까지 기다릴 필요 없음)
+- 순수 표시용 계산이라 서버 호출 추가 없음(이미 로드돼있는 `achievementStats`/`claimedAchievementKeys` 조합만 사용)
+
 ### 검증 방식
 
 미션 시스템(`claim_mission_reward`)과 동일한 철학 — **클라이언트가 진행도를 신고하지 않고, 서버가 실제 게임 상태를 직접 조회해 조건 충족을 재검증**한 뒤에만 지급. `claim_achievement(p_achievement_key)` 안에 업적 키별 CASE 검증 쿼리가 있고, 통과하면 `add_gold` + `achievement_claims`에 기록(중복 방지, PK가 `(user_id, achievement_key)`).
