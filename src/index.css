@@ -1527,7 +1527,14 @@ button {
   max-height: 180px;
   overflow-y: auto;
   padding: 4px;
+  /* 우측 세로스크롤 디자인(사용자 요청) - 투명 배경 + 얇은 두께 + 테마 색상 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-soft) transparent;
 }
+.gacha-result-list::-webkit-scrollbar { width: 6px; }
+.gacha-result-list::-webkit-scrollbar-track { background: transparent; }
+.gacha-result-list::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 999px; }
+.gacha-result-list::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 .gacha-result-item {
   position: relative;
   width: 38px; height: 38px;

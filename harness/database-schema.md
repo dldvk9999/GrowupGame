@@ -490,3 +490,6 @@
 
 **133_stage_difficulty_boost_2.sql** — 사용자 요청 + 예방적 버그 수정
 - `calc_stage_gold`/`clear_stage` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 스테이지 몬스터/보스 체력·방어력 대폭 상향(HP 계수 7.5→11.0, DEF 계수 0.4→0.6)에 맞춰 골드 공식 동기화. 이 상향으로 최후반 보스 골드가 `add_gold` 상한(100만)을 넘어설 뻔했는데 `clear_stage`의 클램프가 "정예" 분기에만 걸려있던 걸 발견해 무조건 클램프로 수정. `draw_relic_batch()` 신설(반환타입은 `draw_relic`과 동일, 신규 함수라 DROP 불필요) — 유물 100회뽑기가 장비/스킬보다 느리던 성능 문제 수정(서버 배치 처리로 전환). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`relics.md`](./relics.md)
+
+**134_idle_gold_half.sql** — 사용자 요청
+- `calc_idle_gold` 재정의(반환타입 그대로, DROP 불필요) — 자동사냥 골드 수급 절반 감소. 이 함수가 자동사냥/오프라인보상/주말보너스/황금몬스터/유물골드%/시즌이벤트 전부의 기반값이라 단일 지점 수정으로 일괄 반영됨. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

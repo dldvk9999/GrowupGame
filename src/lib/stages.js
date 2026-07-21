@@ -48,8 +48,12 @@ export function getIdleMonster(chapter, playerLevel = 1) {
     maxHp: hp,
     hp,
     atk: 0,
-    expReward: Math.max(1, Math.round(hp * 0.19 * 0.5)), // 사용자 요청으로 절반 감소(105/골드는 그대로)
-    goldReward: Math.max(5, Math.round(hp * 0.15) * 5 * 8),
+    expReward: Math.max(1, Math.round(hp * 0.19 * 0.5)), // 자동사냥 경험치 절반 감소(사용자 요청)
+    // 골드도 절반 감소(신규, 사용자 요청) - 서버 calc_idle_gold(134)와 반드시 동일하게 유지할 것.
+    // 실제 지급은 항상 서버 grant_idle_reward가 하고 이 값은 순수 로그 표시용이지만,
+    // 여기가 서버와 어긋나면 로그에 "실제 받은 것의 2배"가 찍히는 표시 버그가 남(idleTimeEstimate.js
+    // 때와 같은 클래스의 실수 방지).
+    goldReward: Math.max(2, Math.round(hp * 0.15) * 5 * 8 * 0.5),
   };
 }
 

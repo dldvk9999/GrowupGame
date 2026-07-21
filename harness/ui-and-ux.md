@@ -216,3 +216,12 @@ PvP는 던전과 달리 **하루 횟수 제한이 없어서**(2초 쿨다운만 
 - `@media (max-width:640px)`: `.skill-btn`을 46×46px 정사각형으로 압축, `.skill-name { display:none }` — 모바일은 4개 전투화면 모두 동일하게 아이콘+쿨다운링+단축키만
 - `WorldBossBattle.jsx`가 쓰던 `worldboss-skills-row` 클래스는 제거하고 다른 화면과 동일한 `.skills-row`만 사용 — CSS 규칙이 화면 폭만으로 결정되므로 컴포넌트별 분기가 필요 없어짐(유지보수 단순화)
 - `SkillButton.jsx`는 애초에 아이콘/이름을 항상 함께 렌더링하는 컴포넌트라 JSX 변경 없이 **CSS만으로** 압축/확장이 전환됨(이름 유무를 `display:none`으로 토글) — 이미 월드보스에서 검증된 패턴이라 리스크 낮음
+
+## 뽑기 결과 리스트 스크롤바 디자인 (신규, 사용자 요청)
+
+`.gacha-result-list`(장비/스킬/유물 뽑기 결과 카드 그리드, 3곳 전부 이 클래스 공유)의 세로 스크롤바가 브라우저 기본 회색 스크롤바라 페이지 전체 다크 테마와 이질감이 있었음.
+
+- **배경 투명**: `scrollbar-color`(Firefox)/`::-webkit-scrollbar-track`(Chrome/Safari) 둘 다 `transparent`
+- **두께를 얇게**: `scrollbar-width: thin`(Firefox) + `::-webkit-scrollbar { width: 6px }`(Chrome/Safari)
+- **색상은 테마 변수 재사용**: 평상시 `var(--border-soft)`(패널 테두리와 동일한 톤), 마우스오버 시 `var(--text-muted)`로 살짝 밝아짐 — 새 색상값을 만들지 않고 이미 페이지 전체에서 쓰이는 변수만 재사용해서 자연스럽게 어우러짐
+- 3곳(`EquipmentGacha.jsx`/`SkillGacha.jsx`/`RelicGacha.jsx`) 전부 같은 클래스를 공유해서 CSS 한 곳만 고치면 전체 적용됨
