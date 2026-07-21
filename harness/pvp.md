@@ -67,6 +67,8 @@
 
 전투 직후 "🏆 N승 · 💀 M패" 표시가 **다음 전체 프로필 재조회 전까지 안 바뀌는** 버그 — `PvPArena.jsx`가 재화(`pvp_currency`)만 상위로 올려주고 승패는 반영 경로가 없었던 게 원인. `onCurrencyChange`를 `onBattleResolved(res)`로 바꿔서 `App.jsx`가 `res.result`로 `pvp_wins`/`pvp_losses`까지 즉시 갱신하도록 수정.
 
+- ⚠️ **"record is not assigned yet" 크래시 수정(migration 136, 사용자 제보)**: `start_pvp_battle`(도전 가능한 다른 유저가 아예 없는 경우)과 `start_pvp_revenge_battle`(상대가 이미 몬스터를 바꿔서 조회 0행인 경우) 둘 다, 상대를 record 변수(`v_opp_row`)에 담는 조회가 0행이면 그 변수가 "할당된 적 없음" 상태로 남는데 바로 다음 줄에서 `v_opp_row.user_id`처럼 필드를 참조해서 크래시가 났음. 특히 복수전은 상대를 못 찾을 때마다 의도한 "상대를 찾을 수 없어요" 안내 대신 **매번 이 에러가 났을 가능성이 높음**. `select ... into v_opp_row` 직후 `if not found then v_opp_row := null; end if;`로 명시적 NULL 처리 후 필드를 읽도록 수정 — 자세한 원인 분석과 이 버그 클래스에 대한 일반적인 주의사항은 [`security.md`](./security.md)의 68차 점검 참고
+
 ## PvP 상점 (코스튬)
 
 - 전체 유저 공용 진열대 **10칸**(031에서 30칸→10칸 축소), **매시 정각 자동 갱신**(`sync_pvp_shop`, 우편함과 동일한 lazy-generation — cron 없이 이번 시간대 진열대가 없으면 그때 생성)
