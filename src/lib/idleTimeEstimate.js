@@ -2,10 +2,10 @@ import { expToNextLevel } from './growth';
 
 const IDLE_KILL_INTERVAL_SECONDS = 1.5; // stages.js의 자동사냥 처치 텀과 동일
 
-/** 자동사냥 몬스터 1마리당 경험치 - stages.js의 getIdleMonster와 동일 공식(순수 추정용) */
+/** 자동사냥 몬스터 1마리당 경험치 - stages.js의 getIdleMonster와 동일 공식(순수 추정용, 경험치 절반감소 반영) */
 function idleExpPerKill(chapter, playerLevel) {
   const hp = Math.max(10, Math.round(8 + chapter * 2.0 + playerLevel * 3.0));
-  return Math.max(2, Math.round(hp * 0.19));
+  return Math.max(1, Math.round(hp * 0.19 * 0.5));
 }
 
 /**

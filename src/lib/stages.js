@@ -48,7 +48,7 @@ export function getIdleMonster(chapter, playerLevel = 1) {
     maxHp: hp,
     hp,
     atk: 0,
-    expReward: Math.max(2, Math.round(hp * 0.19)),
+    expReward: Math.max(1, Math.round(hp * 0.19 * 0.5)), // 사용자 요청으로 절반 감소(105/골드는 그대로)
     goldReward: Math.max(5, Math.round(hp * 0.15) * 5 * 8),
   };
 }

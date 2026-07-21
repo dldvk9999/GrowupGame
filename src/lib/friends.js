@@ -3,9 +3,17 @@ import { supabase } from './supabaseClient';
 export const MAX_FRIENDS = 100;
 const PAGE_SIZE = 20;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** UID로 친구 요청 보내기 */
 export async function sendFriendRequest(targetId) {
-  const { error } = await supabase.rpc('send_friend_request', { p_target_id: targetId });
+  // p_target_id가 uuid 타입이라, 형식이 안 맞으면 서버(RPC 이전 단계)가 영어 에러를
+  // 그대로 던짐("invalid input syntax for type uuid") - 클라이언트에서 먼저 형식만
+  // 가볍게 검증해서 한글 안내로 바꿔줌(사용자 제보)
+  if (!UUID_PATTERN.test((targetId ?? '').trim())) {
+    throw new Error('올바른 UID 형식이 아니에요. UID를 정확히 복사했는지 확인해주세요.');
+  }
+  const { error } = await supabase.rpc('send_friend_request', { p_target_id: targetId.trim() });
   if (error) throw new Error(error.message);
 }
 

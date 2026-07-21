@@ -5,7 +5,7 @@ import { fetchClaimedAchievements, ACHIEVEMENT_CATALOG } from '../lib/achievemen
 import { getPvpTier } from '../lib/pvpTier';
 import { getNextGoals } from '../lib/nextGoals';
 import { speciesById } from '../lib/speciesData';
-import { scaleStats } from '../lib/growth';
+import { scaleStats, MAX_LEVEL } from '../lib/growth';
 import { calculateCombatPower } from '../lib/combat';
 import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstimate';
 import { playClickSound } from '../lib/audio';
@@ -320,7 +320,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             </thead>
             <tbody>
               {[activeMonster.level, activeMonster.level + 10, activeMonster.level + 30, activeMonster.level + 50]
-                .filter((lv, i, arr) => arr.indexOf(lv) === i && lv <= 200)
+                .filter((lv, i, arr) => arr.indexOf(lv) === i && lv <= MAX_LEVEL)
                 .map((lv) => {
                   const projected = scaleStats(speciesById[activeMonster.speciesId], lv, activeMonster.unlockedJobTier ?? 0);
                   return (
