@@ -222,6 +222,5 @@ goldReward = max(5, round(hp*0.15)*5*8)
 
 - **오프라인 골드 보상(103/106)과 역할 분리**: 오프라인 보상은 "앱을 닫고 있던 짧은~중간 시간"(최대 2시간, 50% 효율)을 커버하고, 파견은 "몇 시간 뒤 다시 켤 생각으로 미리 걸어두는" 장시간(최대 12시간) 용도. 전투/자동사냥과 전혀 안 겹침(몬스터를 "떼어가는" 게 아니라 그냥 병행되는 타이머일 뿐이라 앱을 켜놓고 계속 플레이해도 무방).
 - **골드 공식을 `calc_idle_gold`(2.5초 틱 기준)를 재사용하지 않고 완전히 새로 만듦**: 12시간을 틱 단위로 환산하면 `add_gold`의 100만 상한을 손쉽게 넘어 크래시하는 걸 시뮬레이션으로 미리 확인함(117/118에서 겪은 것과 같은 클래스의 함정을 사전에 피함). 대신 `calc_expedition_gold_per_hour(chapter, level)` — `calc_idle_gold`와 같은 v_hp 베이스를 쓰되 배율을 15로 훨씬 작게 잡은(calc_idle_gold는 2.5초당 40배) "시간당 요율" 전용 공식을 신설. 최종 결과는 그래도 방어적으로 100만 클램프.
-- `expeditions` 테이블은 유저당 1행(PK)만 유지 — 진행 중(`claimed=false`)인 파견이 있으면 새로 시작 불가(먼저 수령해야 함), `start_expedition`이 `on conflict (user_id) do update`로 재사용.
-- `start_expedition`/`claim_expedition`/`calc_expedition_gold_per_hour` 전부 신규 함수라 DROP FUNCTION 불필요.
-- 클라이언트(`ExpeditionPanel`, `DungeonSelect.jsx` 내부)는 1초마다 남은시간을 재계산해서 표시, 완료되면 "수령" 버튼으로 전환. `expedition.js`의 `fetchMyExpedition`은 `claimed=true`거나 행이 없으면 `null` 반환(진행중 아님으로 취급).
+- **파견 슬롯 다중화 (migration 132, 신규, 사용자 요청)**: 기존엔 유저당 1개만 동시에 보낼 수 있었는데, **레벨 100마다 슬롯이 1개씩 늘어남**(`calc_expedition_slots(level) = 1 + floor(level/100)` — 레벨100=2개, 200=3개, ..., 만렙500=6개). `expeditions` 테이블을 `user_id` 단독 PK에서 별도 `id`(uuid) PK로 바꿔서 유저당 여러 행을 가질 수 있게 함. `start_expedition`/`claim_expedition` 둘 다 반환/인자가 바뀌어(`claim_expedition`이 이제 `p_expedition_id`를 받음) DROP FUNCTION 포함. 조회용 `fetch_my_expeditions()`가 진행 중인 파견 전부 + 총 슬롯 수를 같이 반환. 클라이언트/서버 둘 다 슬롯 계산식을 각자 갖고 있으므로(`expedition.js`의 `calcExpeditionSlots`) **하나 바꾸면 반드시 둘 다 같이 바꿔야 함**.
+- 클라이언트(`ExpeditionPanel`, `DungeonSelect.jsx` 내부)는 1초마다 남은시간을 재계산해서 표시, 완료되면 "수령" 버튼으로 전환. 슬롯이 남아있을 때만 새 파견 시작 버튼 노출.

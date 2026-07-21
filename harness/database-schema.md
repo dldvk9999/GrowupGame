@@ -484,3 +484,6 @@
 
 **131_relic_equip_slots_5.sql** — 사용자 요청
 - `set_relic_loadout` 재정의(반환타입 그대로, DROP 불필요) — 유물 장착 슬롯 3개→5개로 확장. 자세한 내용은 [`relics.md`](./relics.md)
+
+**132_expedition_multi_slot.sql** — 사용자 요청
+- `expeditions` 테이블을 `user_id` 단독 PK → 별도 `id` PK로 변경(유저당 다중 행 허용), `calc_expedition_slots()`/`fetch_my_expeditions()` 신설, `start_expedition`/`claim_expedition` 재정의(반환/인자 변경, DROP FUNCTION 포함) — 레벨 100마다 파견 슬롯 +1(최대 6개). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
