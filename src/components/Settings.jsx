@@ -25,7 +25,7 @@ export default function Settings({ userId, gold, pvpWins, hasUnreadMail, onGoldC
         <button className={`shop-tab mail-tab-btn ${tab === 'mailbox' ? 'active' : ''}`} onClick={() => setTab('mailbox')}>
           📮 우편함{hasUnreadMail && <span className="mail-unread-dot" aria-label="읽지 않은 우편 있음" />}
         </button>
-        <button className={`shop-tab ${tab === 'achievements' ? 'active' : ''}`} onClick={() => setTab('achievements')}>
+        <button className={`shop-tab achievement-tab-btn ${tab === 'achievements' ? 'active' : ''}`} onClick={() => setTab('achievements')}>
           🏆 업적{hasClaimableAchievement && <span className="mail-unread-dot" aria-label="수령 가능한 업적 있음" />}
         </button>
         <button className={`shop-tab ${tab === 'guide' ? 'active' : ''}`} onClick={() => setTab('guide')}>📘 게임가이드</button>

@@ -6,6 +6,9 @@ import { grantIdleReward } from './lib/economy';
 import { fetchClearedStageIds, markStageCleared } from './lib/stageProgress';
 import { fetchInventory, getTotalEquipmentBonus, isFullSetEquipped } from './lib/inventory';
 import { ACHIEVEMENT_CATALOG, fetchClaimedAchievements } from './lib/achievements';
+import { hasSeenWelcome, markWelcomeSeen } from './lib/welcome';
+import WelcomeModal from './components/WelcomeModal';
+import Footer from './components/Footer';
 import { getItem } from './lib/itemCatalog';
 import { fetchMyCostumes } from './lib/pvp';
 import { applyTheme, getSavedTheme } from './lib/theme';
@@ -124,6 +127,7 @@ export default function App() {
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [freeDrawUsedMap, setFreeDrawUsedMap] = useState(null); // null=로딩중, {weapon,armor,gloves,shoes,skill}
   const [costumeCount, setCostumeCount] = useState(0);
 
@@ -191,6 +195,15 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [stage, activeTab]);
+
+  // 최초 로그인 시 환영 팝업(신규, 사용자 요청) - stage가 GAME으로 바뀌는 시점은
+  // 로그인/스타터선택 직후뿐이라(설정/마이페이지 등은 activeTab만 바뀔 뿐 stage는
+  // 그대로 GAME), 이 effect 하나로 3곳의 setStage(STAGE.GAME) 호출부를 다 커버함
+  useEffect(() => {
+    if (stage === STAGE.GAME && !hasSeenWelcome()) {
+      setShowWelcomeModal(true);
+    }
+  }, [stage]);
 
   async function handleSession(newSession) {
     // onAuthStateChange 리스너는 컴포넌트 최초 마운트 시 딱 한 번만 등록되기 때문에
@@ -715,6 +728,9 @@ export default function App() {
     <div className="app-shell">
       <ToastContainer />
       <PwaUpdatePrompt />
+      {showWelcomeModal && (
+        <WelcomeModal onClose={() => { setShowWelcomeModal(false); markWelcomeSeen(); }} />
+      )}
       {showAttendanceModal && (
         <AttendanceModal
           attendanceState={attendanceState ? { ...attendanceState, _claimedToday: hasClaimedToday(attendanceState) } : null}
@@ -1044,6 +1060,7 @@ export default function App() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

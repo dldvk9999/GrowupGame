@@ -68,6 +68,7 @@
 - `App.jsx`가 `achievementStats` 객체를 (기존엔 `<Settings>` 호출부에 인라인으로만 있던 걸) **컴포넌트 최상위 변수로 끌어올려서** 헤더 알림점 계산에도 재사용 — `ACHIEVEMENT_CATALOG.some(a => !claimedKeys.has(a.key) && stats[a.stat] >= a.target)`로 판정
 - `claimedAchievementKeys`를 로그인 시 `fetchClaimedAchievements(userId)`로 별도 조회해서 App.jsx에도 보관(기존엔 `Achievements.jsx`만 갖고 있었음) — 업적을 수령하면 `Achievements.jsx`의 `handleClaim`이 `onClaim` 콜백으로 App.jsx에 알려서 그 자리에서 바로 점이 사라짐(다음 로그인까지 기다릴 필요 없음)
 - 순수 표시용 계산이라 서버 호출 추가 없음(이미 로드돼있는 `achievementStats`/`claimedAchievementKeys` 조합만 사용)
+- ⚠️ **버그 수정(사용자 제보 — "업적 탭엔 점이 안 뜬다")**: `.mail-unread-dot`은 `position: absolute`라 부모 요소에 `position: relative`가 필요한데, 우편함(`.mail-tab-btn`)/패치노트(`.patch-note-tab-btn`)/출석(`.attendance-badge-btn`)/설정(`.mail-badge-btn`) 버튼들은 전부 전용 클래스로 이걸 챙겨뒀는데, 업적 탭 버튼만 공용 `.shop-tab`만 쓰고 그 처리가 빠져있었음(점이 안 보이거나 엉뚱한 위치에 렌더링됨). `.achievement-tab-btn` 클래스를 추가해서 `position: relative` 적용 — **새 알림점을 추가할 때는 반드시 그 버튼 전용 위치기준 클래스를 같이 만들 것**(이 패턴을 놓친 첫 사례)
 
 ### 검증 방식
 

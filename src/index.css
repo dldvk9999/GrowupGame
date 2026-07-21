@@ -55,6 +55,21 @@ button {
   width: 100%;
 }
 
+.app-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 16px 20px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.app-footer-link { color: var(--text-muted); text-decoration: none; }
+.app-footer-link:hover { color: var(--accent-fire); text-decoration: underline; }
+.app-footer-copyright { color: var(--text-muted); }
+
 .center-viewport {
   display: flex;
   align-items: center;
@@ -1231,6 +1246,7 @@ button {
 .patch-note-tab-btn { position: relative; }
 .mail-tab-btn { position: relative; }
 .free-draw-tab-btn { position: relative; }
+.achievement-tab-btn { position: relative; }
 .game-guide-section { margin-bottom: 18px; padding: 14px; border: 1px solid var(--border-soft); border-radius: var(--radius-lg); background: var(--bg-panel-2); box-shadow: var(--shadow-soft); }
 .theme-picker { display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
 .theme-swatch {
@@ -2137,6 +2153,8 @@ button {
   font-size: 13px;
   color: var(--text-secondary);
 }
+.welcome-modal { max-width: 420px; }
+.welcome-github-btn { display: block; width: 100%; text-align: center; text-decoration: none; margin-top: 6px; }
 
 /* ---------- 키보드 구성 설정 (PC 전용) ---------- */
 .keybind-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }

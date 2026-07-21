@@ -225,3 +225,14 @@ PvP는 던전과 달리 **하루 횟수 제한이 없어서**(2초 쿨다운만 
 - **두께를 얇게**: `scrollbar-width: thin`(Firefox) + `::-webkit-scrollbar { width: 6px }`(Chrome/Safari)
 - **색상은 테마 변수 재사용**: 평상시 `var(--border-soft)`(패널 테두리와 동일한 톤), 마우스오버 시 `var(--text-muted)`로 살짝 밝아짐 — 새 색상값을 만들지 않고 이미 페이지 전체에서 쓰이는 변수만 재사용해서 자연스럽게 어우러짐
 - 3곳(`EquipmentGacha.jsx`/`SkillGacha.jsx`/`RelicGacha.jsx`) 전부 같은 클래스를 공유해서 CSS 한 곳만 고치면 전체 적용됨
+
+## 최초 접속 환영 팝업 (신규, 사용자 요청)
+
+`WelcomeModal.jsx` — 로그인/스타터선택 직후(`stage === STAGE.GAME`이 되는 시점, 로그인 흐름 3곳 중 어디를 거쳐 왔든 동일) 브라우저 기준으로 딱 한 번만(`lib/welcome.js`, `localStorage`) 뜸. 간단한 환영 인사 + "버그/보안 이슈나 기능 제안은 GitHub 이슈로 남겨달라"는 안내 + 저장소 링크 버튼.
+
+- 3곳의 `setStage(STAGE.GAME)` 호출부(기존 로그인/신규 스타터선택 등)를 개별로 안 건드리고, `useEffect(() => {...}, [stage])` 하나로 "stage가 GAME이 되는 순간"을 공통으로 감지 — `activeTab`만 바뀌는 마이페이지/설정 등 이동에서는 `stage` 자체가 안 바뀌므로 중복 트리거 안 됨
+- ⚠️ **보안 주의**: 저장소 링크는 반드시 `https://github.com/dldvk9999/GrowupGame`(공개 주소)만 사용 — `git remote -v`로 확인한 origin URL엔 배포용 PAT(개인 액세스 토큰)가 포함돼있어서, 절대 UI/코드에 그 값을 그대로 노출하면 안 됨(이 프로젝트 코드베이스 어디에도 토큰 문자열이 등장하지 않는지 항상 주의)
+
+## 푸터 (신규, 사용자 요청)
+
+`Footer.jsx` — GitHub 저장소 링크 + 저작권 표기(`© {현재연도} dldvk9999. All rights reserved.`). `.app-shell`이 `flex-direction: column`이고 `.app-main`이 `flex: 1`이라, `<Footer/>`를 `</main>` 바로 다음 형제로 붙이기만 하면 별도 포지셔닝 CSS 없이 항상 콘텐츠 맨 아래에 자연스럽게 위치함(고정 하단바 같은 게 없는 레이아웃이라 겹칠 걱정 없음). 로그인 전 화면(인증/스토리)에도 동일하게 보임(`app-shell` 최상위에 있어서 `stage` 값과 무관하게 항상 렌더링).

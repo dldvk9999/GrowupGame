@@ -13,12 +13,12 @@ function loadSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY));
     return {
-      bgmEnabled: saved?.bgmEnabled ?? true,
+      bgmEnabled: saved?.bgmEnabled ?? false, // 최초 접속 시 기본값 꺼짐(사용자 요청) - 효과음은 그대로 기본 켜짐
       sfxEnabled: saved?.sfxEnabled ?? true,
       volume: saved?.volume ?? 0.5,
     };
   } catch {
-    return { bgmEnabled: true, sfxEnabled: true, volume: 0.5 };
+    return { bgmEnabled: false, sfxEnabled: true, volume: 0.5 };
   }
 }
 

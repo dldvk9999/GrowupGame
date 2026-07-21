@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 131까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 134까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -91,6 +91,8 @@ GrowupGame/
 │  │  ├─ WorldBossBattle.jsx       # 월드보스 전투화면(던전 탭 내부) - world-boss.md
 │  │  ├─ LobbyChat.jsx             # 로비 채팅 UI - social-chat.md
 │  │  ├─ ToastContainer.jsx        # 토스트 알림 - ui-and-ux.md
+│  │  ├─ WelcomeModal.jsx          # 최초 접속 환영 팝업 - ui-and-ux.md
+│  │  ├─ Footer.jsx                # 사이트 푸터(GitHub/저작권) - ui-and-ux.md
 │  │  └─ MonsterSprite.jsx         # 몬스터 이미지 렌더링 (벡터→외부이미지 자동 폴백)
 │  ├─ assets/sprites/
 │  │  ├─ FireStage1~3.jsx, WaterStage1~3.jsx, GrassStage1~3.jsx  # 진화단계 SVG 벡터 일러스트(9종)
@@ -132,6 +134,7 @@ GrowupGame/
 │     ├─ expedition.js             # 파견 시스템 RPC 연동 - stages-and-dungeons.md
 │     ├─ friends.js                # 친구 시스템 RPC 연동 - friends.md
 │     ├─ keybinds.js               # 전직스킬 키보드 단축키 설정(localStorage) - skills.md
+│     ├─ welcome.js                # 최초 접속 환영팝업 표시여부(localStorage) - ui-and-ux.md
 │     ├─ seasonEvent.js            # 시즌 한정 이벤트 조회(순수 조회, 켜고끄는 로직은 서버 함수 안에 있음) - stages-and-dungeons.md
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동

@@ -17,6 +17,8 @@
 
 BGM on/off, 효과음 on/off, 볼륨 슬라이더를 설정 > 게임가이드 상단에 배치(테마 컬러 선택과 같은 "개인화 설정" 묶음). `localStorage`에 저장, 서버 관여 없음.
 
+- ⚠️ **BGM 기본값 변경(신규, 사용자 요청)**: 최초 접속(저장된 설정이 아예 없는 상태) 시 `bgmEnabled` 기본값을 `true`→`false`로 변경 — 효과음(`sfxEnabled`)은 그대로 기본 켜짐 유지. `startBgm()`이 이미 `settings.bgmEnabled`를 체크하고 무음이면 그냥 return하는 구조라, `loadSettings()`의 기본값 하나만 바꾸면 충분했음(다른 곳을 별도로 손댈 필요 없음). 기존에 이미 BGM을 켜둔 유저는 `localStorage`에 저장된 값이 우선이라 영향 없음.
+
 ## 통합 지점
 
 - **전투(`BattleScreen.jsx`)**: 데미지/힐/버프 스킬 사용 시 각각 다른 효과음, 승리 시 팡파레, 레벨업 시 딜레이 후 사운드
