@@ -11,6 +11,8 @@ export const PATCH_NOTES = [
     date: '2026-07-20',
     title: '유물 시스템 출시 · PvP 실유저 대전 보상 강화',
     items: [
+      '🐛 1차 전직처럼 빠르게 이기는 전투에서 전직이 완료 안 되던 문제 수정',
+      '🐛 PvP 대전 시 "record is not assigned yet" 오류 재발 - 근본 수정',
       '🔔 푸시 알림 지원 추가 (설정 > 게임가이드에서 켜고 끌 수 있어요)',
       '🐛 PvP 대전 시 "record is not assigned yet" 오류 수정',
       '💤 오프라인 보상 최대 인정시간 2시간 → 10시간 상향',

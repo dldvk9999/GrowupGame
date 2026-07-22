@@ -505,3 +505,6 @@
 
 **138_push_subscriptions.sql** — 신규 콘텐츠(사용자 요청)
 - `push_subscriptions` 테이블 신설, `save_push_subscription`/`remove_push_subscription`/`has_push_subscription` 3개 함수(전부 신규, DROP 불필요) — 푸시 알림 구독 정보 저장. 실제 발송 인프라(Edge Function/pg_cron)는 별도 수동 배포 필요. 자세한 내용은 [`push-notifications.md`](./push-notifications.md)
+
+**140_fix_pvp_record_and_job_claim.sql** — 버그 수정(사용자 재제보)
+- `start_pvp_battle`/`start_pvp_revenge_battle`/`claim_job_dungeon` 재정의(전부 반환타입 그대로, DROP 불필요) — 136의 "record is not assigned yet" 수정이 불완전해서 재발했던 걸 boolean 플래그 방식으로 근본 수정, 전직던전 클레임 안티치트 게이트를 3초→1초로 완화(오버레벨 유저의 빠른 승리가 막히던 문제). 자세한 내용은 [`pvp.md`](./pvp.md), [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`security.md`](./security.md)(68~69차)
