@@ -480,7 +480,10 @@ export default function App() {
         showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       }
     } catch (err) {
+      // ⚠️ [68~69차 후속점검, 사용자 제보로 발견된 패턴 전수 재검토] 예전엔 console.error만
+      // 하고 조용히 실패했음 - 전직/루비던전 클레임에서 겪은 것과 같은 클래스의 문제라 여기도 토스트 추가.
       console.error('클리어 저장 실패', err);
+      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
     }
   }
 
@@ -499,6 +502,8 @@ export default function App() {
       }
     } catch (err) {
       console.error('자동 사냥 저장 실패', err);
+      // 자동사냥은 1.5초마다 반복 호출되는 고빈도 경로라, 매번 토스트를 띄우면 네트워크
+      // 문제 지속 시 도배될 수 있음 - 콘솔 로그는 유지하되 토스트는 생략(의도적 예외)
     }
   }
 
@@ -550,6 +555,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('던전 보상 저장 실패', err);
+      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
     }
   }
 
@@ -588,6 +594,7 @@ export default function App() {
       }
     } catch (err) {
       console.error('무한의 탑 보상 저장 실패', err);
+      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
     }
   }
 
