@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 140까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 143까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -17,6 +17,7 @@
 | [`story.md`](./story.md) | 메인 스토리 아크(잊혀진 조율자), SVG 삽화, 인터루드, 스테이지선택 스토리 팝업 |
 | [`friends.md`](./friends.md) | 친구 시스템(UID 추가, 요청/수락, 최대100명, 페이지네이션) |
 | [`push-notifications.md`](./push-notifications.md) | 푸시 알림(Web Push, 서비스워커, 아침/점심/저녁 - 배포 시 수동설정 필요) |
+| [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md) | 루비 재화/루비 던전, 전직스킬 강화(스킬편성 내 전직강화 탭) |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -74,6 +75,7 @@ GrowupGame/
 │  │  ├─ DungeonSelect.jsx         # 일일/전직 던전 선택 UI - stages-and-dungeons.md
 │  │  ├─ DungeonBattle.jsx         # 일일 던전 전투 화면
 │  │  ├─ JobDungeonBattle.jsx      # 전직 던전 전투 화면
+│  │  ├─ RubyDungeonBattle.jsx     # 루비 던전 전투 화면 - ruby-and-job-enhancement.md
 │  │  ├─ SkillButton.jsx           # 스킬 버튼 공용 컴포넌트 (쿨타임 링 UI, 전투화면 3곳 공유)
 │  │  ├─ StageSelect.jsx           # 100챕터×10스테이지 선택 UI (챕터 카드 캐러셀)
 │  │  ├─ Shop.jsx                  # 상점 - 뽑기 6탭(무기/방어구/장갑/신발/스킬/유물) - equipment.md, skills.md, relics.md
@@ -108,6 +110,8 @@ GrowupGame/
 │     ├─ growth.js                 # 레벨업/경험치/자동진화/전직배율 계산 엔진 (핵심 로직)
 │     ├─ jobAdvancement.js         # 1~5차 전직 시스템 데이터 + 헬퍼
 │     ├─ jobDungeon.js, jobDungeonApi.js  # 전직 던전 보스 데이터 + RPC 연동
+│     ├─ rubyDungeon.js            # 루비 던전 RPC 연동 - ruby-and-job-enhancement.md
+│     ├─ jobSkillEnhance.js        # 전직스킬 강화 RPC 연동 - ruby-and-job-enhancement.md
 │     ├─ skills.js                 # 안전 폴백용 기본 스킬 5종 정의 (실제 플레이는 뽑기 스킬 사용)
 │     ├─ skillCatalog.js           # 뽑기 스킬 카탈로그(50종) + 보유효과 계산
 │     ├─ skillGacha.js             # 스킬 뽑기 RPC 연동

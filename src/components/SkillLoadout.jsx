@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { SKILL_CATALOG, getSkillDef, getEffectiveSkillValue, getSkillSlotCount, getSkillPossessionBonus, sumSkillPossessionBonus, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { setSkillLoadout } from '../lib/skillGacha';
+import { getUnlockedJobTiers, getJobSkillTier } from '../lib/jobAdvancement';
+import { MAX_JOB_SKILL_ENHANCE_LEVEL, JOB_SKILL_ENHANCE_PER_LEVEL, calcJobSkillEnhanceCost } from '../lib/jobSkillEnhance';
+import { showToast } from '../lib/toast';
 
-export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills, onLoadoutChange }) {
+export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills, onLoadoutChange, activeMonster, jobSkillEnhancements, rubies, onEnhanceJobSkill }) {
+  const [tab, setTab] = useState('loadout'); // 'loadout' | 'enhance'
   const [pendingLoadout, setPendingLoadout] = useState(equippedSkills ?? []);
   const [savingLoadout, setSavingLoadout] = useState(false);
   const [error, setError] = useState('');
@@ -39,6 +43,20 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
     <div className="skill-loadout-screen">
       <h2>스킬 편성</h2>
 
+      <div className="shop-tabs">
+        <button className={`shop-tab ${tab === 'loadout' ? 'active' : ''}`} onClick={() => setTab('loadout')}>🧩 편성</button>
+        <button className={`shop-tab ${tab === 'enhance' ? 'active' : ''}`} onClick={() => setTab('enhance')}>💎 전직강화</button>
+      </div>
+
+      {tab === 'enhance' ? (
+        <JobSkillEnhancePanel
+          activeMonster={activeMonster}
+          jobSkillEnhancements={jobSkillEnhancements}
+          rubies={rubies}
+          onEnhance={onEnhanceJobSkill}
+        />
+      ) : (
+      <>
       {/* 스크롤해도 항상 보이는 편성 슬롯 영역 - 접었다 펼 수 있음 */}
       <div className={`loadout-sticky-bar ${collapsed ? 'collapsed' : ''}`}>
         <button
@@ -126,6 +144,8 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
           );
         })}
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -140,4 +160,75 @@ function formatSkillPower(def, effective) {
     case 'haste': return `쿨감 -${Math.round(effective * 100)}%`;
     default: return `배율 ${effective.toFixed(2)}x`;
   }
+}
+
+/** 전직(각성) 스킬 강화 - 루비 소모(신규, 사용자 요청). 등급(전직 차수)이 높을수록
+ * 강화 1회당 필요 루비가 많음. 확률 실패 없이 항상 성공(최대 50강, +2%/강). */
+function JobSkillEnhancePanel({ activeMonster, jobSkillEnhancements, rubies, onEnhance }) {
+  const [enhancingId, setEnhancingId] = useState(null);
+
+  if (!activeMonster) return null;
+  const unlockedTiers = getUnlockedJobTiers(activeMonster.element, activeMonster.unlockedJobTier ?? 0);
+
+  async function handleEnhance(skillId) {
+    setEnhancingId(skillId);
+    try {
+      const res = await onEnhance(skillId);
+      showToast(`강화 성공! Lv.${res.newLevel} (루비 -${res.rubiesSpent})`, 'success');
+    } catch (err) {
+      showToast(err.message ?? '강화에 실패했어요.', 'error');
+    } finally {
+      setEnhancingId(null);
+    }
+  }
+
+  return (
+    <div>
+      <p className="stage-select-hint">
+        전직으로 얻은 각성 스킬을 루비로 강화해서 위력을 올려요. 강화 1회당 배율이 +{Math.round(JOB_SKILL_ENHANCE_PER_LEVEL * 100)}%p씩 오르고,
+        전직 차수가 높은 스킬일수록 강화에 필요한 루비가 더 많아요. 최대 {MAX_JOB_SKILL_ENHANCE_LEVEL}강까지 강화할 수 있어요.
+      </p>
+      <p className="stage-select-hint" style={{ color: 'var(--accent-gold)' }}>💎 보유 루비: {(rubies ?? 0).toLocaleString()}개</p>
+
+      {unlockedTiers.length === 0 && <p className="inventory-empty">아직 습득한 전직 스킬이 없어요. 전직 던전을 먼저 클리어해보세요!</p>}
+
+      <div className="job-dungeon-list">
+        {unlockedTiers.map((t) => {
+          const skill = t.skill;
+          const jobTier = getJobSkillTier(skill.id);
+          const level = jobSkillEnhancements?.[skill.id] ?? 0;
+          const isMax = level >= MAX_JOB_SKILL_ENHANCE_LEVEL;
+          const cost = isMax ? null : calcJobSkillEnhanceCost(jobTier, level);
+          const canAfford = cost != null && (rubies ?? 0) >= cost;
+          const boostedPct = Math.round(level * JOB_SKILL_ENHANCE_PER_LEVEL * 100);
+          return (
+            <div key={skill.id} className="job-dungeon-card">
+              <div className="job-dungeon-tier">{jobTier}차 전직 스킬</div>
+              <div className="job-dungeon-boss">{skill.icon} {skill.name}</div>
+              <div className="job-dungeon-req">
+                강화 Lv.{level}/{MAX_JOB_SKILL_ENHANCE_LEVEL} {level > 0 && `(위력 +${boostedPct}%)`}
+              </div>
+              {isMax ? (
+                <span className="job-dungeon-done-badge">✅ 최대 강화</span>
+              ) : (
+                <button
+                  className={`btn btn-challenge ${canAfford ? '' : 'btn-unaffordable'}`}
+                  disabled={enhancingId === skill.id}
+                  onClick={() => {
+                    if (!canAfford) {
+                      showToast(`루비가 부족해요. (${cost}개 필요)`, 'error');
+                      return;
+                    }
+                    handleEnhance(skill.id);
+                  }}
+                >
+                  {enhancingId === skill.id ? '강화 중...' : `💎 ${cost}개로 강화`}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

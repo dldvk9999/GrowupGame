@@ -195,6 +195,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           <strong>{joinedAt}{daysSinceJoin != null && <span className="mypage-join-days"> · D+{daysSinceJoin}</span>}</strong>
         </div>
         <div className="mypage-row"><span>보유 골드</span><strong>💰 {(profile?.gold ?? 0).toLocaleString()}</strong></div>
+        <div className="mypage-row"><span>보유 루비</span><strong>💎 {(profile?.rubies ?? 0).toLocaleString()}</strong></div>
         {activeMonster && (
           <div className="mypage-row">
             <span>대표 몬스터</span>

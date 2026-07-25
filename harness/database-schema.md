@@ -508,3 +508,12 @@
 
 **140_fix_pvp_record_and_job_claim.sql** — 버그 수정(사용자 재제보)
 - `start_pvp_battle`/`start_pvp_revenge_battle`/`claim_job_dungeon` 재정의(전부 반환타입 그대로, DROP 불필요) — 136의 "record is not assigned yet" 수정이 불완전해서 재발했던 걸 boolean 플래그 방식으로 근본 수정, 전직던전 클레임 안티치트 게이트를 3초→1초로 완화(오버레벨 유저의 빠른 승리가 막히던 문제). 자세한 내용은 [`pvp.md`](./pvp.md), [`stages-and-dungeons.md`](./stages-and-dungeons.md), [`security.md`](./security.md)(68~69차)
+
+**141_relic_possession_and_growth.sql** — 사용자 요청
+- `calc_relic_bonus` 재정의(반환타입 그대로, DROP 불필요) — 유물 보유효과 신설(장착효과의 10%, 장착 여부 무관), 등급별 강화 성장률 차등(노멀2%~신화9%, 기존엔 레벨당 3% 균일). 자세한 내용은 [`relics.md`](./relics.md)
+
+**142_ruby_dungeon.sql** — 신규 콘텐츠(사용자 요청)
+- `profiles.rubies` 컬럼 추가, `ruby_dungeon_attempts`/`ruby_dungeon_sessions` 테이블 신설, `calc_ruby_dungeon_boss`/`start_ruby_dungeon`/`claim_ruby_dungeon_reward`/`fetch_ruby_dungeon_attempts_today` 함수(전부 신규, DROP 불필요) — 캐릭터 레벨 자동스케일 단발성 던전, 하루5회, 클리어시 루비10~100개. 자세한 내용은 [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md)
+
+**143_job_skill_enhancement.sql** — 신규 콘텐츠(사용자 요청)
+- `job_skill_enhancements` 테이블 신설, `extract_job_skill_tier`/`calc_job_skill_enhance_cost`/`enhance_job_skill`/`fetch_my_job_skill_enhancements` 함수(전부 신규, DROP 불필요) — 루비로 전직스킬 강화(등급 높을수록 비용↑, 확률실패 없음, 최대50강). 자세한 내용은 [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md)

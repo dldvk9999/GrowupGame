@@ -6,6 +6,7 @@ import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName, getEnemyAttackInterval } from '../lib/stages';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
+import { getEnhancedJobSkillMultiplier } from '../lib/jobSkillEnhance';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -53,7 +54,7 @@ function growPlayer(effectivePlayer, exp, equipmentBonus) {
  */
 export default function BattleScreen({
   initialMonster, chapter, stage, equipmentBonus, equippedSkills, equippedCostumes, relicBonus,
-  onClear, onIdleGain, onAdvance, onGoStageList, autoPush, onAutoPushStart, onAutoPushStop,
+  onClear, onIdleGain, onAdvance, onGoStageList, autoPush, onAutoPushStart, onAutoPushStop, jobSkillEnhancements,
 }) {
   const stageEnemyTemplate = useMemo(() => getStageEnemy(chapter, stage), [chapter, stage]);
   const flavor = useMemo(() => getStageFlavor(chapter, stage), [chapter, stage]);
@@ -279,10 +280,12 @@ export default function BattleScreen({
     const now = Date.now();
     const atkBuffActive = now < playerBuffs.atkUntil;
     const effAtk = player.atk * (atkBuffActive ? playerBuffs.atkMult : 1);
+    // 전직스킬 강화 반영(신규, 사용자 요청) - 일반 스킬은 배율 그대로, 전직스킬만 강화레벨만큼 배율 보정
+    const effMultiplier = getEnhancedJobSkillMultiplier(skill, jobSkillEnhancements);
 
     const jobTier = getJobSkillTier(skill.id);
     if (skill.type === 'damage') {
-      const dmg = mitigateDamage(effAtk * skill.multiplier, enemy.def);
+      const dmg = mitigateDamage(effAtk * effMultiplier, enemy.def);
       setLog(`${player.name}의 ${skill.name}!`);
       playAttackSound();
       damageEnemy(dmg);
@@ -297,7 +300,7 @@ export default function BattleScreen({
         }
       }
     } else if (skill.type === 'heal') {
-      const healAmount = Math.round(player.maxHp * skill.multiplier);
+      const healAmount = Math.round(player.maxHp * effMultiplier);
       setPlayer((prev) => ({ ...prev, hp: Math.min(prev.hp + healAmount, prev.maxHp) }));
       setLog(`${player.name}의 ${skill.name}! 체력 +${healAmount}`);
       playHealSound();
@@ -305,12 +308,12 @@ export default function BattleScreen({
       setShowHealFx(true);
       setTimeout(() => setShowHealFx(false), 1300);
     } else if (skill.type === 'stun') {
-      const stunMs = Math.round(skill.multiplier * 1000);
+      const stunMs = Math.round(effMultiplier * 1000);
       setEnemyStunnedUntil(now + stunMs);
       setLog(`${player.name}의 ${skill.name}! 적을 ${(stunMs / 1000).toFixed(1)}초간 기절시켰다!`);
       spawnParticles(0.8, 0.35, '#ffe680');
     } else if (skill.type === 'dot') {
-      const perTick = mitigateDamage(effAtk * skill.multiplier, enemy.def);
+      const perTick = mitigateDamage(effAtk * effMultiplier, enemy.def);
       const ticks = skill.ticks ?? 4;
       const tickInterval = skill.tickInterval ?? 1500;
       setLog(`${player.name}의 ${skill.name}! 지속 피해 시작`);
@@ -318,19 +321,19 @@ export default function BattleScreen({
         setTimeout(() => damageEnemy(perTick), t * tickInterval);
       }
     } else if (skill.type === 'buff_atk') {
-      const boosted = skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
+      const boosted = effMultiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
       setPlayerBuffs((prev) => ({ ...prev, atkUntil: now + skill.duration, atkMult: 1 + boosted }));
       setLog(`${player.name}의 ${skill.name}! 공격력이 상승했다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#ff8a4a');
     } else if (skill.type === 'buff_def') {
-      const boosted = skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
+      const boosted = effMultiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100);
       setPlayerBuffs((prev) => ({ ...prev, defUntil: now + skill.duration, defMult: 1 + boosted }));
       setLog(`${player.name}의 ${skill.name}! 방어력이 상승했다!`);
       playBuffSound();
       spawnParticles(0.2, 0.7, '#4aa8ff');
     } else if (skill.type === 'haste') {
-      const boosted = Math.min(0.95, skill.multiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100));
+      const boosted = Math.min(0.95, effMultiplier * (1 + (relicBonus?.pctBuff ?? 0) / 100));
       setPlayerBuffs((prev) => ({ ...prev, hasteUntil: now + skill.duration, hasteReduction: boosted }));
       // haste 버프는 "Date.now() < hasteUntil" 조건으로 화면에 표시되는데, React는 시간이
       // 지났다고 저절로 리렌더하지 않으므로, 버프가 실제로 끝나는 정확한 시점에 강제로

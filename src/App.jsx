@@ -24,6 +24,8 @@ import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, cla
 import { enterTower, claimTowerFloor, fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
 import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
+import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
+import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
 import { usePwaInstall } from './lib/usePwaInstall';
@@ -65,6 +67,7 @@ import WorldBossBattle from './components/WorldBossBattle';
 import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
+import RubyDungeonBattle from './components/RubyDungeonBattle';
 import Settings from './components/Settings';
 import PvP from './components/PvP';
 import LobbyChat from './components/LobbyChat';
@@ -108,6 +111,11 @@ export default function App() {
   const [dungeonEntering, setDungeonEntering] = useState(false);
   const [dungeonError, setDungeonError] = useState('');
   const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
+  const [rubyDungeonBattle, setRubyDungeonBattle] = useState(null); // { sessionId } | null
+  const [rubyEntering, setRubyEntering] = useState(false);
+  const [rubyError, setRubyError] = useState('');
+  const [rubyAttemptsRemaining, setRubyAttemptsRemaining] = useState(null);
+  const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
   const [worldBoss, setWorldBoss] = useState(null);
@@ -272,7 +280,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -292,11 +300,15 @@ export default function App() {
         fetchMyTowerProgress(userId).catch(() => 0),
         fetchMyRelics(userId).catch(() => []),
         fetchClaimedAchievements(userId).catch(() => new Set()),
+        fetchRubyDungeonAttemptsToday().catch(() => 5),
+        fetchMyJobSkillEnhancements().catch(() => ({})),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
       setInventory(inv);
       setClaimedAchievementKeys(claimedAch);
+      setRubyAttemptsRemaining(rubyAttempts);
+      setJobSkillEnhancements(jobEnh);
       setUserRelics(relics);
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
@@ -611,6 +623,43 @@ export default function App() {
     }
   }
 
+  async function handleEnterRubyDungeon() {
+    setRubyError('');
+    setRubyEntering(true);
+    try {
+      const sessionId = await startRubyDungeon();
+      setRubyDungeonBattle({ sessionId });
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setRubyError(message);
+      showToast(message, 'error');
+    } finally {
+      setRubyEntering(false);
+      setRubyAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
+    }
+  }
+
+  async function handleRubyDungeonWin(grownBase) {
+    setActiveMonster(grownBase);
+    try {
+      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
+      const rubies = await claimRubyDungeonReward(rubyDungeonBattle.sessionId);
+      setProfile((p) => (p ? { ...p, rubies: (p.rubies ?? 0) + rubies } : p));
+      showToast(`💎 루비 던전 클리어! 루비 +${rubies}개`, 'success');
+      bumpMission('kill_monsters', 1);
+    } catch (err) {
+      console.error('루비 지급 실패', err);
+      showToast(err.message ?? '루비 지급에 실패했어요. 다시 시도해주세요.', 'error');
+    }
+  }
+
+  async function handleEnhanceJobSkill(skillId) {
+    const res = await enhanceJobSkill(skillId); // 실패 시 예외를 그대로 던져서 호출부(SkillLoadout)가 처리
+    setJobSkillEnhancements((prev) => ({ ...prev, [skillId]: res.newLevel }));
+    setProfile((p) => (p ? { ...p, rubies: res.rubiesBalance } : p));
+    return res;
+  }
+
   async function refreshWorldBoss() {
     try {
       const [boss, progress] = await Promise.all([fetchWorldBoss(), fetchMyWorldBossProgress()]);
@@ -888,6 +937,7 @@ export default function App() {
                 autoPush={autoPushEnabled}
                 onAutoPushStart={() => setAutoPushEnabled(true)}
                 onAutoPushStop={() => setAutoPushEnabled(false)}
+                jobSkillEnhancements={jobSkillEnhancements}
               />
             )}
             {activeTab === 'stage' && (
@@ -903,6 +953,10 @@ export default function App() {
                 userSkills={userSkills}
                 equippedSkills={profile?.equipped_skills ?? []}
                 onLoadoutChange={handleLoadoutChange}
+                activeMonster={activeMonster}
+                jobSkillEnhancements={jobSkillEnhancements}
+                rubies={profile?.rubies ?? 0}
+                onEnhanceJobSkill={handleEnhanceJobSkill}
               />
             )}
             {activeTab === 'shop' && (
@@ -940,6 +994,18 @@ export default function App() {
                   jobBoss={getJobDungeonBoss(jobDungeonBattle.tier, activeMonster.element)}
                   onWin={handleJobDungeonWin}
                   onExit={() => setJobDungeonBattle(null)}
+                />
+              ) : rubyDungeonBattle ? (
+                <RubyDungeonBattle
+                  key={`ruby-${rubyDungeonBattle.sessionId}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  jobSkillEnhancements={jobSkillEnhancements}
+                  rubyBoss={getRubyDungeonBoss(activeMonster.level)}
+                  onWin={handleRubyDungeonWin}
+                  onExit={() => setRubyDungeonBattle(null)}
                 />
               ) : dungeonBattle ? (
                 <DungeonBattle
@@ -1002,6 +1068,11 @@ export default function App() {
                   userId={session.user.id}
                   onExpeditionGoldChange={(gained) => setProfile((p) => ({ ...p, gold: (p?.gold ?? 0) + gained }))}
                   missionNumber={mission?.mission_number}
+                  onEnterRubyDungeon={handleEnterRubyDungeon}
+                  rubyEntering={rubyEntering}
+                  rubyError={rubyError}
+                  rubyAttemptsRemaining={rubyAttemptsRemaining}
+                  rubies={profile?.rubies ?? 0}
                 />
               )
             )}

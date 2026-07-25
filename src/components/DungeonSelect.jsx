@@ -8,7 +8,7 @@ import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countd
 import { showToast } from '../lib/toast';
 import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpeditions } from '../lib/expedition';
 
-const DUNGEON_TABS = ['exp', 'gold', 'job', 'worldboss', 'tower', 'expedition'];
+const DUNGEON_TABS = ['exp', 'gold', 'job', 'ruby', 'worldboss', 'tower', 'expedition'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
@@ -17,6 +17,7 @@ export default function DungeonSelect({
   worldBoss, worldBossProgress, onEnterWorldBoss, worldBossEntering, worldBossError,
   towerHighestFloor, onEnterTower, towerEntering, towerError,
   userId, onExpeditionGoldChange, missionNumber,
+  onEnterRubyDungeon, rubyEntering, rubyError, rubyAttemptsRemaining, rubies,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -48,6 +49,9 @@ export default function DungeonSelect({
         <button className={`shop-tab ${activeType === 'job' ? 'active' : ''}`} onClick={() => onActiveTypeChange('job')}>
           ⚔️ 전직 던전
         </button>
+        <button className={`shop-tab ${activeType === 'ruby' ? 'active' : ''}`} onClick={() => onActiveTypeChange('ruby')}>
+          💎 루비 던전
+        </button>
         <button className={`shop-tab ${activeType === 'worldboss' ? 'active' : ''}`} onClick={() => onActiveTypeChange('worldboss')}>
           🐉 월드보스
         </button>
@@ -68,6 +72,15 @@ export default function DungeonSelect({
           error={jobError}
           towerHighestFloor={towerHighestFloor}
           missionNumber={missionNumber}
+        />
+      ) : activeType === 'ruby' ? (
+        <RubyDungeonPanel
+          activeMonster={activeMonster}
+          onEnter={onEnterRubyDungeon}
+          entering={rubyEntering}
+          error={rubyError}
+          attemptsRemaining={rubyAttemptsRemaining}
+          rubies={rubies}
         />
       ) : activeType === 'worldboss' ? (
         <WorldBossPanel
@@ -169,6 +182,37 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
           <span className="bar-fill" style={{ width: `${(clearedStage / DUNGEON_STAGE_COUNT) * 100}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
         </span>
       </div>
+    </div>
+  );
+}
+
+function RubyDungeonPanel({ activeMonster, onEnter, entering, error, attemptsRemaining, rubies }) {
+  if (!activeMonster) return null;
+  const noAttemptsLeft = attemptsRemaining === 0;
+
+  return (
+    <div>
+      <p className="stage-select-hint">
+        내 캐릭터 레벨에 맞춰 난이도가 자동으로 정해지는 단발성 던전이에요. 클리어하면 루비 10~100개를
+        무작위로 받아요(전직스킬 강화에 사용). 순차 진행이 필요한 다른 던전과 달리 하루 5회까지 언제든 도전할 수 있어요.
+      </p>
+      {error && <p className="shop-error">{error}</p>}
+      <p className="stage-select-hint" style={{ color: 'var(--accent-gold)' }}>
+        💎 보유 루비: {(rubies ?? 0).toLocaleString()}개 · 오늘 남은 입장 횟수: {attemptsRemaining ?? '...'} / 5
+      </p>
+      <button
+        className={`btn btn-challenge ${noAttemptsLeft ? 'btn-unaffordable' : ''}`}
+        disabled={entering || noAttemptsLeft}
+        onClick={() => {
+          if (noAttemptsLeft) {
+            showToast('오늘의 루비 던전 입장 횟수를 모두 사용했어요.', 'error');
+            return;
+          }
+          onEnter();
+        }}
+      >
+        {noAttemptsLeft ? '오늘 입장 횟수 소진' : entering ? '입장 중...' : '💎 루비 던전 도전하기'}
+      </button>
     </div>
   );
 }
