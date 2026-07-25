@@ -62,9 +62,26 @@ export const RELIC_CATEGORY_LABEL = {"hp": "체력", "atk": "공격력", "def": 
 export const MAX_RELIC_LEVEL = 200;
 export const MAX_RELIC_EQUIP = 5;
 
-/** 강화 레벨 반영된 실제 효과치 (server calc_relic_bonus와 동일 공식: base*rarityMult*(1+level*0.03)) */
+// 등급별 강화 성장률(신규, 사용자 요청) - "높은 등급일수록 강화했을 때 상승 갭이 더 크게".
+// 기존엔 등급 상관없이 레벨당 +3%로 균일했음(base*rarityMult만 등급별로 다르고 성장곡선은 동일).
+// 이제 성장률 자체도 등급이 높을수록 가팔라짐 - 노멀+2%~신화+9%. rarityMult(기본배율)와
+// 성장률(레벨당 증가폭)이 둘 다 커지므로, 만렙(200강) 기준 최상급-최하급 격차가 기존보다 훨씬 커짐.
+export const RELIC_GROWTH_RATE = { 1: 0.02, 2: 0.03, 3: 0.045, 4: 0.065, 5: 0.09 };
+
+// 보유효과 비율(신규, 사용자 요청) - 유물도 장비/스킬처럼 "장착 안 해도" 보유만으로 약한
+// 효과를 주도록 변경(기존엔 유물만 보유효과가 없었음, relics.md의 "핵심 안전장치" 참고 -
+// 장착개수 제한(5개)이 여전히 메인 안전장치라 보유효과는 장착효과의 10%로 작게 잡음).
+export const RELIC_POSSESSION_RATIO = 0.10;
+
+/** 강화 레벨 반영된 실제 효과치 (server calc_relic_bonus와 동일 공식 유지할 것) */
 export function getRelicEffectiveValue(relic, level) {
-  return relic.baseValue * relic.rarityMult * (1 + level * 0.03);
+  const growthRate = RELIC_GROWTH_RATE[relic.rarityOrder] ?? 0.03;
+  return relic.baseValue * relic.rarityMult * (1 + level * growthRate);
+}
+
+/** 보유효과(장착 여부와 무관하게 적용) - 장착효과의 RELIC_POSSESSION_RATIO만큼 */
+export function getRelicPossessionValue(relic, level) {
+  return getRelicEffectiveValue(relic, level) * RELIC_POSSESSION_RATIO;
 }
 
 /** 다음 중복 강화 시도 성공 확률 (server draw_relic과 동일 공식) */
