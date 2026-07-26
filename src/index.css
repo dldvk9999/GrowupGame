@@ -1259,6 +1259,14 @@ button {
 .patch-note-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
 .patch-note-header strong { font-size: 14px; }
 .patch-note-date { font-size: 11px; color: var(--text-muted); }
+.patch-note-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+.patch-note-page-indicator { font-size: 13px; color: var(--text-secondary); font-weight: 600; min-width: 50px; text-align: center; }
 .patch-note-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-secondary); }
 .patch-note-tab-btn { position: relative; }
 .mail-tab-btn { position: relative; }
@@ -1590,14 +1598,20 @@ button {
 .gacha-result-dup.relic-enhance-fail { background: var(--danger); color: #fff; }
 
 /* 유물 보유목록/장착 카드 - flex-wrap으로 모바일 좁은 화면에서도 안전하게 줄바꿈 */
-.relic-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.relic-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+  max-width: 900px; /* 초광폭 화면에서 컬럼이 너무 많아져 세로줄이 줄어드는 것 방지(최소 3줄 보장, 사용자 요청) */
+}
 .relic-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 110px;
+  width: 100%;
   padding: 10px 6px;
   border: 1.5px solid;
   border-radius: 10px;
