@@ -46,7 +46,7 @@ export default function LobbyChat({ profile, sinceIso, activeMonster }) {
 
   return (
     <div className="lobby-chat-screen">
-      <h2>로비 <span className="lobby-online-badge">🟢 {onlineCount}명 접속 중</span></h2>
+      <h2>로비 <span className="lobby-online-badge" title="지금 이 로비 화면을 보고 있는 유저 수예요(게임 전체 접속자 수가 아니에요)">🟢 지금 로비를 보는 중 {onlineCount}명</span></h2>
       <div className="shop-tabs">
         <button className={`shop-tab ${subTab === 'chat' ? 'active' : ''}`} onClick={() => setSubTab('chat')}>💬 채팅</button>
         <button className={`shop-tab ${subTab === 'leaderboard' ? 'active' : ''}`} onClick={() => setSubTab('leaderboard')}>🏆 랭킹</button>
