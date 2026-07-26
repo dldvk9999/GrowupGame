@@ -26,9 +26,12 @@ const TIER_TITLE = {
 export const JOB_DUNGEON_EXTRA_REQ = {
   6: { towerFloor: 20 },
   7: { towerFloor: 40, missionNumber: 15 },
-  8: { towerFloor: 60, missionNumber: 25, achievementTitle: '차원의 정복자' },
+  // (수정, 사용자 요청) 8차/10차 요구 업적을 서로 바꿈 - 8차는 이제 PvP 300승("투기장의
+  // 지배자"), 10차는 전체 스테이지 클리어("차원의 정복자")를 요구함. level_180("정점의
+  // 지배자")은 더 이상 전직 게이팅에 안 쓰임(독립 업적으로는 그대로 존재).
+  8: { towerFloor: 60, missionNumber: 25, achievementTitle: '투기장의 지배자' },
   9: { towerFloor: 80, missionNumber: 35, achievementTitle: '종말의 위용' },
-  10: { towerFloor: 100, missionNumber: 50, achievementTitle: '정점의 지배자' },
+  10: { towerFloor: 100, missionNumber: 50, achievementTitle: '차원의 정복자' },
 };
 
 export function getJobDungeonBoss(tier, element) {

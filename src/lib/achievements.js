@@ -10,7 +10,8 @@ export const TITLE_BY_ACHIEVEMENT = {
   job_tier_10: '조율자의 계승자',
   stage_clear_1000: '차원의 정복자',
   gacha_5000: '행운의 화신',
-  pvp_win_50: '투기장의 지배자',
+  pvp_win_50: '투기장의 강자',
+  pvp_win_300: '투기장의 지배자',
   attendance_month: '성실한 조련사',
   full_set_equipped: '완벽주의자',
   founder: '얼리버드',
@@ -60,6 +61,7 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'pvp_win_50', category: 'pvp', icon: '⚡', title: '투기장 강자', desc: 'PvP 50승 달성', reward: 6000, target: 50, stat: 'pvpWins' },
 
   { key: 'pvp_win_100', category: 'pvp', icon: '👑', title: '투기장의 전설', desc: 'PvP 100승 달성 (다이아몬드 티어)', reward: 25000, target: 100, stat: 'pvpWins' },
+  { key: 'pvp_win_300', category: 'pvp', icon: '🏛️', title: '투기장의 지배자', desc: 'PvP 300승 달성', reward: 40000, target: 300, stat: 'pvpWins' },
 
   { key: 'pvp_revenge_10', category: 'pvp', icon: '🔁', title: '복수의 화신', desc: '복수전 10승 달성', reward: 8000, target: 10, stat: 'revengeWins' },
 
