@@ -408,6 +408,20 @@ export default function BattleScreen({
         {chapter}-{stage} · {getChapterName(chapter)}{stageEnemyTemplate.isBoss ? ' (보스)' : ''}
         {mode === 'idle' && <span className="idle-tag">자동 사냥 중</span>}
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
+        {autoPush && (
+          <button
+            type="button"
+            className="btn btn-ghost auto-push-stop-btn"
+            onClick={() => {
+              // 중지를 누르면 부모의 autoPush 플래그를 끄고(추가 자동진행 방지),
+              // 지금 챌린지 전투 중이었더라도 즉시 방치형(idle) 자동사냥으로 되돌림(사용자 요청)
+              onAutoPushStop?.();
+              if (mode === 'challenge') backToIdle();
+            }}
+          >
+            🛑 자동사냥 중지
+          </button>
+        )}
       </div>
 
       <div className="arena">

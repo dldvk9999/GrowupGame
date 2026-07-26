@@ -97,6 +97,7 @@ export default function App() {
   const [currentStageIndex, setCurrentStageIndex] = useState(1);
   const [autoPushEnabled, setAutoPushEnabled] = useState(false);
   const [pendingStage, setPendingStage] = useState(null);
+  const lastStoryShownAtRef = useRef(0); // 스토리 중복노출 방지용 쿨다운 타임스탬프(사용자 제보)
   const [pendingStoryContent, setPendingStoryContent] = useState(null);
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
   const [starterLoading, setStarterLoading] = useState(false);
@@ -432,15 +433,23 @@ export default function App() {
       setPendingStage({ chapter, stage: stageNum });
       setPendingStoryContent(getChapterStory(chapter));
       setStage(STAGE.CHAPTER_STORY);
+      lastStoryShownAtRef.current = Date.now();
       return;
     }
     // 이미 진행 중인 챕터라도, 가끔(12%) 짧은 인터루드 장면을 보여줌(사용자 요청) -
-    // 스테이지 이동 자체를 막진 않고 "계속하기"를 누르면 그대로 이어짐
-    const interlude = maybeGetInterlude();
+    // 스테이지 이동 자체를 막진 않고 "계속하기"를 누르면 그대로 이어짐.
+    // ⚠️ 버그 수정(사용자 제보 - "챕터 넘어가면서 한 번, 1스테이지 클리어 시 또 한 번"):
+    // 방금 막 챕터 진입 스토리를 보여줬는데 바로 다음 스테이지 이동에서 인터루드가 또
+    // 뜨면 "스토리가 중복으로 뜬다"고 느껴짐 - 특히 자동사냥(자동 진행)일 땐 스테이지
+    // 전환이 몇 초 간격으로 빠르게 반복되니 12% 확률이 계속 재시도되며 체감상 훨씬 잦아짐.
+    // 마지막 스토리 노출(챕터스토리든 인터루드든) 후 60초 안에는 인터루드를 새로 굴리지 않음.
+    const cooldownOk = Date.now() - lastStoryShownAtRef.current > 60000;
+    const interlude = cooldownOk ? maybeGetInterlude() : null;
     if (interlude) {
       setPendingStage({ chapter, stage: stageNum });
       setPendingStoryContent(interlude);
       setStage(STAGE.CHAPTER_STORY);
+      lastStoryShownAtRef.current = Date.now();
       return;
     }
     setCurrentStageIndex(toStageIndex(chapter, stageNum));

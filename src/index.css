@@ -666,6 +666,7 @@ button {
   color: var(--accent-gold);
   font-size: 12px;
 }
+.auto-push-stop-btn { font-size: 11px; padding: 4px 10px; flex-shrink: 0; }
 
 .buff-status-row {
   display: flex;
@@ -1105,6 +1106,9 @@ button {
 .idle-panel {
   text-align: center;
   padding: 12px 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .idle-hint { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
 .btn-challenge {

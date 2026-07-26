@@ -236,3 +236,7 @@ PvP는 던전과 달리 **하루 횟수 제한이 없어서**(2초 쿨다운만 
 ## 푸터 (신규, 사용자 요청)
 
 `Footer.jsx` — GitHub 저장소 링크 + 저작권 표기(`© {현재연도} dldvk9999. All rights reserved.`). `.app-shell`이 `flex-direction: column`이고 `.app-main`이 `flex: 1`이라, `<Footer/>`를 `</main>` 바로 다음 형제로 붙이기만 하면 별도 포지셔닝 CSS 없이 항상 콘텐츠 맨 아래에 자연스럽게 위치함(고정 하단바 같은 게 없는 레이아웃이라 겹칠 걱정 없음). 로그인 전 화면(인증/스토리)에도 동일하게 보임(`app-shell` 최상위에 있어서 `stage` 값과 무관하게 항상 렌더링).
+
+## 유휴 패널 버튼 간격 (사용자 제보)
+
+`.idle-panel`("스테이지 도전하기"/"🔁 자동사냥" 버튼이 있는 영역)이 `display:flex; flex-direction:column`도 `gap`도 없어서, 두 버튼이 딱 붙어보이는 문제가 있었음(특히 모바일에서 두드러짐). `gap: 10px` 추가로 해결.
