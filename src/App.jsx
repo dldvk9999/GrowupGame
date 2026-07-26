@@ -98,6 +98,7 @@ export default function App() {
   const [autoPushEnabled, setAutoPushEnabled] = useState(false);
   const [pendingStage, setPendingStage] = useState(null);
   const lastStoryShownAtRef = useRef(0); // 스토리 중복노출 방지용 쿨다운 타임스탬프(사용자 제보)
+  const shownChapterStoriesRef = useRef(new Set()); // 이미 보여준 챕터 진입스토리 기록(중복노출 완전 차단용, 사용자 재제보)
   const [pendingStoryContent, setPendingStoryContent] = useState(null);
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
   const [starterLoading, setStarterLoading] = useState(false);
@@ -429,7 +430,15 @@ export default function App() {
     const chapterHasProgress = Array.from({ length: STAGES_PER_CHAPTER }, (_, i) => i + 1).some((s) =>
       clearedStageIds.has(toStageIndex(chapter, s))
     );
-    if (!chapterHasProgress && chapter > 1) {
+    // ⚠️ 버그 수정(사용자 재제보 - "챕터 넘어갈 때 스토리도 자동사냥 중이면 두 번씩 뜬다"):
+    // handleAdvance()가 같은 챕터 진입에 대해 짧은 시간 안에 두 번 호출되면(정확한 재현
+    // 경로는 못 밝혔지만, 자동사냥의 빠른 연속 전환에서만 보고됨), chapterHasProgress가
+    // 아직 갱신 안 된 상태라 두 번 다 "챕터 최초진입"으로 판정돼 같은 스토리가 두 번
+    // 뜰 수 있었음. clearedStageIds 갱신 타이밍에 의존하지 않고, "이 챕터의 진입 스토리를
+    // 이미 보여줬는지" 자체를 별도로 기록해서 완전히 막음.
+    const alreadyShownThisChapter = shownChapterStoriesRef.current.has(chapter);
+    if (!chapterHasProgress && !alreadyShownThisChapter && chapter > 1) {
+      shownChapterStoriesRef.current.add(chapter);
       setPendingStage({ chapter, stage: stageNum });
       setPendingStoryContent(getChapterStory(chapter));
       setStage(STAGE.CHAPTER_STORY);
