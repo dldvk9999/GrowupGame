@@ -2264,3 +2264,16 @@ button {
   padding: 2px 4px;
 }
 .info-tooltip-close:hover { color: var(--danger); }
+
+/* ---------- 전투 제한시간 게이지 (신규, 사용자 요청) ---------- */
+.time-limit-bar-wrap { margin: 8px 0; }
+.time-limit-bar-label { font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; font-weight: 600; }
+.time-limit-track { height: 8px; }
+.time-limit-fill {
+  background: linear-gradient(90deg, var(--accent-heal), var(--accent-gold));
+  transition: width 1s linear;
+}
+.time-limit-fill--warning {
+  background: linear-gradient(90deg, #ff4d4d, #ff8a4a);
+  animation: badge-pulse 1s ease-in-out infinite;
+}

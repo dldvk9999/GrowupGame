@@ -7,6 +7,7 @@ import { getAvailableSkills } from '../lib/jobAdvancement';
 import { getStageEnemy, getIdleMonster, getChapterName, getEnemyAttackInterval } from '../lib/stages';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 import { getEnhancedJobSkillMultiplier } from '../lib/jobSkillEnhance';
+import TimeLimitBar from './TimeLimitBar';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
@@ -14,6 +15,7 @@ import { maybePickIdleFlavor } from '../lib/idleFlavor';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
+const TIME_LIMIT_MS = 60000; // 스테이지 도전 제한시간 1분(신규, 사용자 요청) - 유휴(자동사냥) 모드에는 적용 안 됨
 const IDLE_KILL_INTERVAL = 1500; // ms, 자동 사냥 처치 텀 (2배 상향)
 
 function withEquipment(monster, bonus) {
@@ -80,6 +82,8 @@ export default function BattleScreen({
   const [result, setResult] = useState(null);
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
+  const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS); // 제한시간(신규, 사용자 요청) - 도전(challenge) 모드에서만 적용
+  const challengeStartedAtRef = useRef(Date.now());
 
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
@@ -181,6 +185,8 @@ export default function BattleScreen({
     setEnemy({ ...stageEnemyTemplate });
     setPlayer((prev) => ({ ...prev, hp: prev.maxHp })); // 도전 시작 시 풀피로
     setResult(null);
+    challengeStartedAtRef.current = Date.now(); // 제한시간 리셋(신규, 사용자 요청) - 재도전마다 새로 잼
+    setTimeLeftMs(TIME_LIMIT_MS);
     // 전직 스킬은 강할수록(차수가 높을수록) 전투 시작 직후 바로 못 쏘게 초기 대기시간을 줌
     const initial = buildInitialJobSkillCooldowns(availableSkills);
     setCooldowns(initial.cooldowns);
@@ -220,6 +226,21 @@ export default function BattleScreen({
       setLog(`${player.name}가 쓰러졌다... 다시 도전해보세요!`);
     }
   }, [mode, enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 스테이지 도전 제한시간 카운트다운(신규, 사용자 요청) - 유휴(자동사냥) 모드에는 적용 안 함
+  useEffect(() => {
+    if (mode !== 'challenge' || result) return;
+    const timer = setInterval(() => {
+      const left = TIME_LIMIT_MS - (Date.now() - challengeStartedAtRef.current);
+      setTimeLeftMs(Math.max(0, left));
+      if (left <= 0) {
+        clearInterval(timer);
+        setResult('lose');
+        setLog(`시간 초과! ${player.name}가 제한시간 안에 이기지 못했어요.`);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [mode, result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 자동사냥 스테이지 자동진행(신규, 사용자 요청) - "자동사냥" 버튼을 켜두면 유휴모드에서
   // 자동으로 실제 스테이지 전투(challenge)를 시작함. idleMonster(공격력0, 항상 이김)가
@@ -423,6 +444,7 @@ export default function BattleScreen({
           </button>
         )}
       </div>
+      {mode === 'challenge' && !result && <TimeLimitBar remainingMs={timeLeftMs} totalMs={TIME_LIMIT_MS} />}
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />

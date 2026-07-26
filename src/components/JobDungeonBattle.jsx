@@ -7,8 +7,10 @@ import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
+import TimeLimitBar from './TimeLimitBar';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
+const TIME_LIMIT_MS = 60000; // 제한시간 1분(신규, 사용자 요청) - 시간 안에 못 이기면 패배 처리
 const ENEMY_ATTACK_INTERVAL = 1600;
 
 function withEquipment(monster, bonus) {
@@ -53,6 +55,8 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
   const [jobKeybinds] = useState(() => getJobSkillKeybinds());
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
+  const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS); // 제한시간(신규, 사용자 요청)
+  const startedAtRef = useRef(Date.now());
 
   const canvasRef = useRef(null);
   const particlesRef = useRef([]);
@@ -142,6 +146,21 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
       setLog(`${player.name}가 쓰러졌다... 스킬 로테이션을 다시 점검해보세요.`);
     }
   }, [enemy.hp, player.hp, result]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 제한시간 카운트다운(신규, 사용자 요청) - 1분 안에 못 이기면 자동으로 패배 처리
+  useEffect(() => {
+    if (result) return;
+    const timer = setInterval(() => {
+      const left = TIME_LIMIT_MS - (Date.now() - startedAtRef.current);
+      setTimeLeftMs(Math.max(0, left));
+      if (left <= 0) {
+        clearInterval(timer);
+        setResult('lose');
+        setLog(`시간 초과! ${player.name}가 제한시간 안에 이기지 못했어요.`);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [result]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (result) return;
@@ -264,6 +283,7 @@ export default function JobDungeonBattle({ initialMonster, equipmentBonus, equip
         전직 던전 · {jobBoss.tier}차
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
+      {!result && <TimeLimitBar remainingMs={timeLeftMs} totalMs={TIME_LIMIT_MS} />}
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />

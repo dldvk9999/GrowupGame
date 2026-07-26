@@ -8,6 +8,7 @@ import { playAttackSound, playHealSound, playBuffSound, playNewRecordSound } fro
 import { reportWorldBossDamage } from '../lib/worldBoss';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
+import TimeLimitBar from './TimeLimitBar';
 
 const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 // 월드보스 공격 대폭 강화(사용자 요청): 일반 공격 고정 데미지 9000, 스킬 공격 고정 데미지 20000
@@ -332,9 +333,10 @@ export default function WorldBossBattle({ initialMonster, equipmentBonus, equipp
   return (
     <div className={`battle-screen worldboss-screen ${shake ? 'shake' : ''}`}>
       <div className="stage-badge">
-        🐉 월드보스 · 남은 도전 {session.remainingAttempts}회 · ⏱️ {Math.ceil(timeLeftMs / 1000)}초 남음
+        🐉 월드보스 · 남은 도전 {session.remainingAttempts}회
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
+      <TimeLimitBar remainingMs={timeLeftMs} totalMs={TIME_LIMIT_MS} />
 
       <div className="arena worldboss-arena">
         <canvas ref={canvasRef} className="arena-fx" />
