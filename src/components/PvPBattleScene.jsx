@@ -204,7 +204,21 @@ export default function PvPBattleScene({ battle, mySpeciesKey, equippedCostumes,
         }, 700);
       }
     }, ROUND_INTERVAL);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      // ⚠️ [버그 수정, 사용자 제보] "대전 중 다른 탭으로 이동하면 승패가 반영 안 되는데
+      // 연승으로는 잡힌다" - 서버는 startPvpBattle() 시점에 이미 승패/재화를 확정짓고,
+      // 이 화면은 그 결과를 그냥 "연출"만 하고 있었음. 애니메이션이 다 끝나기 전에
+      // 화면을 벗어나(컴포넌트가 언마운트되어) onFinish가 자연 호출될 기회를 놓치면,
+      // 부모(PvPArena/App.jsx)의 pvp_wins/재화 표시가 갱신 안 된 채로 남아있었음(서버
+      // DB에는 이미 반영됐으니, 나중에 전적을 다시 불러오면 그제서야 연승에 잡혀서
+      // "승패는 안 떴는데 연승엔 반영됐다"로 보였던 것). 정리 함수에서 아직 결과 반영이
+      // 안 됐으면 강제로 한 번 더 호출해서, 화면이 사라지는 순간에도 상태 동기화를 보장함.
+      if (!finishedRef.current) {
+        finishedRef.current = true;
+        onFinish?.();
+      }
+    };
   }, [battle, onFinish, spawnParticles, spawnProjectile]);
 
   return (

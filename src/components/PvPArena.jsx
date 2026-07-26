@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchMyCombatPower, startPvpBattle, startPvpRevengeBattle, fetchPvpHistory } from '../lib/pvp';
 import { getDisplaySpriteKey } from '../lib/jobAdvancement';
 import { getPvpTier, getWinsToNextTier } from '../lib/pvpTier';
@@ -53,24 +53,38 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
     }
   }
 
-  function handleSceneFinish() {
-    const res = pendingBattle;
-    setPendingBattle(null);
-    setLastResult(res);
-    setMyPower(res.my_power);
-    onBattleResolved(res);
-    markPvpPlayedToday(); // 오늘의 할 일 체크리스트용
-    setFighting(false);
-    loadHistory(); // 연승 스트릭 표시와 전적 목록 둘 다 즉시 반영되도록 항상 갱신
-    if (res.result === 'win') {
-      const bonusTag = res.opponent_is_real ? ' (실유저 3배!)' : '';
-      showToast(`승리! PvP 재화 +${res.reward.toLocaleString()}${bonusTag}`, 'success');
-    } else if (res.reward > 0) {
-      showToast(`패배했지만 실유저 대전 보상 +${res.reward.toLocaleString()}`, 'info');
-    } else {
-      showToast('패배했어요. 다시 도전해보세요!', 'error');
-    }
-  }
+  // ⚠️ [버그 수정, 사용자 제보] "최근 전적 보기" 버튼을 누르면 전투가 처음부터 다시
+  // 시작되던 문제 - handleSceneFinish가 매 렌더마다 새로 생성되는 일반 함수였는데,
+  // PvPBattleScene의 애니메이션 useEffect가 이 함수를 의존성 배열에 넣고 있어서
+  // (onFinish가 바뀔 때마다 effect가 통째로 정리+재시작됨), showHistory 토글 같은
+  // PvPArena의 아무 리렌더에서나 handleSceneFinish 참조가 바뀌어 애니메이션이
+  // round=0부터 다시 시작됐음. useCallback으로 참조를 안정시켜서 해결.
+  // onBattleResolved도 App.jsx에서 JSX 인라인 함수로 전달돼 매 렌더마다 참조가 바뀌므로,
+  // ref로 최신값만 담아두고 handleSceneFinish 자체는 완전히 빈 의존성 배열로 고정함
+  // (그래야 PvPBattleScene의 애니메이션 effect가 절대 재시작되지 않음)
+  const onBattleResolvedRef = useRef(onBattleResolved);
+  onBattleResolvedRef.current = onBattleResolved;
+
+  const handleSceneFinish = useCallback(() => {
+    setPendingBattle((prev) => {
+      if (!prev) return prev;
+      setLastResult(prev);
+      setMyPower(prev.my_power);
+      onBattleResolvedRef.current(prev);
+      markPvpPlayedToday();
+      setFighting(false);
+      loadHistory();
+      if (prev.result === 'win') {
+        const bonusTag = prev.opponent_is_real ? ' (실유저 3배!)' : '';
+        showToast(`승리! PvP 재화 +${prev.reward.toLocaleString()}${bonusTag}`, 'success');
+      } else if (prev.reward > 0) {
+        showToast(`패배했지만 실유저 대전 보상 +${prev.reward.toLocaleString()}`, 'info');
+      } else {
+        showToast('패배했어요. 다시 도전해보세요!', 'error');
+      }
+      return null;
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mySpeciesKey = activeMonster
     ? getDisplaySpriteKey(activeMonster.speciesId, activeMonster.element, activeMonster.unlockedJobTier ?? 0)

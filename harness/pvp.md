@@ -70,6 +70,17 @@
 - ⚠️ **"record is not assigned yet" 크래시 수정(migration 136, 사용자 제보)**: `start_pvp_battle`(도전 가능한 다른 유저가 아예 없는 경우)과 `start_pvp_revenge_battle`(상대가 이미 몬스터를 바꿔서 조회 0행인 경우) 둘 다, 상대를 record 변수(`v_opp_row`)에 담는 조회가 0행이면 그 변수가 "할당된 적 없음" 상태로 남는데 바로 다음 줄에서 `v_opp_row.user_id`처럼 필드를 참조해서 크래시가 났음. 특히 복수전은 상대를 못 찾을 때마다 의도한 "상대를 찾을 수 없어요" 안내 대신 **매번 이 에러가 났을 가능성이 높음**. `select ... into v_opp_row` 직후 `if not found then v_opp_row := null; end if;`로 명시적 NULL 처리 후 필드를 읽도록 수정 — 자세한 원인 분석과 이 버그 클래스에 대한 일반적인 주의사항은 [`security.md`](./security.md)의 68차 점검 참고
 - ⚠️ **위 수정이 불완전했음(migration 140, 사용자 재제보)**: 136 배포 후에도 같은 에러가 다시 발생 — **record 타입 변수는 `NULL`을 대입해도 "필드 구조"가 정해지지 않아 필드 접근 시 여전히 예외가 남**(136의 "null 대입 후 필드 읽기" 접근 자체가 근본적으로 안전하지 않았음). 140에서 완전히 재작성 — **record 필드를 아예 직접 참조하지 않고 별도 boolean(`v_found_opponent`)만으로 판단**하도록 바꿔서, record의 할당 상태와 무관하게 항상 안전하게 함. 023부터 120까지 역대 모든 `start_pvp_battle` 버전이 전부 이 잘못된 "null 대입" 패턴을 갖고 있었다는 것도 이번에 확인(전부 지금은 140으로 대체됨)
 
+### 전투 연출 애니메이션 불안정 버그 (사용자 제보 2건, 근본원인 동일)
+
+**증상 1 — "최근 전적 보기" 버튼을 누르면 전투가 처음부터 다시 시작됨.** **증상 2 — 전투 중 다른 탭으로 이동하면 승패가 화면엔 안 뜨는데 연승 스트릭엔 반영됨.**
+
+**공통 원인**: 서버는 `startPvpBattle()`이 응답하는 시점에 승패·재화·`pvp_wins`/`pvp_losses`를 **이미 전부 확정**함(그 뒤의 `PvPBattleScene`은 순수 연출일 뿐). 그런데 연출이 끝났을 때 호출하는 `handleSceneFinish`가 `PvPArena.jsx`에서 **매 렌더마다 새로 만들어지는 일반 함수**였고, `PvPBattleScene.jsx`의 애니메이션 `useEffect`가 이 함수를 의존성 배열(`[battle, onFinish, ...]`)에 넣고 있었음 — `onFinish` 참조가 바뀔 때마다 effect가 **정리(clearInterval) + 처음부터 재시작**됨. `showHistory` 토글 같은 `PvPArena`의 **아무 리렌더**에서나 이 일이 벌어졌으므로, 전적보기 버튼을 누르면 라운드가 0부터 다시 돎(증상 1). 반대로 애니메이션이 끝나기 전에 화면을 벗어나면(다른 탭 이동 = 컴포넌트 언마운트), effect의 클린업이 실행되지만 `onFinish`가 자연스럽게 불릴 기회가 없어서 `App.jsx`의 `pvp_wins`/재화 상태가 그 판에 대해서는 갱신되지 않음 — 서버 DB에는 이미 반영돼있으니, 나중에 전적을 다시 불러오면 그제서야 연승 계산에 잡혀서 "승패는 안 떴는데 연승엔 반영됐다"로 보였음(증상 2).
+
+**수정**:
+- `PvPArena.jsx`: `handleSceneFinish`를 `useCallback`으로 감싸되, 부모(`App.jsx`)가 넘기는 `onBattleResolved`도 JSX 인라인 함수라 매 렌더마다 참조가 바뀌므로 **ref(`onBattleResolvedRef`)에 최신값만 담아두고 콜백 자체는 빈 의존성 배열(`[]`)로 완전히 고정** — 이래야 `PvPArena`가 무슨 이유로 리렌더되든 `handleSceneFinish`의 참조가 절대 안 바뀜
+- `PvPBattleScene.jsx`: 애니메이션 effect의 정리 함수에서, 아직 `finishedRef.current`가 안 세워진 채로(=자연 종료 전에) 언마운트되면 **`onFinish()`를 강제로 한 번 더 호출**해서 화면이 사라지는 순간에도 부모 상태 동기화를 보장함
+- `spawnParticles`/`spawnProjectile`은 원래부터 빈 의존성 배열의 `useCallback`이라 안정적이었음(문제 없었음) — 불안정했던 건 오직 `onFinish` 하나
+
 ## PvP 상점 (코스튬)
 
 - 전체 유저 공용 진열대 **10칸**(031에서 30칸→10칸 축소), **매시 정각 자동 갱신**(`sync_pvp_shop`, 우편함과 동일한 lazy-generation — cron 없이 이번 시간대 진열대가 없으면 그때 생성)
