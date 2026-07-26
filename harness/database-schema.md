@@ -523,3 +523,9 @@
 
 **145_relic_boost_2.sql** — 사용자 재요청("비싼 돈을 쓰는 가치가 있게")
 - `relic_catalog.rarity_mult` 일괄 UPDATE(장비와 공유하던 값에서 유물 전용으로 분리, 신화 6.5→10.0), `calc_relic_bonus` 재정의(반환타입 그대로, DROP 불필요) — 보유효과 비율 10%→20% 상향. ⚠️ 배포 전 시뮬레이션으로 percent 타입 유물이 과도하게 강해지는 걸 발견해서 성장률은 141 수준으로 유지(자세한 내용은 [`relics.md`](./relics.md))
+
+**146_worldboss_hp_apply_current_week.sql** — 사용자 재제보("왜 안바뀌었냐")
+- `world_boss_state` 데이터 UPDATE(함수 아님) — 144가 "신규 주차 생성" 로직만 1억으로 바꾸고 이미 생성된 이번 주 행은 안 건드려서 다음 주 리셋 전까지 적용이 안 됐던 문제. 이번 주 미클리어 행의 max_hp/current_hp를 즉시 1억 기준으로 갱신(입힌 피해량은 보존). 자세한 내용은 [`world-boss.md`](./world-boss.md)
+
+**147_job_tier_achievement_swap.sql** — 사용자 요청
+- `claim_achievement`/`set_equipped_title`/`start_job_dungeon` 재정의(전부 반환타입 그대로, DROP 불필요) — 8차 전직 요구업적을 `stage_clear_1000`→신설 `pvp_win_300`(PvP 300승, 칭호 "투기장의 지배자")으로, 10차는 `level_180`→`stage_clear_1000`으로 교체. 기존 `pvp_win_50`의 칭호가 "투기장의 지배자"와 겹쳐서 "투기장의 강자"로 재배정. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
