@@ -90,8 +90,9 @@ export function getRelicEnhanceSuccessChance(currentLevel) {
 }
 
 /** 효과 설명 텍스트 (예: '공격력 +12.3% 증가') */
-export function formatRelicEffect(relic, level = 0) {
-  const value = getRelicEffectiveValue(relic, level);
+/** possessionOnly=true면 보유효과(장착효과의 RELIC_POSSESSION_RATIO만큼)로 표시 */
+export function formatRelicEffect(relic, level = 0, possessionOnly = false) {
+  const value = possessionOnly ? getRelicPossessionValue(relic, level) : getRelicEffectiveValue(relic, level);
   const unit = relic.effectMode === 'percent' ? '%' : '';
   const verb = relic.effectCategory === 'cooldown' ? '감소' : '증가';
   const sign = relic.effectCategory === 'cooldown' ? '-' : '+';

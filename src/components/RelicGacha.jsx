@@ -113,7 +113,7 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, ref
         </div>
         <p className="gacha-hint">
           <InfoTooltip text={`유물 50종 중 하나를 뽑아요. 중복이면 강화를 시도해요(레벨이 높을수록 성공확률이 낮아짐, 최대 강화 +${MAX_RELIC_LEVEL}).`} />
-          {' '}유물은 <strong>장착한 최대 {MAX_RELIC_EQUIP}개</strong>만 효과가 적용돼요 — 아래에서 장착할 유물을 골라보세요.
+          {' '}유물은 <strong>보유만 해도 소량 효과</strong>가 있고, <strong>장착한 최대 {MAX_RELIC_EQUIP}개</strong>는 전액 적용돼요 — 아래에서 장착할 유물을 골라보세요.
         </p>
 
         <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>
@@ -172,6 +172,9 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, ref
                     <span className="relic-card-name">{relic.name}</span>
                     <span className="relic-card-effect" style={{ color: RARITY_COLOR[relic.rarity] }}>{formatRelicEffect(relic, level)}</span>
                     <span className="relic-card-level">+{level}{level >= MAX_RELIC_LEVEL ? ' (MAX)' : ''}</span>
+                    <span className="relic-card-possession">
+                      보유효과 {formatRelicEffect(relic, level, true)}
+                    </span>
                     {picked && <span className="relic-card-badge">장착중</span>}
                   </button>
                 );
