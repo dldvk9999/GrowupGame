@@ -4,6 +4,7 @@ import { setSkillLoadout } from '../lib/skillGacha';
 import { getUnlockedJobTiers, getJobSkillTier } from '../lib/jobAdvancement';
 import { MAX_JOB_SKILL_ENHANCE_LEVEL, JOB_SKILL_ENHANCE_PER_LEVEL, calcJobSkillEnhanceCost } from '../lib/jobSkillEnhance';
 import { showToast } from '../lib/toast';
+import InfoTooltip from './InfoTooltip';
 
 export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills, onLoadoutChange, activeMonster, jobSkillEnhancements, rubies, onEnhanceJobSkill }) {
   const [tab, setTab] = useState('loadout'); // 'loadout' | 'enhance'
@@ -71,10 +72,10 @@ export default function SkillLoadout({ monsterLevel, userSkills, equippedSkills,
 
         {!collapsed && (
           <>
-            <p className="gacha-hint">몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75/100/130/160/190/220마다 +1, 최대 10슬롯). 아래에서 원하는 스킬을 눌러 편성하세요.</p>
+            <p className="gacha-hint"><InfoTooltip text="몬스터 레벨이 오를수록 슬롯이 늘어나요 (Lv.10/25/50/75/100/130/160/190/220마다 +1, 최대 10슬롯). 아래에서 원하는 스킬을 눌러 편성하세요." /> 편성 슬롯 안내</p>
             <p className="gacha-hint">
-              보유한 스킬은 장착 여부와 상관없이 <strong>상시 공격력 보너스</strong>를 줘요.
-              현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
+              <InfoTooltip text="보유한 스킬은 장착 여부와 상관없이 상시 공격력 보너스를 줘요." />
+              {' '}현재 총 <strong style={{ color: 'var(--accent-gold)' }}>+{sumSkillPossessionBonus(userSkills)} ATK</strong>
             </p>
             <p className="gacha-hint loadout-legend">
               <span className="loadout-legend-dot loadout-legend-dot--equipped" /> 현재 착용 중
@@ -185,8 +186,8 @@ function JobSkillEnhancePanel({ activeMonster, jobSkillEnhancements, rubies, onE
   return (
     <div>
       <p className="stage-select-hint">
-        전직으로 얻은 각성 스킬을 루비로 강화해서 위력을 올려요. 강화 1회당 배율이 +{Math.round(JOB_SKILL_ENHANCE_PER_LEVEL * 100)}%p씩 오르고,
-        전직 차수가 높은 스킬일수록 강화에 필요한 루비가 더 많아요. 최대 {MAX_JOB_SKILL_ENHANCE_LEVEL}강까지 강화할 수 있어요.
+        <InfoTooltip text={`전직으로 얻은 각성 스킬을 루비로 강화해서 위력을 올려요. 강화 1회당 배율이 +${Math.round(JOB_SKILL_ENHANCE_PER_LEVEL * 100)}%p씩 오르고, 전직 차수가 높은 스킬일수록 강화에 필요한 루비가 더 많아요. 최대 ${MAX_JOB_SKILL_ENHANCE_LEVEL}강까지 강화할 수 있어요.`} />
+        {' '}전직강화 안내
       </p>
       <p className="stage-select-hint" style={{ color: 'var(--accent-gold)' }}>💎 보유 루비: {(rubies ?? 0).toLocaleString()}개</p>
 

@@ -5,6 +5,7 @@ import { synthesizeEquipment, synthesizeEquipmentBatch } from '../lib/equipmentG
 import { fetchMyCostumes, setCostumeLoadout } from '../lib/pvp';
 import { playBuffSound } from '../lib/audio';
 import { showToast } from '../lib/toast';
+import InfoTooltip from './InfoTooltip';
 
 const SLOT_ORDER = Object.keys(SLOTS);
 const SYNTHESIS_COST = 10;
@@ -89,10 +90,8 @@ export default function Inventory({ userId, inventory, equippedCostumes, onInven
       {subTab === 'equipment' ? (
         <>
           <p className="stage-select-hint">
-            같은 등급을 또 뽑으면 자동으로 강화(+1, 최대 +{MAX_ENHANCE_LEVEL})돼요.
-            <strong> 보유효과는 장착하지 않아도 항상 적용</strong>되고, 강화될수록 같이 올라가요.
-            강화수치 {SYNTHESIS_COST} 이상이면 <strong>합성</strong>해서 상위 등급의 강화수치를 1 올릴 수 있어요.
-            4슬롯을 <strong>전부 같은 등급으로 장착</strong>하면 세트 효과로 최종 스탯 보너스가 붙어요. 등급이 높을수록 더 큰 보너스예요(노멀 +3% ~ 신화 +18%).
+            <InfoTooltip text={`같은 등급을 또 뽑으면 자동으로 강화(+1, 최대 +${MAX_ENHANCE_LEVEL})돼요. 보유효과는 장착하지 않아도 항상 적용되고, 강화될수록 같이 올라가요. 강화수치 ${SYNTHESIS_COST} 이상이면 합성해서 상위 등급의 강화수치를 1 올릴 수 있어요. 4슬롯을 전부 같은 등급으로 장착하면 세트 효과로 최종 스탯 보너스가 붙어요. 등급이 높을수록 더 큰 보너스예요(노멀 +3% ~ 신화 +18%).`} />
+            {' '}장비 안내
           </p>
 
           <div className="costume-collection-progress">
@@ -269,8 +268,8 @@ function CostumeCloset({ userId, equippedCostumes, onCostumeLoadoutChange }) {
   return (
     <div className="costume-closet">
       <p className="stage-select-hint">
-        코스튬은 전투 스탯에 영향을 주지 않는 수집/과시용이에요. 슬롯(무기/방어구/장갑/신발)당 1개만 착용할 수 있고,
-        착용하면 캐릭터 주위에 등급색 배지로 표시돼요.
+        <InfoTooltip text="코스튬은 전투 스탯에 영향을 주지 않는 수집/과시용이에요. 슬롯(무기/방어구/장갑/신발)당 1개만 착용할 수 있고, 착용하면 캐릭터 주위에 등급색 배지로 표시돼요." />
+        {' '}코스튬 안내
       </p>
       <div className="costume-collection-progress">
         🎽 컬렉션 {ownedItems.length} / {ITEM_CATALOG.length}

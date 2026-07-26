@@ -5,6 +5,7 @@ import { fetchMyReferralCount } from '../lib/auth';
 import { fetchMyTotalWorldBossDamage } from '../lib/worldBoss';
 import { showToast } from '../lib/toast';
 import { playLevelUpSound, playGoldSound } from '../lib/audio';
+import InfoTooltip from './InfoTooltip';
 
 /**
  * 업적 목록 화면. stats(현재 진행도 스냅샷)는 App.jsx가 이미 들고 있는 값들을
@@ -87,8 +88,8 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   return (
     <div className="achievements-screen">
       <p className="stage-select-hint">
-        게임을 플레이하면서 자연스럽게 달성되는 목표들이에요. 조건을 채우면 여기서 직접 수령해야 골드를 받아요.
-        <strong> {totalClaimed} / {totalCount}</strong> 달성
+        <InfoTooltip text="게임을 플레이하면서 자연스럽게 달성되는 목표들이에요. 조건을 채우면 여기서 직접 수령해야 골드를 받아요." />
+        {' '}<strong>{totalClaimed} / {totalCount}</strong> 달성
       </p>
 
       {claimedKeys !== null && (

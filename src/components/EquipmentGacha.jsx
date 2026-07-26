@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SLOTS, RARITIES, getItem, getEnhancedStatBonus } from '../lib/itemCatalog';
 import { drawEquipment, drawEquipmentBatch } from '../lib/equipmentGacha';
+import InfoTooltip from './InfoTooltip';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 import { playGachaRevealSound } from '../lib/audio';
@@ -101,8 +102,8 @@ export default function EquipmentGacha({ slot, gold, totalDraws, onGoldChange, o
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
         <p className="gacha-hint">
-          {slotMeta.icon} {slotMeta.label} 전용 뽑기예요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요.
-          이미 보유한 등급이 또 나오면 <strong>자동으로 강화(+1, 최대 +1000)</strong>돼요.
+          <InfoTooltip text={`${slotMeta.icon} ${slotMeta.label} 전용 뽑기예요. 뽑기 1000회마다 레벨이 오르고, 레벨이 높을수록 고등급 확률이 올라가요. 이미 보유한 등급이 또 나오면 자동으로 강화(+1, 최대 +1000)돼요.`} />
+          {' '}뽑기 안내
         </p>
 
         <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>

@@ -6,6 +6,7 @@ import { showToast } from '../lib/toast';
 import { markPvpPlayedToday } from '../lib/dailyPvpFlag';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import PvPBattleScene from './PvPBattleScene';
+import InfoTooltip from './InfoTooltip';
 
 export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
   const [myPower, setMyPower] = useState(null);
@@ -103,8 +104,8 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
       </div>
 
       <p className="stage-select-hint">
-        전투력이 비슷한(±25%) 실제 유저와 매칭돼요. 마땅한 상대가 없으면 내 전투력과 비슷한 가상 캐릭터가 대신 나와요.
-        실제 유저와 붙으면 승리 시 재화 <strong>3배</strong>, 패배해도 위로 보상이 지급돼요!
+        <InfoTooltip text="전투력이 비슷한(±25%) 실제 유저와 매칭돼요. 마땅한 상대가 없으면 내 전투력과 비슷한 가상 캐릭터가 대신 나와요. 실제 유저와 붙으면 승리 시 재화 3배, 패배해도 위로 보상이 지급돼요!" />
+        {' '}PvP 안내
       </p>
 
       {error && <p className="shop-error">{error}</p>}

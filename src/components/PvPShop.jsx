@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getItem, RARITIES } from '../lib/itemCatalog';
 import { fetchPvpShop, fetchMyCostumes, buyPvpCostume } from '../lib/pvp';
 import { showToast } from '../lib/toast';
+import InfoTooltip from './InfoTooltip';
 
 /** 다음 정시(HH:00:00)까지 남은 시간을 "MM:SS" 형태로, 정시가 되면 onRefresh 콜백 1회 호출 */
 function useCountdownToNextHour(onRefresh) {
@@ -85,7 +86,8 @@ export default function PvPShop({ userId, currency, onCurrencyChange }) {
         <span className="gold-display">🎖️ {currency.toLocaleString()}</span>
       </div>
       <p className="stage-select-hint">
-        진열대는 매시 정각에 10개로 새로 갱신돼요(<strong style={{ color: 'var(--accent-gold)' }}>{nextRefreshIn}</strong> 후 갱신). 등급이 높을수록 나올 확률이 낮아요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요.
+        <InfoTooltip text="등급이 높을수록 나올 확률이 낮아요. 승리 보상으로 모은 PvP 재화로 코스튬을 모아보세요 — 노멀 등급도 꽤 비싸요." />
+        {' '}진열대는 매시 정각에 10개로 새로 갱신돼요(<strong style={{ color: 'var(--accent-gold)' }}>{nextRefreshIn}</strong> 후 갱신).
       </p>
 
       {error && <p className="shop-error">{error}</p>}

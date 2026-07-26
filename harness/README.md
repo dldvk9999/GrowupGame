@@ -18,6 +18,7 @@
 | [`friends.md`](./friends.md) | 친구 시스템(UID 추가, 요청/수락, 최대100명, 페이지네이션) |
 | [`push-notifications.md`](./push-notifications.md) | 푸시 알림(Web Push, 서비스워커, 아침/점심/저녁 - 배포 시 수동설정 필요) |
 | [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md) | 루비 재화/루비 던전, 전직스킬 강화(스킬편성 내 전직강화 탭) |
+| [`tooltips.md`](./tooltips.md) | 설명 텍스트 툴팁화(PC 호버/모바일 클릭+닫기버튼) - 적용범위 목록 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
 | [`stages-and-dungeons.md`](./stages-and-dungeons.md) | 100챕터×10스테이지, 일일 던전(경험치/골드, 최고 500층), 전직 던전, 던전 정예몬스터 이벤트 |
 | [`endless-tower.md`](./endless-tower.md) | 무한의 탑 (상한/입장 제한 없는 도전 모드, 랭킹, 마일스톤 보너스) |
@@ -96,6 +97,7 @@ GrowupGame/
 │  │  ├─ ToastContainer.jsx        # 토스트 알림 - ui-and-ux.md
 │  │  ├─ WelcomeModal.jsx          # 최초 접속 환영 팝업 - ui-and-ux.md
 │  │  ├─ AccountSecurityModal.jsx  # 이메일/비밀번호 변경(본인확인 후) - account-and-settings.md
+│  │  ├─ InfoTooltip.jsx           # 설명 텍스트 툴팁(PC 호버/모바일 클릭+닫기버튼) - tooltips.md
 │  │  ├─ Footer.jsx                # 사이트 푸터(GitHub/저작권) - ui-and-ux.md
 │  │  └─ MonsterSprite.jsx         # 몬스터 이미지 렌더링 (벡터→외부이미지 자동 폴백)
 │  ├─ assets/sprites/

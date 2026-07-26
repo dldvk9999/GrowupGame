@@ -5,6 +5,7 @@ import {
 } from '../lib/friends';
 import { showToast } from '../lib/toast';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
+import InfoTooltip from './InfoTooltip';
 
 export default function Friends({ userId }) {
   const [tab, setTab] = useState('list'); // 'list' | 'requests'
@@ -136,7 +137,7 @@ export default function Friends({ userId }) {
             {sending ? '보내는 중...' : '친구 추가'}
           </button>
         </form>
-        <p className="stage-select-hint">친구는 최대 {MAX_FRIENDS}명까지 등록할 수 있어요. 상대가 수락해야 친구가 성립돼요.</p>
+        <p className="stage-select-hint"><InfoTooltip text={`친구는 최대 ${MAX_FRIENDS}명까지 등록할 수 있어요. 상대가 수락해야 친구가 성립돼요.`} /> 친구 등록 안내</p>
       </div>
 
       <div className="shop-tabs">

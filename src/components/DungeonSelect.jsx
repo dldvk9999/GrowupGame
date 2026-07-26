@@ -7,6 +7,7 @@ import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '.
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpeditions } from '../lib/expedition';
+import InfoTooltip from './InfoTooltip';
 
 const DUNGEON_TABS = ['exp', 'gold', 'job', 'ruby', 'worldboss', 'tower', 'expedition'];
 
@@ -132,7 +133,8 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
   return (
     <div>
       <p className="stage-select-hint">
-        1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 하루 3번까지 입장 가능(오늘 {remaining}/3회 남음, {resetIn} 후 초기화).
+        <InfoTooltip text="1층부터 순서대로 깨야 다음 층으로 갈 수 있어요. 최고층까지 전부 클리어하면 그 층을 반복 도전할 수 있어요." />
+        {' '}오늘 {remaining}/3회 남음, {resetIn} 후 초기화.
         {allCleared && ` 최고층까지 전부 클리어했어요! ${DUNGEON_STAGE_COUNT}층을 반복 도전할 수 있어요.`}
       </p>
       {isLuckyDungeon && (
@@ -193,8 +195,8 @@ function RubyDungeonPanel({ activeMonster, onEnter, entering, error, attemptsRem
   return (
     <div>
       <p className="stage-select-hint">
-        내 캐릭터 레벨에 맞춰 난이도가 자동으로 정해지는 단발성 던전이에요. 클리어하면 루비 10~100개를
-        무작위로 받아요(전직스킬 강화에 사용). 순차 진행이 필요한 다른 던전과 달리 하루 5회까지 언제든 도전할 수 있어요.
+        <InfoTooltip text="내 캐릭터 레벨에 맞춰 난이도가 자동으로 정해지는 단발성 던전이에요. 클리어하면 루비 10~100개를 무작위로 받아요(전직스킬 강화에 사용). 순차 진행이 필요한 다른 던전과 달리 하루 5회까지 언제든 도전할 수 있어요." />
+        {' '}루비 던전 안내
       </p>
       {error && <p className="shop-error">{error}</p>}
       <p className="stage-select-hint" style={{ color: 'var(--accent-gold)' }}>
@@ -224,8 +226,8 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error, towerHighest
   return (
     <div>
       <p className="stage-select-hint">
-        레벨 조건을 채우면 도전할 수 있어요. 일반 던전보다 훨씬 강해서 스킬을 잘 돌려써야 이길 수 있어요.
-        6차 전직부터는 레벨 외에 무한의 탑 최소층·가이드미션 진행도·특정 업적 조건도 추가로 필요해요.
+        <InfoTooltip text="레벨 조건을 채우면 도전할 수 있어요. 일반 던전보다 훨씬 강해서 스킬을 잘 돌려써야 이길 수 있어요. 6차 전직부터는 레벨 외에 무한의 탑 최소층·가이드미션 진행도·특정 업적 조건도 추가로 필요해요." />
+        {' '}전직 던전 안내
       </p>
       {error && <p className="shop-error">{error}</p>}
 
@@ -309,10 +311,8 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
   return (
     <div className="worldboss-panel">
       <p className="stage-select-hint">
-        전체 유저가 함께 체력을 깎는 공용 보스예요. {weeklyResetIn} 후(매주 일요일 자정, 서울시간)에 체력이 초기화돼요.
-        하루 3번까지 도전 가능(오늘 {Math.max(0, remaining)}/3회 남음, {resetIn} 후 초기화).
-        한 판당 제한시간은 1분이고, 시간 안에 못 잡아도 그동안 입힌 피해는 그대로 남아요.
-        4차 전직 정도는 해야 유효타가 들어갈 만큼 강력해요.
+        <InfoTooltip text="전체 유저가 함께 체력을 깎는 공용 보스예요. 한 판당 제한시간은 1분이고, 시간 안에 못 잡아도 그동안 입힌 피해는 그대로 남아요. 4차 전직 정도는 해야 유효타가 들어갈 만큼 강력해요." />
+        {' '}{weeklyResetIn} 후(매주 일요일 자정) 체력 초기화. 오늘 {Math.max(0, remaining)}/3회 남음, {resetIn} 후 초기화.
       </p>
       {error && <p className="shop-error">{error}</p>}
 
@@ -387,8 +387,8 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
   return (
     <div>
       <p className="stage-select-hint">
-        상한도, 입장 횟수 제한도 없이 계속 올라가는 도전 모드예요. 한 층씩 순서대로 도전하고, 이기면 다음 층으로 최고기록이 갱신돼요.
-        올라갈수록 훨씬 강한 수호자가 나오니 장비/스킬을 충분히 갖추고 도전하세요. 몇 번이고 재도전할 수 있어요!
+        <InfoTooltip text="상한도, 입장 횟수 제한도 없이 계속 올라가는 도전 모드예요. 한 층씩 순서대로 도전하고, 이기면 다음 층으로 최고기록이 갱신돼요. 올라갈수록 훨씬 강한 수호자가 나오니 장비/스킬을 충분히 갖추고 도전하세요. 몇 번이고 재도전할 수 있어요!" />
+        {' '}무한의 탑 안내
       </p>
 
       <div className="worldboss-hp-card">
@@ -504,9 +504,8 @@ function ExpeditionPanel({ userId, onGoldChange }) {
   return (
     <div>
       <p className="stage-select-hint">
-        몬스터를 잠깐 파견 보내면 시간이 지난 뒤 골드를 받을 수 있어요. 전투/자동사냥과 전혀 겹치지 않고
-        병행되는 별개의 타이머예요 — 앱을 꺼두고 있어도 시간은 그대로 흘러요. 오프라인 방치 보상보다
-        훨씬 긴 시간(최대 12시간)을 커버해요. 레벨 100마다 동시에 보낼 수 있는 파견 슬롯이 1개씩 늘어나요.
+        <InfoTooltip text="몬스터를 잠깐 파견 보내면 시간이 지난 뒤 골드를 받을 수 있어요. 전투/자동사냥과 전혀 겹치지 않고 병행되는 별개의 타이머예요 — 앱을 꺼두고 있어도 시간은 그대로 흘러요. 오프라인 방치 보상보다 훨씬 긴 시간(최대 12시간)을 커버해요. 레벨 100마다 동시에 보낼 수 있는 파견 슬롯이 1개씩 늘어나요." />
+        {' '}파견 안내
       </p>
       <p className="stage-select-hint" style={{ marginTop: 0, color: 'var(--accent-gold)' }}>
         파견 슬롯 {expeditions.length}/{totalSlots}

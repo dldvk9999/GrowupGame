@@ -3,6 +3,7 @@ import { TOTAL_CHAPTERS, STAGES_PER_CHAPTER, toStageIndex, getChapterName, getCh
 import { getChapterStory } from '../lib/stageStory';
 import MonsterSprite from './MonsterSprite';
 import StoryArtwork from './StoryArtwork';
+import InfoTooltip from './InfoTooltip';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 
@@ -53,7 +54,8 @@ export default function StageSelect({ clearedStageIds, onSelectStage, currentSta
     <div className="stage-select">
       <h2>스테이지 선택</h2>
       <p className="stage-select-hint">
-        카드를 좌우로 넘겨 챕터를 둘러보고, 열려있는 챕터를 골라 스테이지에 도전하세요.
+        <InfoTooltip text="카드를 좌우로 넘겨 챕터를 둘러보고, 열려있는 챕터를 골라 스테이지에 도전하세요." />
+        {' '}스테이지 선택 안내
       </p>
 
       <div className="chapter-carousel-wrap">

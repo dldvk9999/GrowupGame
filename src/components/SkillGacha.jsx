@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getSkillDef, RARITY_LABEL, RARITY_COLOR } from '../lib/skillCatalog';
 import { drawSkill, drawSkillBatch } from '../lib/skillGacha';
+import InfoTooltip from './InfoTooltip';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 import { playGachaRevealSound } from '../lib/audio';
@@ -81,7 +82,7 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
         <div className="bar-track exp-track">
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
-        <p className="gacha-hint">뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.50)</p>
+        <p className="gacha-hint"><InfoTooltip text="뽑기 1000회마다 뽑기 레벨이 오르고, 레벨이 높을수록 고등급 스킬 확률이 올라가요. (최대 Lv.50)" /> 뽑기 안내</p>
 
         <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>
           {showProbability ? '▲ 확률 접기' : '🎲 현재 확률 보기'}

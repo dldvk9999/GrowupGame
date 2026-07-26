@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLobbyChat } from '../lib/useLobbyChat';
 import Leaderboard from './Leaderboard';
+import InfoTooltip from './InfoTooltip';
 
 // 매번 직접 타이핑하기 귀찮을 때 한 탭으로 바로 보낼 수 있는 짧은 인사/반응 문구.
 // 채팅 참여 장벽을 낮춰서 로비가 더 활기차 보이게 하는 목적(순수 클라이언트 상수, 서버 로직 없음).
@@ -55,7 +56,7 @@ export default function LobbyChat({ profile, sinceIso, activeMonster }) {
         <Leaderboard profile={profile} activeMonster={activeMonster} />
       ) : (
         <>
-      <p className="stage-select-hint">모든 유저가 함께 보는 채팅이에요. 닉네임은 자동으로 붙고, 지금 로그인한 시점부터의 대화만 보여요(로그아웃하면 화면에서 사라져요).</p>
+      <p className="stage-select-hint"><InfoTooltip text="모든 유저가 함께 보는 채팅이에요. 닉네임은 자동으로 붙고, 지금 로그인한 시점부터의 대화만 보여요(로그아웃하면 화면에서 사라져요)." /> 로비 채팅 안내</p>
 
       <div className="lobby-chat-list" ref={listRef}>
         {messages.length === 0 && <p className="inventory-empty">아직 이번 접속에서 온 대화가 없어요. 첫 메시지를 남겨보세요!</p>}

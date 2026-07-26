@@ -12,6 +12,7 @@ import { playClickSound } from '../lib/audio';
 import { suggestMonsterName } from '../lib/nameSuggestion';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import AccountSecurityModal from './AccountSecurityModal';
+import InfoTooltip from './InfoTooltip';
 import MonsterDex from './MonsterDex';
 
 export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
@@ -345,8 +346,8 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
         <div className="referral-card">
           <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>🤝 친구 추천인 등록</h3>
           <p className="stage-select-hint">
-            나를 이 게임으로 이끈 친구의 닉네임을 입력하면, 내가 레벨 10을 달성했을 때 그 친구에게 보너스가 가요.
-            가입 후 24시간 이내에만 등록할 수 있어요.
+            <InfoTooltip text="나를 이 게임으로 이끈 친구의 닉네임을 입력하면, 내가 레벨 10을 달성했을 때 그 친구에게 보너스가 가요. 가입 후 24시간 이내에만 등록할 수 있어요." />
+            {' '}친구 추천인 등록 안내
           </p>
           <div className="petname-edit-row">
             <input
@@ -400,7 +401,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
       )}
 
       <h3 className="mypage-subtitle">계정 관리</h3>
-      <p className="stage-select-hint">이메일 변경, 비밀번호 변경은 본인 확인(현재 비밀번호 재입력) 후 진행할 수 있어요.</p>
+      <p className="stage-select-hint"><InfoTooltip text="이메일 변경, 비밀번호 변경은 본인 확인(현재 비밀번호 재입력) 후 진행할 수 있어요." /> 계정 관리 안내</p>
       <button type="button" className="btn btn-neutral" onClick={() => setShowAccountModal(true)}>
         🔒 이메일 · 비밀번호 변경
       </button>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { redeemCoupon } from '../lib/coupon';
+import InfoTooltip from './InfoTooltip';
 
 export default function CouponRedeem() {
   const [code, setCode] = useState('');
@@ -25,7 +26,7 @@ export default function CouponRedeem() {
   return (
     <div className="coupon-screen">
       <h2>쿠폰 입력</h2>
-      <p className="stage-select-hint">쿠폰을 등록하면 보상이 우편함으로 도착해요.</p>
+      <p className="stage-select-hint"><InfoTooltip text="쿠폰을 등록하면 보상이 우편함으로 도착해요." /> 쿠폰 안내</p>
 
       <form className="mypage-nickname-form" onSubmit={handleSubmit}>
         <div className="field">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RELIC_CATALOG, getRelic, MAX_RELIC_LEVEL, MAX_RELIC_EQUIP, formatRelicEffect, getRelicEnhanceSuccessChance } from '../lib/relicCatalog';
 import { drawRelic, drawRelicBatch, fetchMyRelics, setRelicLoadout } from '../lib/relicGacha';
+import InfoTooltip from './InfoTooltip';
 import { showToast } from '../lib/toast';
 import { bumpMission } from '../lib/missions';
 import { playGachaRevealSound, playClickSound } from '../lib/audio';
@@ -111,8 +112,8 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, ref
           <div className="bar-fill exp-fill" style={{ width: `${((totalDraws % 1000) / 1000) * 100}%` }} />
         </div>
         <p className="gacha-hint">
-          유물 50종 중 하나를 뽑아요. 중복이면 강화를 <strong>시도</strong>해요(레벨이 높을수록 성공확률이 낮아짐, 최대 강화 +{MAX_RELIC_LEVEL}).
-          유물은 <strong>장착한 최대 {MAX_RELIC_EQUIP}개</strong>만 효과가 적용돼요 — 아래에서 장착할 유물을 골라보세요.
+          <InfoTooltip text={`유물 50종 중 하나를 뽑아요. 중복이면 강화를 시도해요(레벨이 높을수록 성공확률이 낮아짐, 최대 강화 +${MAX_RELIC_LEVEL}).`} />
+          {' '}유물은 <strong>장착한 최대 {MAX_RELIC_EQUIP}개</strong>만 효과가 적용돼요 — 아래에서 장착할 유물을 골라보세요.
         </p>
 
         <button type="button" className="btn btn-ghost gacha-probability-toggle" onClick={() => setShowProbability((s) => !s)}>
