@@ -26,12 +26,14 @@ const TIER_TITLE = {
 export const JOB_DUNGEON_EXTRA_REQ = {
   6: { towerFloor: 20 },
   7: { towerFloor: 40, missionNumber: 15 },
-  // (수정, 사용자 요청) 8차/10차 요구 업적을 서로 바꿈 - 8차는 이제 PvP 300승("투기장의
-  // 지배자"), 10차는 전체 스테이지 클리어("차원의 정복자")를 요구함. level_180("정점의
-  // 지배자")은 더 이상 전직 게이팅에 안 쓰임(독립 업적으로는 그대로 존재).
-  8: { towerFloor: 60, missionNumber: 25, achievementTitle: '투기장의 지배자' },
-  9: { towerFloor: 80, missionNumber: 35, achievementTitle: '종말의 위용' },
-  10: { towerFloor: 100, missionNumber: 50, achievementTitle: '차원의 정복자' },
+  // (수정, 사용자 요청) 8~10차 탑/미션 요구치 상향(8차 기준 탑2배/미션3배), 9~10차는
+  // 8차 대비 완만하게 증가(기존처럼 매 차수마다 크게 벌어지지 않게). 8차 요구업적도
+  // pvp_win_300("투기장의 지배자")에서 power_100k("압도적인 힘", 전투력10만)로 교체 -
+  // "8차전직쯤 자연스럽게 달성할만한" 지표로 판단해서 변경(PvP 300승은 별도의 긴
+  // 그라인딩이 필요해 부적합하다고 재확인).
+  8: { towerFloor: 120, missionNumber: 75, achievementTitle: '압도적인 힘' },
+  9: { towerFloor: 140, missionNumber: 90, achievementTitle: '종말의 위용' },
+  10: { towerFloor: 160, missionNumber: 105, achievementTitle: '차원의 정복자' },
 };
 
 export function getJobDungeonBoss(tier, element) {

@@ -13,7 +13,7 @@ const ALL_TABS = [...EQUIP_TABS, 'skill', 'relic']; // 무료뽑기 탭 순환 �
 
 export default function Shop({
   userId, gold, equipmentDrawProgress, totalSkillDraws, totalRelicDraws, inventory, freeDrawUsedMap, onFreeDrawUsedChange,
-  onInventoryChange, onGoldChange, onSkillsRefresh,
+  onInventoryChange, onGoldChange, onSkillsRefresh, onRubiesChange,
 }) {
   const [tab, setTab] = useState('weapon');
   const [claimingFree, setClaimingFree] = useState(false);
@@ -112,6 +112,7 @@ export default function Shop({
           gold={gold}
           totalDraws={totalRelicDraws}
           onGoldChange={onGoldChange}
+          onRubiesChange={onRubiesChange}
           refreshSignal={relicRefreshSignal}
         />
       ) : (

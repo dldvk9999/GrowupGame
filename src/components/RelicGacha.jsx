@@ -12,7 +12,7 @@ const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 const RARITY_LABEL = { normal: '노멀', rare: '레어', epic: '에픽', legendary: '전설', mythic: '신화' };
 const RARITY_COLOR = { normal: '#9aa0b8', rare: '#3aa8e0', epic: '#b566e0', legendary: '#f2b705', mythic: '#ff5a7a' };
 
-export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, refreshSignal }) {
+export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, onRubiesChange, refreshSignal }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
@@ -50,8 +50,13 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, ref
         return;
       }
       const totalSpent = results.reduce((sum, r) => sum + r.cost, 0);
+      const totalBonusRubies = results.reduce((sum, r) => sum + (r.bonus_rubies ?? 0), 0);
       setLastResults(results);
       onGoldChange(gold - totalSpent);
+      if (totalBonusRubies > 0) {
+        onRubiesChange?.(totalBonusRubies);
+        showToast(`💎 만강 유물이 대신 루비로! +${totalBonusRubies}개`, 'success');
+      }
       bumpMission('spend_gold', totalSpent);
       loadRelics();
       const bestRarity = results.map((r) => r.rarity).sort((a, b) => RARITY_ORDER.indexOf(b) - RARITY_ORDER.indexOf(a))[0];

@@ -535,3 +535,9 @@
 
 **149_dungeon_claim_gate_relax.sql** — 버그 수정(사용자 제보 — "저장에 실패했어요")
 - `claim_dungeon_reward` 재정의(반환타입 그대로, DROP 불필요) — "세션 생성 후 최소 2초" 안티치트 게이트가 저층을 빠르게 이기는 강한 캐릭터에게 걸려서 저장 실패로 보였던 문제, 1초로 완화(전직던전/루비던전과 동일 기준으로 통일). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**150_relic_max_dup_ruby_bonus.sql** — 신규 콘텐츠(사용자 요청)
+- `draw_relic`/`draw_relic_batch` 재정의(반환 컬럼 `bonus_rubies` 추가, DROP FUNCTION 포함) — 만강(200) 유물이 또 중복으로 나오면 15% 확률로 루비 1~10개 지급. 자세한 내용은 [`relics.md`](./relics.md)
+
+**151_job_tier_8_10_requirements.sql** — 사용자 요청
+- `start_job_dungeon` 재정의(반환타입 그대로, DROP 불필요) — 8~10차 전직 게이팅의 무한의 탑/가이드미션 요구치 상향(8차 기준 탑2배/미션3배, 9~10차는 8차 대비 완만한 증가), 8차 요구업적을 `pvp_win_300`에서 `power_100k`로 교체. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)

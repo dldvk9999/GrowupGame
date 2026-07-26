@@ -101,6 +101,12 @@ export default function App() {
   const shownChapterStoriesRef = useRef(new Set()); // 이미 보여준 챕터 진입스토리 기록(중복노출 완전 차단용, 사용자 재제보)
   const [pendingStoryContent, setPendingStoryContent] = useState(null);
   const [activeTab, setActiveTab] = useState('battle'); // battle | stage | shop | skills | mypage
+
+  // 탭/화면이 바뀔 때마다 항상 맨 위로 부드럽게 스크롤(신규, 사용자 요청) - 이전 화면을
+  // 스크롤해서 내려가있던 상태로 다음 화면에 진입하면 콘텐츠가 잘려 보이는 문제 방지
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab, stage]);
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
   const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
@@ -998,6 +1004,7 @@ export default function App() {
                 onInventoryChange={refreshInventory}
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}
+                onRubiesChange={(gained) => setProfile((p) => (p ? { ...p, rubies: (p.rubies ?? 0) + gained } : p))}
               />
             )}
             {activeTab === 'inventory' && (
