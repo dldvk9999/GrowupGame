@@ -520,3 +520,6 @@
 
 **144_worldboss_hp_dragonbuff_tower_reward.sql** — 사용자 요청
 - `sync_world_boss`/`report_world_boss_damage`/`calc_tower_gold`/`claim_tower_floor` 재정의(전부 반환타입 그대로, DROP 불필요) — 월드보스 체력 3000만→1억, 용의버프 20배→2배, 무한의탑 보상 100분의1. ⚠️ `report_world_boss_damage`는 스테일 버전(110) 기준으로 잘못 작성했다가 스캐너가 잡아내 최신(111) 기준으로 재작성함(security.md 71차 참고). 자세한 내용은 [`world-boss.md`](./world-boss.md), [`endless-tower.md`](./endless-tower.md)
+
+**145_relic_boost_2.sql** — 사용자 재요청("비싼 돈을 쓰는 가치가 있게")
+- `relic_catalog.rarity_mult` 일괄 UPDATE(장비와 공유하던 값에서 유물 전용으로 분리, 신화 6.5→10.0), `calc_relic_bonus` 재정의(반환타입 그대로, DROP 불필요) — 보유효과 비율 10%→20% 상향. ⚠️ 배포 전 시뮬레이션으로 percent 타입 유물이 과도하게 강해지는 걸 발견해서 성장률은 141 수준으로 유지(자세한 내용은 [`relics.md`](./relics.md))
