@@ -74,6 +74,12 @@
 
 미션 시스템(`claim_mission_reward`)과 동일한 철학 — **클라이언트가 진행도를 신고하지 않고, 서버가 실제 게임 상태를 직접 조회해 조건 충족을 재검증**한 뒤에만 지급. `claim_achievement(p_achievement_key)` 안에 업적 키별 CASE 검증 쿼리가 있고, 통과하면 `add_gold` + `achievement_claims`에 기록(중복 방지, PK가 `(user_id, achievement_key)`).
 
+### 일괄수령 (migration 153, 신규, 사용자 요청)
+
+- ⚠️ **리팩터링 배경**: 198개 업적의 판정 CASE 로직이 `claim_achievement` 안에 통째로 들어있었는데, 일괄수령 기능을 만들려면 이 로직을 "여러 업적에 대해 반복"해야 함 — 그대로 복사하면 198개 분기가 두 함수에 각각 존재하게 돼서, 나중에 업적을 추가/수정할 때 한쪽만 고치고 다른 쪽을 빠뜨릴 위험이 큼. 그래서 판정 로직만 `check_achievement_eligibility(p_achievement_key) returns table(eligible boolean, reward integer)`라는 공용 함수로 분리하고, `claim_achievement`(단건)와 `claim_all_achievements`(신규, 전체 일괄)가 둘 다 이 함수 하나만 호출하도록 재구성함 — 판정 로직은 이제 코드베이스에 딱 한 곳에만 존재
+- `claim_all_achievements()`는 **(지금까지 추가된) 전체 198개 업적 키를 하드코딩된 배열로 순회**하면서 "아직 미수령 + 조건 충족"인 것만 골라 하나씩 `add_gold`+`insert`하고, 마지막에 `(수령한 개수, 총 보상, 수령한 키 목록)`을 요약해서 반환함. `add_gold`는 매 업적마다 **개별 호출**이라(합산해서 한 번에 부르지 않음) 상한(400만) 문제 없음
+- 클라이언트(`Achievements.jsx`)는 지금 조건을 채운(=`claimableCount > 0`) 업적이 하나라도 있으면 "🎁 지금 수령 가능한 업적 N개 일괄수령" 버튼을 상단에 노출. `claimAllAchievements()` 호출 후 반환된 `claimedKeys` 배열로 로컬 상태(`claimedKeys` Set)를 한 번에 갱신
+
 ### 카탈로그 (client, `src/lib/achievements.js`)
 
 `ACHIEVEMENT_CATALOG`는 정적 배열로 업적을 9개 카테고리(성장/전직/스테이지/뽑기/PvP/월드보스/장비/출석/특별)로 분류함. 서버 CASE 분기와 `achievement_key`로 1:1 매칭되므로, **새 업적 추가 시 반드시 카탈로그와 `claim_achievement` 양쪽을 같이 수정**해야 함(한쪽만 고치면 UI엔 보이는데 서버가 거부하거나, 서버는 허용하는데 UI에 안 뜨는 불일치 발생).

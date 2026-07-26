@@ -544,3 +544,6 @@
 
 **152_achievements_expansion.sql** — 사용자 요청 ("총 업적 약 200개")
 - `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 신규 CASE 143개 추가(총 198개). 새 카테고리 없이 기존 18개 stat의 중간 단계를 촘촘히 채우는 방식, 클라이언트/서버 동시 생성 스크립트로 100% 동기화. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**153_achievement_claim_all.sql** — 사용자 요청
+- `check_achievement_eligibility` 신설(신규 함수, DROP 불필요), `claim_achievement` 재정의(반환타입 그대로, DROP 불필요, 판정 로직을 공용 함수 호출로 단순화), `claim_all_achievements` 신설(신규 함수, DROP 불필요) — 업적 일괄수령 기능. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)

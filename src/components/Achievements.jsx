@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
+import { ACHIEVEMENT_CATALOG, ACHIEVEMENT_CATEGORY_LABEL, TITLE_BY_ACHIEVEMENT, fetchClaimedAchievements, claimAchievement, claimAllAchievements, setEquippedTitle, fetchAchievementLeaderboard, fetchMyAchievementRank } from '../lib/achievements';
 import { fetchMyCombatPower } from '../lib/pvp';
 import { fetchMyReferralCount } from '../lib/auth';
 import { fetchMyTotalWorldBossDamage } from '../lib/worldBoss';
@@ -17,6 +17,7 @@ import InfoTooltip from './InfoTooltip';
 export default function Achievements({ userId, stats, onGoldChange, gold, equippedTitle, onTitleChange, onClaim }) {
   const [claimedKeys, setClaimedKeys] = useState(null);
   const [claimingKey, setClaimingKey] = useState(null);
+  const [claimingAll, setClaimingAll] = useState(false);
   const [settingTitle, setSettingTitle] = useState(false);
   const [error, setError] = useState('');
   const [showAchLeaderboard, setShowAchLeaderboard] = useState(false);
@@ -63,6 +64,32 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
     }
   }
 
+  async function handleClaimAll() {
+    setError('');
+    setClaimingAll(true);
+    try {
+      const { claimedCount, totalReward, claimedKeys: newlyClaimed } = await claimAllAchievements();
+      if (claimedCount === 0) {
+        showToast('지금 수령할 수 있는 업적이 없어요.', 'info');
+        return;
+      }
+      onGoldChange(gold + totalReward);
+      setClaimedKeys((prev) => {
+        const next = new Set(prev);
+        newlyClaimed.forEach((k) => next.add(k));
+        return next;
+      });
+      newlyClaimed.forEach((k) => onClaim?.(k));
+      playLevelUpSound();
+      showToast(`🎉 업적 ${claimedCount}개 일괄 수령! 💰 ${totalReward.toLocaleString()} 획득!`, 'success');
+    } catch (err) {
+      setError(err.message ?? '일괄 수령에 실패했어요.');
+      showToast(err.message ?? '일괄 수령에 실패했어요.', 'error');
+    } finally {
+      setClaimingAll(false);
+    }
+  }
+
   async function handleSetTitle(achievementKey, titleText) {
     setSettingTitle(true);
     try {
@@ -84,6 +111,9 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const categories = [...new Set(ACHIEVEMENT_CATALOG.map((a) => a.category))];
   const totalClaimed = claimedKeys.size;
   const totalCount = ACHIEVEMENT_CATALOG.length;
+  const claimableCount = ACHIEVEMENT_CATALOG.filter(
+    (a) => !claimedKeys.has(a.key) && (statsWithCombatPower?.[a.stat] ?? 0) >= a.target
+  ).length;
 
   return (
     <div className="achievements-screen">
@@ -91,6 +121,12 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
         <InfoTooltip text="게임을 플레이하면서 자연스럽게 달성되는 목표들이에요. 조건을 채우면 여기서 직접 수령해야 골드를 받아요." />
         {' '}<strong>{totalClaimed} / {totalCount}</strong> 달성
       </p>
+
+      {claimableCount > 0 && (
+        <button type="button" className="btn btn-challenge" disabled={claimingAll} onClick={handleClaimAll} style={{ width: '100%', marginBottom: 10 }}>
+          {claimingAll ? '수령 중...' : `🎁 지금 수령 가능한 업적 ${claimableCount}개 일괄수령`}
+        </button>
+      )}
 
       {claimedKeys !== null && (
         <div className="title-gallery">

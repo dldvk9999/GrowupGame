@@ -278,6 +278,14 @@ export async function claimAchievement(achievementKey) {
   return data; // reward gold amount
 }
 
+/** 지금 조건을 채운 업적을 전부 한 번에 수령(신규, 사용자 요청) */
+export async function claimAllAchievements() {
+  const { data, error } = await supabase.rpc('claim_all_achievements');
+  if (error) throw new Error(error.message);
+  const row = data?.[0];
+  return { claimedCount: row?.claimed_count ?? 0, totalReward: row?.total_reward ?? 0, claimedKeys: row?.claimed_keys ?? [] };
+}
+
 /** 업적 달성 개수 랭킹 TOP20 */
 export async function fetchAchievementLeaderboard() {
   const { data, error } = await supabase.rpc('fetch_achievement_leaderboard');
