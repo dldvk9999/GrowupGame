@@ -731,10 +731,11 @@ export default function App() {
   const baseAtkWithBonus = (activeMonster?.atk ?? 0) + equipmentOnlyBonus.atk + skillPossessionAtk + relicBonus.atk;
   const baseDefWithBonus = (activeMonster?.def ?? 0) + equipmentOnlyBonus.def + relicBonus.def;
   const equipmentBonus = {
-    // 용의 버프(월드보스 클리어 보상)가 켜져 있으면 "지금의" 공격력/방어력이 그대로 20배가 되도록,
-    // 기존 보너스에 19배만큼을 추가로 얹어줌 (base + bonus*20 = base*20 + equipBonus*20)
-    atk: equipmentOnlyBonus.atk + skillPossessionAtk + relicBonus.atk + (dragonBuffActive ? baseAtkWithBonus * 19 : 0),
-    def: equipmentOnlyBonus.def + relicBonus.def + (dragonBuffActive ? baseDefWithBonus * 19 : 0),
+    // 용의 버프(월드보스 클리어 보상)가 켜져 있으면 "지금의" 공격력/방어력이 그대로 2배가 되도록,
+    // 기존 보너스에 1배만큼을 추가로 얹어줌 (base + bonus*2 = base*2 + equipBonus*2)
+    // (수정, 사용자 요청) 기존 20배(base*19 추가)에서 2배(base*1 추가)로 대폭 하향
+    atk: equipmentOnlyBonus.atk + skillPossessionAtk + relicBonus.atk + (dragonBuffActive ? baseAtkWithBonus * 1 : 0),
+    def: equipmentOnlyBonus.def + relicBonus.def + (dragonBuffActive ? baseDefWithBonus * 1 : 0),
     hp: equipmentOnlyBonus.hp + relicBonus.hp,
   };
   // 설정 화면에만 쓰던 걸 최상위로 끌어올림 - 헤더의 "수령 가능한 업적 있음" 알림점(신규,

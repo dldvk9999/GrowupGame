@@ -292,7 +292,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
           </table>
           {dragonBuffActive && (
             <p className="mypage-locked-hint" style={{ color: 'var(--accent-gold)' }}>
-              🐉 용의 버프 적용 중{dragonBuffRemaining && ` (${dragonBuffRemaining} 남음)`} — 전투 시 위 최종 공격력·방어력이 20배로 적용돼요.
+              🐉 용의 버프 적용 중{dragonBuffRemaining && ` (${dragonBuffRemaining} 남음)`} — 전투 시 위 최종 공격력·방어력이 2배로 적용돼요.
             </p>
           )}
         </div>

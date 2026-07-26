@@ -26,7 +26,7 @@ PWA는 **Web Push API + Service Worker**로 네이티브 앱처럼 브라우저�
 - **`supabase/functions/send-daily-push/index.ts`**: Edge Function(Deno) — `push_subscriptions` 전체를 조회해서 `web-push` 라이브러리로 각 구독자에게 Web Push 메시지 발송. 요청 body의 `{ slot: 'morning'|'lunch'|'dinner' }`에 따라 다른 문구 사용. 발송 실패 시 상태코드 410/404(구독 만료)면 해당 구독을 자동으로 정리함
   - ⚠️ **버그 수정(사용자 제보)**: 처음엔 `https://esm.sh/web-push@3.6.7?target=deno`로 불러왔는데, 실제 배포해서 호출해보니 Supabase Edge Runtime(프로덕션)에서 `Deno.core.runMicrotasks() is not supported in this environment` 크래시가 남 — esm.sh가 Node.js 패키지를 Deno용으로 트랜스파일하며 넣는 Node 호환 폴리필 레이어가, Edge Runtime의 축소된 Deno 환경과 안 맞아서 생기는 문제. **Supabase가 공식으로 지원하는 `npm:` 스펙파이어**(`import webpush from 'npm:web-push@3.6.7'`)로 교체 — Edge Runtime이 npm 패키지의 Node.js 호환을 esm.sh보다 훨씬 안정적으로 처리함. `createClient`도 esm.sh 대신 `jsr:@supabase/supabase-js@2`로, `serve()`도 외부 deno.land/std 의존 대신 **Deno 내장 전역함수 `Deno.serve`**로 바꿔서 외부 import 자체를 최소화(같은 종류의 호환성 문제가 재발할 여지를 줄임)
   - 이 수정은 로그로 원인을 확인한 뒤 반영한 것이라 이전보다 신뢰도가 높지만, **재배포 후 실제로 알림이 오는지는 다시 한 번 확인 필요**(esm.sh 문제는 실제 배포해봐야 드러나는 유형이었듯, npm: 방식도 첫 실사용 검증이 아직 남음)
-- **`supabase/functions/139_push_cron_schedule.sql.template`**: pg_cron으로 매일 08:00/12:00/18:00(KST) 저 Edge Function을 호출하는 스케줄 — **일부러 `.sql.template` 확장자로 둬서 migrations 폴더 밖에 위치**시킴(자동 실행 방지, 실제 프로젝트 URL/서비스키를 채워야 의미 있는 파일이라 그대로 실행하면 안 됨)
+- **`supabase/functions/139_push_cron_schedule.sql.template`**: pg_cron으로 매일 08:00/12:00/**19:00**(KST, 저녁은 18:00에서 사용자 요청으로 변경) 저 Edge Function을 호출하는 스케줄 — **일부러 `.sql.template` 확장자로 둬서 migrations 폴더 밖에 위치**시킴(자동 실행 방지, 실제 프로젝트 URL/서비스키를 채워야 의미 있는 파일이라 그대로 실행하면 안 됨). ⚠️ 이미 옛 18:00 스케줄을 등록해뒀다면 `cron.unschedule('push-dinner')`로 지우고 다시 실행해야 함
 
 ### ⚠️ 배포하려면 사용자가 직접 해야 하는 일 (이 세션에서 불가능한 부분)
 

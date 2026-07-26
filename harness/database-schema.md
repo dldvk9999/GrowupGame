@@ -517,3 +517,6 @@
 
 **143_job_skill_enhancement.sql** — 신규 콘텐츠(사용자 요청)
 - `job_skill_enhancements` 테이블 신설, `extract_job_skill_tier`/`calc_job_skill_enhance_cost`/`enhance_job_skill`/`fetch_my_job_skill_enhancements` 함수(전부 신규, DROP 불필요) — 루비로 전직스킬 강화(등급 높을수록 비용↑, 확률실패 없음, 최대50강). 자세한 내용은 [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md)
+
+**144_worldboss_hp_dragonbuff_tower_reward.sql** — 사용자 요청
+- `sync_world_boss`/`report_world_boss_damage`/`calc_tower_gold`/`claim_tower_floor` 재정의(전부 반환타입 그대로, DROP 불필요) — 월드보스 체력 3000만→1억, 용의버프 20배→2배, 무한의탑 보상 100분의1. ⚠️ `report_world_boss_damage`는 스테일 버전(110) 기준으로 잘못 작성했다가 스캐너가 잡아내 최신(111) 기준으로 재작성함(security.md 71차 참고). 자세한 내용은 [`world-boss.md`](./world-boss.md), [`endless-tower.md`](./endless-tower.md)

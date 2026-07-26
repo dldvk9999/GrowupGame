@@ -347,7 +347,7 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
       </button>
 
       <p className="worldboss-reward-hint">
-        클리어하면 이번 주 참여자 전원에게 <strong>7일간 공격력·방어력 20배</strong>의 "용의 버프"가 붙고, 닉네임이 화려하게 반짝여요.
+        클리어하면 이번 주 참여자 전원에게 <strong>7일간 공격력·방어력 2배</strong>의 "용의 버프"가 붙고, 닉네임이 화려하게 반짝여요.
         피해량에 비례한 골드 보상도 우편함으로 도착해요. 못 잡고 주가 끝나도, 그동안 입힌 피해량만큼 골드를 우편으로 보내드려요.
       </p>
 
