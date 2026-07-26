@@ -541,3 +541,6 @@
 
 **151_job_tier_8_10_requirements.sql** — 사용자 요청
 - `start_job_dungeon` 재정의(반환타입 그대로, DROP 불필요) — 8~10차 전직 게이팅의 무한의 탑/가이드미션 요구치 상향(8차 기준 탑2배/미션3배, 9~10차는 8차 대비 완만한 증가), 8차 요구업적을 `pvp_win_300`에서 `power_100k`로 교체. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
+**152_achievements_expansion.sql** — 사용자 요청 ("총 업적 약 200개")
+- `claim_achievement` 재정의(반환타입 그대로, DROP 불필요) — 신규 CASE 143개 추가(총 198개). 새 카테고리 없이 기존 18개 stat의 중간 단계를 촘촘히 채우는 방식, 클라이언트/서버 동시 생성 스크립트로 100% 동기화. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
