@@ -529,3 +529,9 @@
 
 **147_job_tier_achievement_swap.sql** — 사용자 요청
 - `claim_achievement`/`set_equipped_title`/`start_job_dungeon` 재정의(전부 반환타입 그대로, DROP 불필요) — 8차 전직 요구업적을 `stage_clear_1000`→신설 `pvp_win_300`(PvP 300승, 칭호 "투기장의 지배자")으로, 10차는 `level_180`→`stage_clear_1000`으로 교체. 기존 `pvp_win_50`의 칭호가 "투기장의 지배자"와 겹쳐서 "투기장의 강자"로 재배정. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
+**148_offline_reward_cap_and_rate.sql** — 사용자 요청 + 예방적 버그 수정
+- `add_gold`/`claim_offline_gold_reward` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 오프라인 보상 최대치 100만→400만 상향, 분당 골드율 1/3로 하향. ⚠️ `add_gold` 자체의 내부 상한(1,000,000)도 함께 안 올리면 400만 클레임이 전부 크래시났을 것(배포 전 발견) — `add_gold` 상한도 400만으로 동반 상향. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**149_dungeon_claim_gate_relax.sql** — 버그 수정(사용자 제보 — "저장에 실패했어요")
+- `claim_dungeon_reward` 재정의(반환타입 그대로, DROP 불필요) — "세션 생성 후 최소 2초" 안티치트 게이트가 저층을 빠르게 이기는 강한 캐릭터에게 걸려서 저장 실패로 보였던 문제, 1초로 완화(전직던전/루비던전과 동일 기준으로 통일). 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
