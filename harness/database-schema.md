@@ -547,3 +547,6 @@
 
 **153_achievement_claim_all.sql** — 사용자 요청
 - `check_achievement_eligibility` 신설(신규 함수, DROP 불필요), `claim_achievement` 재정의(반환타입 그대로, DROP 불필요, 판정 로직을 공용 함수 호출로 단순화), `claim_all_achievements` 신설(신규 함수, DROP 불필요) — 업적 일괄수령 기능. 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**154_guild_system.sql** — 신규 콘텐츠(사용자 요청 — "신규 컨텐츠 조사해서 추가")
+- `guilds`/`guild_members` 테이블 신설, `create_guild`/`join_guild`/`leave_guild`/`transfer_guild_leadership`/`set_guild_announcement`/`fetch_my_guild`/`fetch_guild_list`/`fetch_guild_members`/`fetch_guild_leaderboard` 9개 함수 신설(전부 신규, DROP 불필요) — 길드(클랜) 시스템. 자세한 내용은 [`guild.md`](./guild.md)

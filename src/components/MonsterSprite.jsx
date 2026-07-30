@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { spriteRegistry } from '../assets/sprites';
 import { getItem, RARITIES } from '../lib/itemCatalog';
+import DungeonAura from './DungeonAura';
 
 // 코스튬 슬롯을 캐릭터 둘레 사방에 배치 (무기=오른쪽, 방어구=아래, 장갑=왼쪽, 신발=위)
 const COSTUME_SLOT_POSITION = {
@@ -26,7 +27,7 @@ const COSTUME_SLOT_POSITION = {
  * 사방에 배치되는 아이콘 배지 방식 - 전신 리스킨은 몬스터 종류가 9종+15전직이라 코스튬(20종)과의
  * 조합 아트를 전부 그려야 해서 범위 밖으로 남겨두고, 대신 항상 눈에 보이는 배지로 "착용감"을 줌).
  */
-export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys }) {
+export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys, dungeonTheme }) {
   const [imgFailed, setImgFailed] = useState(false);
   const cdnBase = import.meta.env.VITE_SPRITE_CDN_URL;
   const imageUrl = cdnBase && speciesKey ? `${cdnBase}/${speciesKey}.png` : null;
@@ -35,7 +36,9 @@ export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys 
     .map((key) => getItem(key))
     .filter(Boolean);
 
-  const wrapperStyle = { position: 'relative', width: size, height: size, display: 'inline-block' };
+  // overflow: visible 필수 - DungeonAura가 캐릭터보다 넉넉하게 큰 배경을 캐릭터 뒤에 깔기 때문
+  const wrapperStyle = { position: 'relative', width: size, height: size, display: 'inline-block', overflow: 'visible' };
+  const auraNode = dungeonTheme ? <DungeonAura theme={dungeonTheme} size={size} /> : null;
 
   function renderCostumeOverlay() {
     if (costumeBadges.length === 0) return null;
@@ -73,12 +76,13 @@ export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys 
   if (imageUrl && !imgFailed) {
     return (
       <span style={wrapperStyle}>
+        {auraNode}
         <img
           src={imageUrl}
           width={size}
           height={size}
           alt={alt || speciesKey}
-          style={{ objectFit: 'contain', borderRadius: '50%' }}
+          style={{ objectFit: 'contain', borderRadius: '50%', position: 'relative', zIndex: 1 }}
           onError={() => setImgFailed(true)}
         />
         {renderCostumeOverlay()}
@@ -90,7 +94,10 @@ export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys 
   if (Vector) {
     return (
       <span style={wrapperStyle}>
-        <Vector size={size} />
+        {auraNode}
+        <span style={{ position: 'relative', zIndex: 1, display: 'inline-block' }}>
+          <Vector size={size} />
+        </span>
         {renderCostumeOverlay()}
       </span>
     );

@@ -449,7 +449,7 @@ export default function BattleScreen({
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
         <div className="fighter-slot fighter-slot--player">
-          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} />
+          <MonsterSprite speciesKey={getDisplaySpriteKey(player.speciesId, player.element, player.unlockedJobTier ?? 0)} size={110} alt={player.name} costumeKeys={equippedCostumes} dungeonTheme="stage" />
           {(Date.now() < playerBuffs.hasteUntil || showHealFx) && (
             <div className="player-status-fx">
               {Date.now() < playerBuffs.hasteUntil && <span className="status-fx-icon status-fx-haste" title="쿨타임 감소 중">⚡</span>}
