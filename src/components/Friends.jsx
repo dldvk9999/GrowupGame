@@ -6,8 +6,10 @@ import {
 import { showToast } from '../lib/toast';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import InfoTooltip from './InfoTooltip';
+import GuildPanel from './GuildPanel';
 
 export default function Friends({ userId }) {
+  const [mode, setMode] = useState('friends'); // 'friends' | 'guild'(신규, 사용자 요청)
   const [tab, setTab] = useState('list'); // 'list' | 'requests'
   const [uidCopied, setUidCopied] = useState(false);
   const [targetUid, setTargetUid] = useState('');
@@ -117,8 +119,16 @@ export default function Friends({ userId }) {
 
   return (
     <div className="friends-screen">
-      <h2>👥 친구</h2>
+      <h2>👥 친구 · 🛡️ 길드</h2>
+      <div className="shop-tabs">
+        <button className={`shop-tab ${mode === 'friends' ? 'active' : ''}`} onClick={() => setMode('friends')}>👥 친구</button>
+        <button className={`shop-tab ${mode === 'guild' ? 'active' : ''}`} onClick={() => setMode('guild')}>🛡️ 길드</button>
+      </div>
 
+      {mode === 'guild' ? (
+        <GuildPanel userId={userId} />
+      ) : (
+      <>
       <div className="friends-uid-card">
         <div className="friends-uid-row">
           <span>내 UID</span>
@@ -218,6 +228,8 @@ export default function Friends({ userId }) {
             </div>
           )}
         </div>
+      )}
+      </>
       )}
     </div>
   );
