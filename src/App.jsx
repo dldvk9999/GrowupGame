@@ -25,6 +25,7 @@ import { enterTower, claimTowerFloor, fetchMyTowerProgress, getTowerFloorMonster
 import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
+import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
@@ -68,6 +69,7 @@ import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverPartic
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import RubyDungeonBattle from './components/RubyDungeonBattle';
+import StreakDungeonBattle from './components/StreakDungeonBattle';
 import Settings from './components/Settings';
 import PvP from './components/PvP';
 import LobbyChat from './components/LobbyChat';
@@ -123,6 +125,12 @@ export default function App() {
   const [rubyEntering, setRubyEntering] = useState(false);
   const [rubyError, setRubyError] = useState('');
   const [rubyAttemptsRemaining, setRubyAttemptsRemaining] = useState(null);
+
+  const [streakDungeonBattle, setStreakDungeonBattle] = useState(null); // { sessionId, streak } | null
+  const [streakEntering, setStreakEntering] = useState(false);
+  const [streakError, setStreakError] = useState('');
+  const [streakAttemptsRemaining, setStreakAttemptsRemaining] = useState(null);
+  const [streakBest, setStreakBest] = useState(0);
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
@@ -288,7 +296,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -310,6 +318,11 @@ export default function App() {
         fetchClaimedAchievements(userId).catch(() => new Set()),
         fetchRubyDungeonAttemptsToday().catch(() => 5),
         fetchMyJobSkillEnhancements().catch(() => ({})),
+        fetchStreakDungeonAttemptsToday().catch(() => 3),
+        fetchMyStreakDungeonBest(userId).catch(() => 0),
+        // 새로고침/재접속 중간에 진행 중이던 연승이 있으면 복원(사용자가 브라우저를 닫아도
+        // 세션 자체는 서버에 살아있으므로, 방치했다고 보상이 자동 소멸하진 않음)
+        fetchMyActiveStreakDungeon().catch(() => null),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -317,6 +330,13 @@ export default function App() {
       setClaimedAchievementKeys(claimedAch);
       setRubyAttemptsRemaining(rubyAttempts);
       setJobSkillEnhancements(jobEnh);
+      setStreakAttemptsRemaining(streakAttempts);
+      setStreakBest(streakBestVal);
+      if (activeStreakRun) {
+        // 진행 중이던 연승 자동 복원(사용자 요청 아님, 방치형/모바일 앱 특성상 새로고침/재접속이
+        // 잦으므로 세션이 조용히 끊긴 것처럼 보이면 안 된다는 판단 - 예방적 UX 보강)
+        setStreakDungeonBattle({ sessionId: activeStreakRun.sessionId, streak: activeStreakRun.streak });
+      }
       setUserRelics(relics);
       setUserSkills(skills);
       setDungeonAttempts(dungeon);
@@ -684,6 +704,57 @@ export default function App() {
     }
   }
 
+  async function handleEnterStreakDungeon() {
+    setStreakError('');
+    setStreakEntering(true);
+    try {
+      const { sessionId, streak } = await startStreakDungeon();
+      setStreakDungeonBattle({ sessionId, streak });
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setStreakError(message);
+      showToast(message, 'error');
+    } finally {
+      setStreakEntering(false);
+      setStreakAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
+    }
+  }
+
+  // 연승 던전은 이길 때마다 호출(경험치 저장) - 루비 던전(handleRubyDungeonWin)과 동일 패턴,
+  // 골드는 여기서 지급하지 않고 "수령"을 눌러야만 확정 지급됨(handleStreakBankSuccess)
+  async function handleStreakDungeonWin(grownBase) {
+    setActiveMonster(grownBase);
+    try {
+      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
+      bumpMission('kill_monsters', 1);
+    } catch (err) {
+      console.error('연승 던전 경험치 저장 실패', err);
+    }
+  }
+
+  // "이어서 도전" 성공 - streak만 갱신하면 StreakDungeonBattle의 key가 바뀌어 다음 라운드로 리마운트됨
+  function handleStreakContinueSuccess(newStreak) {
+    setStreakDungeonBattle((prev) => (prev ? { ...prev, streak: newStreak } : prev));
+  }
+
+  // "지금 수령" 성공 - 골드는 이미 서버에서 지급 완료된 상태라 잔액만 반영, 던전 종료
+  function handleStreakBankSuccess(gold, finalStreak) {
+    setProfile((p) => (p ? { ...p, gold: (p.gold ?? 0) + gold } : p));
+    showToast(`🔥 ${finalStreak}연승 수령! 골드 +${gold.toLocaleString()}`, 'success');
+    setStreakDungeonBattle(null);
+    setStreakBest((prev) => Math.max(prev, finalStreak));
+    fetchStreakDungeonAttemptsToday().then(setStreakAttemptsRemaining).catch(() => {});
+  }
+
+  // 패배로 포기 - 이번 판 보상 없음, 연승 기록(streakBest)은 도달했던 최고치가 이미 반영돼있음
+  function handleStreakForfeit() {
+    setStreakDungeonBattle((prev) => {
+      if (prev) setStreakBest((best) => Math.max(best, prev.streak));
+      return null;
+    });
+    fetchStreakDungeonAttemptsToday().then(setStreakAttemptsRemaining).catch(() => {});
+  }
+
   async function handleEnhanceJobSkill(skillId) {
     const res = await enhanceJobSkill(skillId); // 실패 시 예외를 그대로 던져서 호출부(SkillLoadout)가 처리
     setJobSkillEnhancements((prev) => ({ ...prev, [skillId]: res.newLevel }));
@@ -1040,6 +1111,23 @@ export default function App() {
                   onWin={handleRubyDungeonWin}
                   onExit={() => setRubyDungeonBattle(null)}
                 />
+              ) : streakDungeonBattle ? (
+                <StreakDungeonBattle
+                  key={`streak-${streakDungeonBattle.sessionId}-${streakDungeonBattle.streak}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  jobSkillEnhancements={jobSkillEnhancements}
+                  sessionId={streakDungeonBattle.sessionId}
+                  streak={streakDungeonBattle.streak}
+                  streakBoss={getStreakDungeonBoss(activeMonster.level, streakDungeonBattle.streak)}
+                  onWin={handleStreakDungeonWin}
+                  onContinueSuccess={handleStreakContinueSuccess}
+                  onBankSuccess={handleStreakBankSuccess}
+                  onForfeit={handleStreakForfeit}
+                  onExit={() => setStreakDungeonBattle(null)}
+                />
               ) : dungeonBattle ? (
                 <DungeonBattle
                   key={`${dungeonBattle.type}-${dungeonBattle.stage}-${dungeonBattle.sessionId}`}
@@ -1106,6 +1194,11 @@ export default function App() {
                   rubyError={rubyError}
                   rubyAttemptsRemaining={rubyAttemptsRemaining}
                   rubies={profile?.rubies ?? 0}
+                  onEnterStreakDungeon={handleEnterStreakDungeon}
+                  streakEntering={streakEntering}
+                  streakError={streakError}
+                  streakAttemptsRemaining={streakAttemptsRemaining}
+                  streakBest={streakBest}
                 />
               )
             )}
