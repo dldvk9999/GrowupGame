@@ -860,6 +860,7 @@ export default function App() {
     costumeCount,
     isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
     towerHighestFloor,
+    streakBest,
     attendanceTotal: attendanceState?.total_claim_count ?? 0,
     dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
     maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),

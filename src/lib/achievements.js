@@ -110,6 +110,9 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'tower_30', category: 'special', icon: '🏯', title: '구름 위 수련자', desc: '무한의 탑 30층 돌파', reward: 15000, target: 30, stat: 'towerHighestFloor' },
 
   { key: 'tower_100', category: 'special', icon: '🌌', title: '천공의 도전자', desc: '무한의 탑 100층 돌파', reward: 60000, target: 100, stat: 'towerHighestFloor' },
+  { key: 'streak_10', category: 'special', icon: '🔥', title: '겁 없는 도전자', desc: '연승 던전 10연승 달성', reward: 4000, target: 10, stat: 'streakBest' },
+  { key: 'streak_25', category: 'special', icon: '🎲', title: '멈출 줄 모르는 승부사', desc: '연승 던전 25연승 달성', reward: 18000, target: 25, stat: 'streakBest' },
+  { key: 'streak_50', category: 'special', icon: '👹', title: '불멸의 연승왕', desc: '연승 던전 50연승 달성', reward: 70000, target: 50, stat: 'streakBest' },
 
   // ---- 아래부터 대량 추가된 업적(사용자 요청 - 총 약 200개로 확장) ----
   { key: 'level_20', category: 'growth', icon: '🌿', title: '작은 성장', desc: '몬스터 레벨 20 달성', reward: 1500, target: 20, stat: 'level' },
