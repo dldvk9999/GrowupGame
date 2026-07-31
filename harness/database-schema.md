@@ -550,3 +550,9 @@
 
 **154_guild_system.sql** — 신규 콘텐츠(사용자 요청 — "신규 컨텐츠 조사해서 추가")
 - `guilds`/`guild_members` 테이블 신설, `create_guild`/`join_guild`/`leave_guild`/`transfer_guild_leadership`/`set_guild_announcement`/`fetch_my_guild`/`fetch_guild_list`/`fetch_guild_members`/`fetch_guild_leaderboard` 9개 함수 신설(전부 신규, DROP 불필요) — 길드(클랜) 시스템. 자세한 내용은 [`guild.md`](./guild.md)
+
+**155_streak_dungeon.sql** — 신규 콘텐츠(사용자 요청 — "던전 컨텐츠 위주로 여러개")
+- `streak_dungeon_attempts`/`streak_dungeon_sessions`(활성세션 유니크 인덱스 포함)/`streak_dungeon_best` 테이블 신설, `calc_streak_dungeon_boss`/`calc_streak_dungeon_gold`/`start_streak_dungeon`/`fetch_my_active_streak_dungeon`/`continue_streak_dungeon`/`bank_streak_dungeon`/`forfeit_streak_dungeon`/`fetch_streak_dungeon_attempts_today`/`fetch_streak_dungeon_leaderboard`/`fetch_my_streak_dungeon_rank` 10개 함수 신설(전부 신규, DROP 불필요) — 승리 시 수령/이어가기를 선택하는 위험-보상형 연승 던전. 자세한 내용은 [`streak-dungeon.md`](./streak-dungeon.md)
+
+**156_streak_dungeon_achievements.sql** — 신규 콘텐츠(155 연동)
+- `check_achievement_eligibility`/`claim_all_achievements` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 연승 던전 마일스톤 업적 3종(`streak_10`/`streak_25`/`streak_50`) CASE/배열 추가, diff로 기존 198개 분기 순수 보존 확인. 자세한 내용은 [`streak-dungeon.md`](./streak-dungeon.md)

@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 154까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 156까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -18,6 +18,7 @@
 | [`friends.md`](./friends.md) | 친구 시스템(UID 추가, 요청/수락, 최대100명, 페이지네이션) |
 | [`push-notifications.md`](./push-notifications.md) | 푸시 알림(Web Push, 서비스워커, 아침/점심/저녁 - 배포 시 수동설정 필요) |
 | [`ruby-and-job-enhancement.md`](./ruby-and-job-enhancement.md) | 루비 재화/루비 던전, 전직스킬 강화(스킬편성 내 전직강화 탭) |
+| [`streak-dungeon.md`](./streak-dungeon.md) | 연승의 던전(위험-보상 뱅킹형), 최고연승 랭킹, 마일스톤 업적 |
 | [`dungeon-time-limit.md`](./dungeon-time-limit.md) | 모든 던전 1분 제한시간 + 시각적 게이지(TimeLimitBar) |
 | [`guild.md`](./guild.md) | 길드(클랜) 시스템 - 생성/가입/탈퇴/랭킹/공지 |
 | [`dungeon-character-theming.md`](./dungeon-character-theming.md) | 던전별 캐릭터 테마 오라(DungeonAura) - 스테이지/경험치/골드/전직/무한의탑 |
@@ -83,6 +84,7 @@ GrowupGame/
 │  │  ├─ GuildPanel.jsx            # 길드 화면(Friends.jsx 안에 통합) - guild.md
 │  │  ├─ DungeonAura.jsx           # 던전별 캐릭터 테마 오라 - dungeon-character-theming.md
 │  │  ├─ RubyDungeonBattle.jsx     # 루비 던전 전투 화면 - ruby-and-job-enhancement.md
+│  │  ├─ StreakDungeonBattle.jsx   # 연승 던전 전투 화면(수령/이어가기 선택 UI) - streak-dungeon.md
 │  │  ├─ SkillButton.jsx           # 스킬 버튼 공용 컴포넌트 (쿨타임 링 UI, 전투화면 3곳 공유)
 │  │  ├─ StageSelect.jsx           # 100챕터×10스테이지 선택 UI (챕터 카드 캐러셀)
 │  │  ├─ Shop.jsx                  # 상점 - 뽑기 6탭(무기/방어구/장갑/신발/스킬/유물) - equipment.md, skills.md, relics.md
@@ -119,6 +121,7 @@ GrowupGame/
 │     ├─ jobAdvancement.js         # 1~5차 전직 시스템 데이터 + 헬퍼
 │     ├─ jobDungeon.js, jobDungeonApi.js  # 전직 던전 보스 데이터 + RPC 연동
 │     ├─ rubyDungeon.js            # 루비 던전 RPC 연동 - ruby-and-job-enhancement.md
+│     ├─ streakDungeon.js          # 연승 던전 RPC 연동(공식 미러 포함) - streak-dungeon.md
 │     ├─ jobSkillEnhance.js        # 전직스킬 강화 RPC 연동 - ruby-and-job-enhancement.md
 │     ├─ skills.js                 # 안전 폴백용 기본 스킬 5종 정의 (실제 플레이는 뽑기 스킬 사용)
 │     ├─ skillCatalog.js           # 뽑기 스킬 카탈로그(50종) + 보유효과 계산
