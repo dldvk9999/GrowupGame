@@ -594,6 +594,8 @@ export default function App() {
         showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       } else if (reward.isLuckyWeek) {
         showToast(`🍀 이번 주 행운의 던전! 골드 1.5배 획득 (+${reward.gold.toLocaleString()})`, 'success');
+      } else if (reward.isGoldenHour) {
+        showToast(`🕗 골든타임! 골드 1.4배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       } else if (reward.isDailyBonus) {
         showToast(`📅 오늘의 요일 보너스! 골드 1.3배 획득 (+${reward.gold.toLocaleString()})`, 'success');
       }

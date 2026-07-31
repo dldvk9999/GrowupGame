@@ -556,3 +556,6 @@
 
 **156_streak_dungeon_achievements.sql** — 신규 콘텐츠(155 연동)
 - `check_achievement_eligibility`/`claim_all_achievements` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 연승 던전 마일스톤 업적 3종(`streak_10`/`streak_25`/`streak_50`) CASE/배열 추가, diff로 기존 198개 분기 순수 보존 확인. 자세한 내용은 [`streak-dungeon.md`](./streak-dungeon.md)
+
+**157_dungeon_golden_hour.sql** — 신규 콘텐츠
+- `claim_dungeon_reward` 재정의(반환 컬럼 `is_golden_hour` 추가, DROP FUNCTION 포함), `fetch_golden_hour_active` 신설(신규 함수, DROP 불필요) — 매일 한국시간 20시대 경험치/골드 던전 클리어 시 골드 1.4배. diff로 기존 로직(콤보보너스/정예몬스터/행운/요일보너스) 순수 보존 확인. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)

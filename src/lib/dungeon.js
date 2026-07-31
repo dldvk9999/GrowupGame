@@ -14,6 +14,13 @@ export async function fetchDailyDungeonBonusType() {
   return data;
 }
 
+/** 지금이 골든타임(한국시간 20시대)인지 - 던전 선택 화면 배너용 */
+export async function fetchGoldenHourActive() {
+  const { data, error } = await supabase.rpc('fetch_golden_hour_active');
+  if (error) throw error;
+  return data;
+}
+
 /** 오늘(서울시간 오전 8시 기준) 던전 타입별 남은 입장 횟수 { exp: n, gold: n } */
 export async function fetchDungeonAttemptsToday(userId) {
   const { data, error } = await supabase
@@ -62,5 +69,5 @@ export async function claimDungeonReward(sessionId) {
   const { data, error } = await supabase.rpc('claim_dungeon_reward', { p_session_id: sessionId });
   if (error) throw error;
   const row = data?.[0];
-  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus, isLuckyWeek: row.is_lucky_week, isDailyBonus: row.is_daily_bonus };
+  return { gold: row.gold, isElite: row.is_elite, comboBonus: row.combo_bonus, isLuckyWeek: row.is_lucky_week, isDailyBonus: row.is_daily_bonus, isGoldenHour: row.is_golden_hour };
 }

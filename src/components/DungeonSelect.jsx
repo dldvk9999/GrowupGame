@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getDungeonStage, DUNGEON_STAGE_COUNT } from '../lib/dungeonStages';
-import { fetchLuckyDungeonType, fetchDailyDungeonBonusType } from '../lib/dungeon';
+import { fetchLuckyDungeonType, fetchDailyDungeonBonusType, fetchGoldenHourActive } from '../lib/dungeon';
 import { JOB_DUNGEON_BOSS, JOB_DUNGEON_EXTRA_REQ } from '../lib/jobDungeon';
 import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worldBoss';
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
@@ -135,10 +135,18 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
   const resetIn = useCountdownToDaily8AM();
   const [luckyType, setLuckyType] = useState(null);
   const [dailyBonusType, setDailyBonusType] = useState(null);
+  const [goldenHourActive, setGoldenHourActive] = useState(false);
 
   useEffect(() => {
     fetchLuckyDungeonType().then(setLuckyType).catch(() => setLuckyType(null));
     fetchDailyDungeonBonusType().then(setDailyBonusType).catch(() => setDailyBonusType(null));
+    function refreshGoldenHour() {
+      fetchGoldenHourActive().then(setGoldenHourActive).catch(() => {});
+    }
+    refreshGoldenHour();
+    // 시간대 경계(정각)에 걸쳐 화면에 계속 머물 수도 있으므로 1분마다 재확인
+    const timer = setInterval(refreshGoldenHour, 60000);
+    return () => clearInterval(timer);
   }, []);
 
   const isLuckyDungeon = luckyType === type;
@@ -156,6 +164,9 @@ function ProgressiveDungeon({ type, remaining, clearedStage, onEnter, entering, 
       )}
       {isDailyBonusDungeon && (
         <p className="stage-select-hint lucky-dungeon-banner">📅 오늘은 {type === 'gold' ? '골드' : '경험치'} 던전에 요일 보너스가 붙어요! 골드 보상 1.3배</p>
+      )}
+      {goldenHourActive && (
+        <p className="stage-select-hint lucky-dungeon-banner">🕗 지금은 골든타임! (경험치/골드 던전 공통) 골드 보상 1.4배 - 21시에 종료돼요</p>
       )}
       {error && <p className="shop-error">{error}</p>}
 
