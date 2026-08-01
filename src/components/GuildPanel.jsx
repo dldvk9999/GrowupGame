@@ -6,7 +6,7 @@ import {
 import { showToast } from '../lib/toast';
 import InfoTooltip from './InfoTooltip';
 
-export default function GuildPanel({ userId }) {
+export default function GuildPanel({ userId, onGoToGuildRaid }) {
   const [myGuild, setMyGuild] = useState(undefined); // undefined=로딩중, null=미가입
   const [members, setMembers] = useState(null);
   const [subTab, setSubTab] = useState('list'); // 'list' | 'ranking' | 'create'
@@ -120,6 +120,12 @@ export default function GuildPanel({ userId }) {
           <div className="worldboss-hp-title">🛡️ [{myGuild.tag}] {myGuild.name}</div>
           <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>길드원 {myGuild.memberCount} / 30</p>
         </div>
+
+        {onGoToGuildRaid && (
+          <button className="btn btn-challenge" style={{ marginTop: 10 }} onClick={onGoToGuildRaid}>
+            ⚔️ 길드 레이드 도전하러 가기
+          </button>
+        )}
 
         {myGuild.isLeader ? (
           <div style={{ marginTop: 10 }}>

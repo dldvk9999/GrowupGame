@@ -1314,7 +1314,14 @@ export default function App() {
               />
             )}
             {activeTab === 'friends' && (
-              <Friends userId={session.user.id} />
+              <Friends
+                userId={session.user.id}
+                onGoToGuildRaid={() => {
+                  setActiveTab('dungeon');
+                  setDungeonActiveType('guildraid');
+                  refreshGuildRaid();
+                }}
+              />
             )}
             {activeTab === 'settings' && (
               <Settings
