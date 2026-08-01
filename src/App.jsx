@@ -26,6 +26,7 @@ import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
 import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
+import { fetchMySealStatus, enterSealedDungeon, getSealedDungeonBoss } from './lib/sealedDungeon';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
@@ -72,6 +73,7 @@ import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import RubyDungeonBattle from './components/RubyDungeonBattle';
 import StreakDungeonBattle from './components/StreakDungeonBattle';
+import SealedDungeonBattle from './components/SealedDungeonBattle';
 import Settings from './components/Settings';
 import PvP from './components/PvP';
 import LobbyChat from './components/LobbyChat';
@@ -133,6 +135,11 @@ export default function App() {
   const [streakError, setStreakError] = useState('');
   const [streakAttemptsRemaining, setStreakAttemptsRemaining] = useState(null);
   const [streakBest, setStreakBest] = useState(0);
+
+  const [sealedDungeonBattle, setSealedDungeonBattle] = useState(null); // { sessionId } | null
+  const [sealedEntering, setSealedEntering] = useState(false);
+  const [sealedError, setSealedError] = useState('');
+  const [sealStatus, setSealStatus] = useState(null); // { sealKeys, sealFragments } | null
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
@@ -286,6 +293,8 @@ export default function App() {
       setGuildRaid(undefined);
       setGuildRaidProgress(null);
       setGuildRaidSession(null);
+      setSealedDungeonBattle(null);
+      setSealStatus(null);
       setMission(null);
       setHasUnreadMail(false);
       setAttendanceState(null);
@@ -307,7 +316,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg, sealStatusVal] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -336,6 +345,7 @@ export default function App() {
         fetchMyActiveStreakDungeon().catch(() => null),
         fetchGuildRaidState().catch(() => null),
         fetchMyGuildRaidProgress().catch(() => null),
+        fetchMySealStatus().catch(() => null),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -360,6 +370,7 @@ export default function App() {
       setWorldBossProgress(worldBossProg);
       setGuildRaid(guildRaidState);
       setGuildRaidProgress(guildRaidProg);
+      setSealStatus(sealStatusVal);
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
@@ -799,6 +810,28 @@ export default function App() {
     }
   }
 
+  async function handleEnterSealedDungeon() {
+    setSealedError('');
+    setSealedEntering(true);
+    try {
+      const { sessionId, sealKeysRemaining } = await enterSealedDungeon();
+      setSealedDungeonBattle({ sessionId });
+      setSealStatus((prev) => (prev ? { ...prev, sealKeys: sealKeysRemaining } : prev));
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setSealedError(message);
+      showToast(message, 'error');
+    } finally {
+      setSealedEntering(false);
+    }
+  }
+
+  // 봉인된 던전은 골드/경험치를 전혀 안 줘서 activeMonster를 갱신할 필요가 없음(성장 무관 설계) -
+  // 파편 누적치만 반영
+  function handleSealedDungeonClaimed(fragmentsEarned, totalFragments) {
+    setSealStatus((prev) => (prev ? { ...prev, sealFragments: totalFragments } : { sealKeys: 0, sealFragments: totalFragments }));
+  }
+
   async function handleEnterGuildRaid() {
     setGuildRaidError('');
     setGuildRaidEntering(true);
@@ -911,6 +944,7 @@ export default function App() {
     isFounder: profile?.created_at && new Date(profile.created_at) < new Date('2026-08-01') ? 1 : 0,
     towerHighestFloor,
     streakBest,
+    sealFragments: sealStatus?.sealFragments ?? 0,
     attendanceTotal: attendanceState?.total_claim_count ?? 0,
     dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
     maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),
@@ -1179,6 +1213,19 @@ export default function App() {
                   onForfeit={handleStreakForfeit}
                   onExit={() => setStreakDungeonBattle(null)}
                 />
+              ) : sealedDungeonBattle ? (
+                <SealedDungeonBattle
+                  key={`sealed-${sealedDungeonBattle.sessionId}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  jobSkillEnhancements={jobSkillEnhancements}
+                  sessionId={sealedDungeonBattle.sessionId}
+                  sealedBoss={getSealedDungeonBoss(activeMonster.level)}
+                  onClaimed={handleSealedDungeonClaimed}
+                  onExit={() => setSealedDungeonBattle(null)}
+                />
               ) : dungeonBattle ? (
                 <DungeonBattle
                   key={`${dungeonBattle.type}-${dungeonBattle.stage}-${dungeonBattle.sessionId}`}
@@ -1240,6 +1287,7 @@ export default function App() {
                     setDungeonActiveType(type);
                     if (type === 'worldboss') refreshWorldBoss();
                     if (type === 'guildraid') refreshGuildRaid();
+                    if (type === 'sealed') fetchMySealStatus().then(setSealStatus).catch(() => {});
                   }}
                   worldBoss={worldBoss}
                   worldBossProgress={worldBossProgress}
@@ -1269,6 +1317,10 @@ export default function App() {
                   guildRaidEntering={guildRaidEntering}
                   guildRaidError={guildRaidError}
                   onGoToGuild={() => setActiveTab('friends')}
+                  onEnterSealedDungeon={handleEnterSealedDungeon}
+                  sealedEntering={sealedEntering}
+                  sealedError={sealedError}
+                  sealStatus={sealStatus}
                 />
               )
             )}

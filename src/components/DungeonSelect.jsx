@@ -6,12 +6,13 @@ import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worl
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
 import { fetchStreakDungeonLeaderboard, fetchMyStreakDungeonRank, previewStreakDungeonGold } from '../lib/streakDungeon';
 import { fetchGuildRaidState, fetchMyGuildRaidProgress, fetchGuildRaidContributors } from '../lib/guildRaid';
+import { fetchMySealStatus, fetchSealLeaderboard, fetchMySealRank } from '../lib/sealedDungeon';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpeditions } from '../lib/expedition';
 import InfoTooltip from './InfoTooltip';
 
-const DUNGEON_TABS = ['exp', 'gold', 'job', 'ruby', 'streak', 'worldboss', 'guildraid', 'tower', 'expedition'];
+const DUNGEON_TABS = ['exp', 'gold', 'job', 'ruby', 'streak', 'sealed', 'worldboss', 'guildraid', 'tower', 'expedition'];
 
 export default function DungeonSelect({
   attemptsRemaining, dungeonProgress, onEnterDungeon, entering, error,
@@ -23,6 +24,7 @@ export default function DungeonSelect({
   onEnterRubyDungeon, rubyEntering, rubyError, rubyAttemptsRemaining, rubies,
   onEnterStreakDungeon, streakEntering, streakError, streakAttemptsRemaining, streakBest,
   guildRaid, guildRaidProgress, onEnterGuildRaid, guildRaidEntering, guildRaidError, onGoToGuild,
+  onEnterSealedDungeon, sealedEntering, sealedError, sealStatus,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -59,6 +61,9 @@ export default function DungeonSelect({
         </button>
         <button className={`shop-tab ${activeType === 'streak' ? 'active' : ''}`} onClick={() => onActiveTypeChange('streak')}>
           🔥 연승 던전
+        </button>
+        <button className={`shop-tab ${activeType === 'sealed' ? 'active' : ''}`} onClick={() => onActiveTypeChange('sealed')}>
+          🗝️ 봉인된 던전
         </button>
         <button className={`shop-tab ${activeType === 'worldboss' ? 'active' : ''}`} onClick={() => onActiveTypeChange('worldboss')}>
           🐉 월드보스
@@ -101,6 +106,14 @@ export default function DungeonSelect({
           error={streakError}
           attemptsRemaining={streakAttemptsRemaining}
           streakBest={streakBest}
+        />
+      ) : activeType === 'sealed' ? (
+        <SealedDungeonPanel
+          activeMonster={activeMonster}
+          onEnter={onEnterSealedDungeon}
+          entering={sealedEntering}
+          error={sealedError}
+          sealStatus={sealStatus}
         />
       ) : activeType === 'worldboss' ? (
         <WorldBossPanel
@@ -309,6 +322,69 @@ function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsR
                   {row.nickname}{row.is_me && ' (나)'}
                 </span>
                 <span className="worldboss-contributor-damage">🔥{row.best_streak}연승</span>
+              </div>
+            ))}
+          </div>
+          {myRank != null && !iAmInTop20 && (
+            <p className="stage-select-hint" style={{ marginTop: 8, marginBottom: 0 }}>내 순위: <strong style={{ color: 'var(--accent-gold)' }}>{myRank}위</strong></p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatus }) {
+  const [leaderboard, setLeaderboard] = useState(null);
+  const [myRank, setMyRank] = useState(null);
+
+  useEffect(() => {
+    Promise.all([fetchSealLeaderboard(), fetchMySealRank()])
+      .then(([lb, rank]) => { setLeaderboard(lb); setMyRank(rank); })
+      .catch(() => setLeaderboard([]));
+  }, [sealStatus?.sealFragments]);
+
+  if (!activeMonster) return null;
+  const keys = sealStatus?.sealKeys ?? 0;
+  const fragments = sealStatus?.sealFragments ?? 0;
+  const iAmInTop20 = leaderboard?.some((r) => r.is_me);
+
+  return (
+    <div>
+      <p className="stage-select-hint">
+        <InfoTooltip text="이 던전은 골드도 경험치도 안 줘요. 대신 '봉인의 파편'을 모아 누적 랭킹에 도전하는 던전이에요. 열쇠는 하루에 1개만 자연 생성되고 최대 3개까지만 모아둘 수 있어요(골드로 살 수 없어요). 보스는 루비 던전보다 훨씬 강하니 장비/스킬을 잘 갖추고 도전해보세요." />
+        {' '}봉인된 던전 안내
+      </p>
+      {error && <p className="shop-error">{error}</p>}
+      <p className="stage-select-hint" style={{ color: 'var(--accent-gold)' }}>
+        🗝️ 보유 열쇠: {keys} / 3 (내일 자정 이후 자연 +1) · 🧩 누적 파편: {fragments.toLocaleString()}
+      </p>
+      <button
+        className={`btn btn-challenge ${keys <= 0 ? 'btn-unaffordable' : ''}`}
+        disabled={entering || keys <= 0}
+        onClick={() => {
+          if (keys <= 0) {
+            showToast('봉인의 열쇠가 없어요. 하루에 하나씩 자연 생성돼요.', 'error');
+            return;
+          }
+          onEnter();
+        }}
+      >
+        {keys <= 0 ? '열쇠 없음' : entering ? '입장 중...' : '🗝️ 봉인된 던전 도전하기 (경험치 없음, 파편 +3)'}
+      </button>
+
+      {leaderboard && leaderboard.length > 0 && (
+        <div className="worldboss-top-contributors">
+          <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 누적 파편 TOP {leaderboard.length}</h4>
+          <div className="worldboss-contributor-list">
+            {leaderboard.map((row) => (
+              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+                <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
+                <span className="worldboss-contributor-nickname">
+                  {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
+                  {row.nickname}{row.is_me && ' (나)'}
+                </span>
+                <span className="worldboss-contributor-damage">🧩{row.seal_fragments.toLocaleString()}</span>
               </div>
             ))}
           </div>
