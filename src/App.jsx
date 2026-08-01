@@ -65,7 +65,9 @@ import MyPage from './components/MyPage';
 import Friends from './components/Friends';
 import DungeonSelect from './components/DungeonSelect';
 import WorldBossBattle from './components/WorldBossBattle';
+import GuildRaidBattle from './components/GuildRaidBattle';
 import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
+import { fetchGuildRaidState, fetchMyGuildRaidProgress, enterGuildRaid } from './lib/guildRaid';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import RubyDungeonBattle from './components/RubyDungeonBattle';
@@ -140,6 +142,12 @@ export default function App() {
   const [worldBossSession, setWorldBossSession] = useState(null); // enterWorldBoss() 결과 | null
   const [worldBossEntering, setWorldBossEntering] = useState(false);
   const [worldBossError, setWorldBossError] = useState('');
+
+  const [guildRaid, setGuildRaid] = useState(); // undefined=로딩중, null=길드미가입, object=정상
+  const [guildRaidProgress, setGuildRaidProgress] = useState(null);
+  const [guildRaidSession, setGuildRaidSession] = useState(null); // enterGuildRaid() 결과 | null
+  const [guildRaidEntering, setGuildRaidEntering] = useState(false);
+  const [guildRaidError, setGuildRaidError] = useState('');
   const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginAt, setLoginAt] = useState(null); // 로비 채팅을 "이 시점 이후"로만 보여주기 위한 기준시각
@@ -275,6 +283,9 @@ export default function App() {
       setWorldBossProgress(null);
       setEverParticipatedWorldBoss(false);
       setWorldBossSession(null);
+      setGuildRaid(undefined);
+      setGuildRaidProgress(null);
+      setGuildRaidSession(null);
       setMission(null);
       setHasUnreadMail(false);
       setAttendanceState(null);
@@ -296,7 +307,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -323,6 +334,8 @@ export default function App() {
         // 새로고침/재접속 중간에 진행 중이던 연승이 있으면 복원(사용자가 브라우저를 닫아도
         // 세션 자체는 서버에 살아있으므로, 방치했다고 보상이 자동 소멸하진 않음)
         fetchMyActiveStreakDungeon().catch(() => null),
+        fetchGuildRaidState().catch(() => null),
+        fetchMyGuildRaidProgress().catch(() => null),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -345,6 +358,8 @@ export default function App() {
       setMission(missionState);
       setWorldBoss(worldBossState);
       setWorldBossProgress(worldBossProg);
+      setGuildRaid(guildRaidState);
+      setGuildRaidProgress(guildRaidProg);
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
@@ -774,6 +789,39 @@ export default function App() {
     }
   }
 
+  async function refreshGuildRaid() {
+    try {
+      const [raid, progress] = await Promise.all([fetchGuildRaidState(), fetchMyGuildRaidProgress()]);
+      setGuildRaid(raid);
+      setGuildRaidProgress(progress);
+    } catch (err) {
+      console.error('길드 레이드 정보 로드 실패', err);
+    }
+  }
+
+  async function handleEnterGuildRaid() {
+    setGuildRaidError('');
+    setGuildRaidEntering(true);
+    try {
+      const sessionData = await enterGuildRaid();
+      setGuildRaidSession(sessionData);
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setGuildRaidError(message);
+      showToast(message, 'error');
+    } finally {
+      setGuildRaidEntering(false);
+    }
+  }
+
+  function handleGuildRaidSettled(res) {
+    setGuildRaid((prev) => (prev ? { ...prev, currentHp: res.newCurrentHp, cleared: res.clearedNow } : prev));
+    if (res.clearedNow) {
+      showToast('🛡️ 길드원들과 함께 레이드 보스를 처치했어요! 우편함을 확인해보세요.', 'success');
+    }
+    refreshGuildRaid();
+  }
+
   async function handleEnterWorldBoss() {
     setWorldBossError('');
     setWorldBossEntering(true);
@@ -1164,6 +1212,18 @@ export default function App() {
                   onSettled={handleWorldBossSettled}
                   onExit={() => setWorldBossSession(null)}
                 />
+              ) : guildRaidSession ? (
+                <GuildRaidBattle
+                  key={guildRaidSession.sessionId}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  session={guildRaidSession}
+                  guildName={guildRaid?.guildName}
+                  onSettled={handleGuildRaidSettled}
+                  onExit={() => setGuildRaidSession(null)}
+                />
               ) : (
                 <DungeonSelect
                   attemptsRemaining={dungeonAttempts}
@@ -1179,6 +1239,7 @@ export default function App() {
                   onActiveTypeChange={(type) => {
                     setDungeonActiveType(type);
                     if (type === 'worldboss') refreshWorldBoss();
+                    if (type === 'guildraid') refreshGuildRaid();
                   }}
                   worldBoss={worldBoss}
                   worldBossProgress={worldBossProgress}
@@ -1202,6 +1263,12 @@ export default function App() {
                   streakError={streakError}
                   streakAttemptsRemaining={streakAttemptsRemaining}
                   streakBest={streakBest}
+                  guildRaid={guildRaid}
+                  guildRaidProgress={guildRaidProgress}
+                  onEnterGuildRaid={handleEnterGuildRaid}
+                  guildRaidEntering={guildRaidEntering}
+                  guildRaidError={guildRaidError}
+                  onGoToGuild={() => setActiveTab('friends')}
                 />
               )
             )}
