@@ -1,6 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
+import { useGuildChat } from '../lib/useGuildChat';
+
 // 길드 로비(신규 콘텐츠, 사용자 요청) - StoryArtwork.jsx와 동일한 방식으로 손으로 그린
-// SVG 한 장으로 "로비 같은 분위기"만 연출함(외부 이미지 에셋 불필요). 실제 길드 컨텐츠
-// (채팅, 창고 등)는 이번엔 범위 밖 - harness/todo.md에 후속 과제로만 기록해둠.
+// SVG 한 장으로 "로비 같은 분위기"를 연출함(외부 이미지 에셋 불필요). 170부터 길드 전용
+// 채팅이 실제로 붙었음(LobbyChat.jsx와 동일 패턴) - 나머지 컨텐츠(창고 등)는 여전히
+// harness/todo.md의 후속 과제로 남아있음.
 
 function GuildLobbyArtwork() {
   return (
@@ -44,17 +48,60 @@ function GuildLobbyArtwork() {
   );
 }
 
-export default function GuildLobby({ guild, onBack }) {
+export default function GuildLobby({ guild, profile, loginAt, onBack }) {
+  const { messages, sendMessage } = useGuildChat(profile, guild.guildId, loginAt);
+  const [text, setText] = useState('');
+  const [error, setError] = useState('');
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [messages]);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setError('');
+    try {
+      await sendMessage(text);
+      setText('');
+    } catch (err) {
+      setError(err.message ?? '전송에 실패했어요.');
+    }
+  }
+
   return (
-    <div className="story-popup-card">
+    <div className="story-popup-card" style={{ maxWidth: 480 }}>
       <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>🏰 [{guild.tag}] {guild.name} 로비 <span className="app-title-badge">Lv.{guild.level}</span></h3>
       <div className="story-artwork">
         <GuildLobbyArtwork />
       </div>
       <p className="story-paragraph">
-        길드원 {guild.memberCount} / 30명이 모인 곳이에요. 길드 레이드 보스에게 데미지를 입힐 때마다 길드 경험치가 쌓여요(레벨당 레이드 골드 보상 +1%, 최대 +20%). 길드 채팅, 창고 같은 다른 로비 전용 콘텐츠는 준비 중이에요!
+        길드원 {guild.memberCount} / 30명이 모인 곳이에요. 길드 레이드 보스에게 데미지를 입힐 때마다 길드 경험치가 쌓여요(레벨당 레이드 골드 보상 +1%, 최대 +20%).
       </p>
-      <button type="button" className="btn btn-neutral" onClick={onBack}>← 길드 정보로 돌아가기</button>
+
+      <h4 className="mypage-subtitle">💬 길드 채팅 (길드원만 볼 수 있어요)</h4>
+      <div className="lobby-chat-list" ref={listRef}>
+        {messages.length === 0 && <p className="inventory-empty">아직 이번 접속에서 온 대화가 없어요. 첫 메시지를 남겨보세요!</p>}
+        {messages.map((m) => (
+          <div key={m.id} className={`lobby-chat-row ${m.user_id === profile?.id ? 'mine' : ''}`}>
+            <span className="lobby-chat-nickname">{m.nickname}</span>
+            <span className="lobby-chat-content">{m.content}</span>
+          </div>
+        ))}
+      </div>
+      {error && <p className="shop-error">{error}</p>}
+      <form className="lobby-chat-form" onSubmit={handleSubmit}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="길드원에게 메시지 보내기 (최대 200자)"
+          maxLength={200}
+        />
+        <button type="submit" className="btn btn-challenge" disabled={!text.trim()}>전송</button>
+      </form>
+
+      <button type="button" className="btn btn-neutral" onClick={onBack} style={{ marginTop: 14 }}>← 길드 정보로 돌아가기</button>
     </div>
   );
 }

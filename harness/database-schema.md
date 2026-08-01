@@ -595,3 +595,6 @@
 
 **169_guild_level.sql** — 신규 콘텐츠(todo.md 후속과제 이행)
 - `guilds.level`/`exp` 컬럼 신설, `calc_guild_exp_to_next`/`grant_guild_exp`(내부전용, authenticated 실행권한 회수) 신설, `fetch_my_guild`(154) 재정의(반환컬럼 추가, DROP FUNCTION 포함), `report_guild_raid_damage`(158)/`sync_guild_raid`(165) 재정의(반환타입 그대로, DROP 불필요 — 길드경험치 지급 + 길드레벨 레이드골드보너스 추가, diff로 기존 로직 순수 보존 확인) — 길드 레이드 데미지 50당 길드 경험치 1, 최대 레벨20, 레벨당 레이드 골드보상 +1%(최대+20%). 자세한 내용은 [`guild.md`](./guild.md)
+
+**170_guild_chat.sql** — 신규 콘텐츠(todo.md 후속과제 이행, 사용자 요청)
+- `guild_chat_messages` 테이블 신설(RLS로 같은 길드원만 조회/작성 가능), `enforce_guild_chat_rate_limit` 신설(로비채팅 027과 동일 취지, 테이블이 달라 함수 재사용 불가해 새로 작성), 닉네임 위조방지는 기존 `set_chat_nickname`(004) 함수를 트리거만 새로 붙여 재사용, realtime publication 등록 포함 — 로비채팅(001/004/025/027)과 완전히 동일한 패턴을 guild_id로 스코프만 좁힘. 자세한 내용은 [`social-chat.md`](./social-chat.md)

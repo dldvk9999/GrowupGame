@@ -1377,6 +1377,8 @@ export default function App() {
             {activeTab === 'friends' && (
               <Friends
                 userId={session.user.id}
+                profile={profile}
+                loginAt={loginAt}
                 onGoToGuildRaid={() => {
                   setActiveTab('dungeon');
                   setDungeonActiveType('guildraid');

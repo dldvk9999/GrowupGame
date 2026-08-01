@@ -7,7 +7,7 @@ import { showToast } from '../lib/toast';
 import InfoTooltip from './InfoTooltip';
 import GuildLobby from './GuildLobby';
 
-export default function GuildPanel({ userId, onGoToGuildRaid }) {
+export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }) {
   const [myGuild, setMyGuild] = useState(undefined); // undefined=로딩중, null=미가입
   const [members, setMembers] = useState(null);
   const [subTab, setSubTab] = useState('list'); // 'list' | 'ranking' | 'create'
@@ -117,7 +117,7 @@ export default function GuildPanel({ userId, onGoToGuildRaid }) {
   // ---- 가입한 길드가 있으면: 내 길드 정보 화면 ----
   if (myGuild) {
     if (showLobby) {
-      return <GuildLobby guild={myGuild} onBack={() => setShowLobby(false)} />;
+      return <GuildLobby guild={myGuild} profile={profile} loginAt={loginAt} onBack={() => setShowLobby(false)} />;
     }
     return (
       <div>

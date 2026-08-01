@@ -24,7 +24,18 @@
 - 모바일 좁은 화면에서는 전직단계 컬럼 숨김
 - **50위 밖일 때 내 정보 하단 표시**: 상위 50명에 내가 없으면 목록 아래에 점선 구분자와 함께 내 행을 별도 표시. 전투력은 PvP와 동일한 `fetchMyCombatPower()`(051) 재사용, 닉네임/레벨 등은 이미 있는 `profile`/`activeMonster`를 그대로 씀(추가 API 호출 없음)
 
-## 구현 히스토리
+## 길드 전용 채팅 (migration 170, 신규 콘텐츠, todo.md 후속과제 이행)
+
+로비 채팅(001/004/025/027)과 **완전히 동일한 설계**를 `guild_id`로 스코프만 좁혀서 복제 — `guild_chat_messages` 테이블, `useGuildChat.js`(`useLobbyChat.js`와 동일 구조), `GuildLobby.jsx`에 채팅 UI 통합.
+
+- **RLS로 "같은 길드원만 보고 쓸 수 있음"을 서버에서 강제** — `guild_members`에 같은 `guild_id`로 존재하는지 매번 서브쿼리로 확인. 로비 채팅과 달리 별도의 "게이트 함수" 없이 순수 RLS 정책만으로 충분(길드는 이미 멤버십 테이블이 있어서 자연스럽게 확인 가능)
+- **닉네임 위조 방지 트리거는 로비 채팅과 같은 함수(`set_chat_nickname`, 004)를 재사용** — 테이블 무관 로직이라 함수를 새로 안 만들고 트리거만 이 테이블에 추가로 부착
+- **도배 방지(2초 rate limit)는 함수를 새로 작성** — 027의 `enforce_chat_rate_limit`이 `chat_messages` 테이블명을 함수 본문에 하드코딩하고 있어서 재사용이 안 됨. `enforce_guild_chat_rate_limit`을 별도로 작성(로직은 동일, 대상 테이블만 다름)
+- **realtime publication 등록을 처음부터 포함** — 로비 채팅이 025에서야 뒤늦게 "메시지가 아무한테도 실시간으로 안 뜨는" 문제를 겪었던 걸 알고 있어서, 이번엔 마이그레이션에 바로 `alter publication supabase_realtime add table guild_chat_messages`를 포함시킴
+- **`GuildLobby.jsx`에 통합** — 별도 화면이 아니라 로비 화면 안에 채팅 UI를 그대로 넣음(로비 채팅과 동일한 `.lobby-chat-list`/`.lobby-chat-row`/`.lobby-chat-form` CSS 클래스 재사용, 시각적 일관성). `sinceIso`는 App.jsx의 `loginAt`을 `Friends`→`GuildPanel`→`GuildLobby`로 그대로 내려받아 로비 채팅과 동일하게 "로그인 시점 이후" 범위로 제한
+- 온라인 접속자 수(Presence)는 이번엔 안 붙임 — 로비처럼 사람이 몰리는 공간이 아니라서 우선순위 낮음(필요해지면 후속 추가 가능)
+
+
 
 `useLobbyChat.js` 훅은 001/004 단계에서 이미 완성돼 있었음(최근 50개 로드 + Realtime INSERT 구독) — UI만 없어서 이후 `LobbyChat.jsx`로 연결함.
 
