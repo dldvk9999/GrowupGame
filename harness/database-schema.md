@@ -598,3 +598,11 @@
 
 **170_guild_chat.sql** — 신규 콘텐츠(todo.md 후속과제 이행, 사용자 요청)
 - `guild_chat_messages` 테이블 신설(RLS로 같은 길드원만 조회/작성 가능), `enforce_guild_chat_rate_limit` 신설(로비채팅 027과 동일 취지, 테이블이 달라 함수 재사용 불가해 새로 작성), 닉네임 위조방지는 기존 `set_chat_nickname`(004) 함수를 트리거만 새로 붙여 재사용, realtime publication 등록 포함 — 로비채팅(001/004/025/027)과 완전히 동일한 패턴을 guild_id로 스코프만 좁힘. 자세한 내용은 [`social-chat.md`](./social-chat.md)
+
+**171_skill_possession_pvp.sql** — todo.md 후속과제 이행(사용자 요청)
+- `calc_skill_possession_bonus(p_user_id)` 신설(신규 함수, DROP 불필요), `fetch_my_combat_power`/`fetch_leaderboard`/`fetch_public_profile`/`start_pvp_battle`/`start_pvp_revenge_battle` 5개 함수 재정의(전부 반환타입 그대로, DROP 불필요) — 스킬 보유효과를 PvP/전투력 계산에 반영. 복수전에 유물 보너스가 빠져있던 기존 버그도 같이 발견/수정. 5개 함수 전부 diff로 순수 추가만 확인. 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
+**172_elite_trial.sql** — 신규 콘텐츠(사용자 요청)
+- `elite_trial_attempts` 테이블 신설, `enter_elite_trial`/`fetch_elite_trial_attempts_today` 신설(전부 신규 함수, DROP 불필요) — 정예레벨 1부터 입장 가능한 던전, 골드 지급이 없어 세션/클레임 RPC 불필요(정예레벨 게이트+하루3회 제한만 서버가 강제). 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
+(참고: 속성 상성 시스템은 순수 클라이언트 구현이라 별도 migration 없음 — `character-and-growth.md` 참고)

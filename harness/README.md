@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 170까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 172까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -87,6 +87,7 @@ GrowupGame/
 │  │  ├─ TimeLimitBar.jsx          # 던전 제한시간 시각적 게이지 - dungeon-time-limit.md
 │  │  ├─ GuildPanel.jsx            # 길드 화면(Friends.jsx 안에 통합) - guild.md
 │  │  ├─ GuildLobby.jsx            # 길드 로비 + 길드 채팅(사용자 요청) - guild.md, social-chat.md
+│  │  ├─ EliteTrialBattle.jsx      # 정예의 시련 전투 화면(정예레벨 1+ 전용) - character-and-growth.md
 │  │  ├─ PublicProfileModal.jsx    # 랭킹 유저 클릭 시 상세 프로필 팝업 - public-profile.md
 │  │  ├─ DungeonAura.jsx           # 던전별 캐릭터 테마 오라 - dungeon-character-theming.md
 │  │  ├─ RubyDungeonBattle.jsx     # 루비 던전 전투 화면 - ruby-and-job-enhancement.md
@@ -133,6 +134,8 @@ GrowupGame/
 │     ├─ sealedDungeon.js          # 봉인된 던전 RPC 연동(공식 미러 포함) - sealed-dungeon.md
 │     ├─ publicProfile.js          # 타인 프로필 상세조회 RPC 연동 - public-profile.md
 │     ├─ useGuildChat.js           # 길드 전용 채팅 훅(useLobbyChat.js와 동일 패턴) - social-chat.md
+│     ├─ elements.js               # 속성 상성 계산(불>풀>물>불) - character-and-growth.md
+│     ├─ eliteTrial.js             # 정예의 시련 던전 RPC 연동 - character-and-growth.md
 │     ├─ sealCostumeCatalog.js     # 봉인의 상점 전용 코스튬 4종 카탈로그(기존 20종과 분리) - sealed-dungeon.md
 │     ├─ jobSkillEnhance.js        # 전직스킬 강화 RPC 연동 - ruby-and-job-enhancement.md
 │     ├─ skills.js                 # 안전 폴백용 기본 스킬 5종 정의 (실제 플레이는 뽑기 스킬 사용)

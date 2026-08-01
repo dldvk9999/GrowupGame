@@ -43,7 +43,7 @@
 | `DungeonBattle.jsx`(경험치/골드/무한의탑 던전) | ❌ 미반영 |
 | `JobDungeonBattle.jsx`(전직 던전) | ❌ 미반영 |
 | `WorldBossBattle.jsx`(월드보스) | ❌ 미반영 |
-| 서버 PvP 전투력 계산(`calc_combat_power`) | ❌ 미반영(기존에도 "스킬 보유효과 PvP 미반영"이 문서화된 한계였음, 전직스킬 강화도 같은 범주) |
+| 서버 PvP 전투력 계산(`calc_combat_power`) | ✅ 반영됨(171, `calc_skill_possession_bonus`). 전직스킬 강화 자체는 여전히 미반영(전직스킬 개별 강화치까지 PvP에 반영하려면 추가 작업 필요) |
 
 ## 데이터 표시
 

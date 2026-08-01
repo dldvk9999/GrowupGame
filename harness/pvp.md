@@ -24,7 +24,7 @@
 
 **장착 장비 보너스 반영 (051)**: `calc_equipped_stat_bonus(user_id)`가 장착 중인 4슬롯을 조회해 `itemCatalog.js`와 동일 공식(슬롯 base × 등급 배율 × (1+강화수치×0.08))으로 보너스를 계산, `calc_monster_stats()` 결과에 더해 `calc_combat_power()`에 넣음. **장비 강화가 실제 체감을 압도적으로 좌우하는 게임이라**, 원래 종족+레벨+전직만 보던 방식은 강화 안 한 유저와 신화 풀강 유저를 똑같이 취급하는 불공정이었음 — 051에서 수정. `start_pvp_battle`/`fetch_leaderboard`/`fetch_my_rank`/`fetch_my_combat_power` 전부 동일 기준으로 통일됨.
 
-**스킬 보유효과는 여전히 미반영** — 50종을 SQL로 포팅하려면 계산식 전체를 옮겨야 해 장비보다 범위가 큼([`todo.md`](./todo.md)).
+**스킬 보유효과도 반영됨**(171, `calc_skill_possession_bonus` — 등급+스킬레벨만 필요한 단순 공식이라 예상보다 범위가 작았음, [`character-and-growth.md`](./character-and-growth.md)).
 
 ⚠️ `calc_equipped_stat_bonus`는 `itemCatalog.js`의 `SLOTS.base`/`RARITIES.statMultiplier`를 SQL에 그대로 하드코딩 포팅한 것이라, **클라이언트 장비 밸런스 수치가 바뀌면 이 SQL 함수도 반드시 같이 고쳐야 함**(안 그러면 PvP/랭킹 전투력과 인벤토리 화면 스탯이 어긋남).
 
