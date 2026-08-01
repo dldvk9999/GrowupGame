@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 157까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 158까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -21,6 +21,7 @@
 | [`streak-dungeon.md`](./streak-dungeon.md) | 연승의 던전(위험-보상 뱅킹형), 최고연승 랭킹, 마일스톤 업적 |
 | [`dungeon-time-limit.md`](./dungeon-time-limit.md) | 모든 던전 1분 제한시간 + 시각적 게이지(TimeLimitBar) |
 | [`guild.md`](./guild.md) | 길드(클랜) 시스템 - 생성/가입/탈퇴/랭킹/공지 |
+| [`guild-raid.md`](./guild-raid.md) | 길드 레이드 던전 - 비동기 협동 공유체력 보스 |
 | [`dungeon-character-theming.md`](./dungeon-character-theming.md) | 던전별 캐릭터 테마 오라(DungeonAura) - 스테이지/경험치/골드/전직/무한의탑 |
 | [`tooltips.md`](./tooltips.md) | 설명 텍스트 툴팁화(PC 호버/모바일 클릭+닫기버튼) - 적용범위 목록 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
@@ -101,6 +102,7 @@ GrowupGame/
 │  │  ├─ MissionFloatingButton.jsx # 가이드 미션 플로팅 버튼 - guide-missions.md
 │  │  ├─ PvP.jsx, PvPArena.jsx, PvPBattleScene.jsx, PvPShop.jsx  # PvP - pvp.md
 │  │  ├─ WorldBossBattle.jsx       # 월드보스 전투화면(던전 탭 내부) - world-boss.md
+│  │  ├─ GuildRaidBattle.jsx       # 길드 레이드 전투화면(던전 탭 내부) - guild-raid.md
 │  │  ├─ LobbyChat.jsx             # 로비 채팅 UI - social-chat.md
 │  │  ├─ ToastContainer.jsx        # 토스트 알림 - ui-and-ux.md
 │  │  ├─ WelcomeModal.jsx          # 최초 접속 환영 팝업 - ui-and-ux.md
@@ -158,6 +160,7 @@ GrowupGame/
 │     ├─ missions.js               # 가이드 미션 RPC 연동 + pub-sub 버스 + 완료판정 헬퍼
 │     ├─ pvp.js                    # PvP RPC 연동
 │     ├─ worldBoss.js               # 월드보스 RPC 연동
+│     ├─ guildRaid.js               # 길드 레이드 RPC 연동 - guild-raid.md
 │     ├─ toast.js                  # 토스트 pub-sub 버스
 │     ├─ usePwaInstall.js          # PWA 설치 프롬프트 훅
 │     └─ useLobbyChat.js           # 로비 실시간 채팅 훅 (Supabase Realtime 구독)

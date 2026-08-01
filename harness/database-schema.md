@@ -559,3 +559,6 @@
 
 **157_dungeon_golden_hour.sql** — 신규 콘텐츠
 - `claim_dungeon_reward` 재정의(반환 컬럼 `is_golden_hour` 추가, DROP FUNCTION 포함), `fetch_golden_hour_active` 신설(신규 함수, DROP 불필요) — 매일 한국시간 20시대 경험치/골드 던전 클리어 시 골드 1.4배. diff로 기존 로직(콤보보너스/정예몬스터/행운/요일보너스) 순수 보존 확인. 자세한 내용은 [`stages-and-dungeons.md`](./stages-and-dungeons.md)
+
+**158_guild_raid_dungeon.sql** — 신규 콘텐츠(사용자 요청 — "던전 컨텐츠 위주로 여러개")
+- `guild_raid_state`/`guild_raid_attempts`/`guild_raid_sessions`/`guild_raid_contributions` 테이블 신설, `my_guild_id`/`sync_guild_raid`/`fetch_guild_raid_state`/`fetch_my_guild_raid_progress`/`fetch_guild_raid_contributors`/`enter_guild_raid`/`report_guild_raid_damage` 7개 함수 신설(전부 신규, DROP 불필요) — 월드보스를 길드(최대 30명) 전용으로 축소 복제한 비동기 협동 레이드. 월드보스가 036에서 뒤늦게 겪었던 세션검증 취약점을 처음부터 반영, 배포 전 정적 스캔으로 `enter_guild_raid`의 컬럼 모호성 버그 발견/수정. 자세한 내용은 [`guild-raid.md`](./guild-raid.md)
