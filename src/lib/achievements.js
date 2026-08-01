@@ -116,6 +116,7 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'seal_fragments_100', category: 'special', icon: '🧩', title: '봉인의 수집가', desc: '봉인의 파편 100개 이상 누적', reward: 3000, target: 100, stat: 'sealFragments' },
   { key: 'seal_fragments_500', category: 'special', icon: '🗝️', title: '봉인 해제자', desc: '봉인의 파편 500개 이상 누적', reward: 15000, target: 500, stat: 'sealFragments' },
   { key: 'seal_fragments_2000', category: 'special', icon: '🌌', title: '봉인 파괴자', desc: '봉인의 파편 2000개 이상 누적', reward: 60000, target: 2000, stat: 'sealFragments' },
+  { key: 'seal_costume_set', category: 'gear', icon: '🗝️', title: '봉인의 계승자', desc: '봉인의 상점 코스튬 4종 전부 구매', reward: 8000, target: 4, stat: 'sealCostumeCount' },
 
   // ---- 아래부터 대량 추가된 업적(사용자 요청 - 총 약 200개로 확장) ----
   { key: 'level_20', category: 'growth', icon: '🌿', title: '작은 성장', desc: '몬스터 레벨 20 달성', reward: 1500, target: 20, stat: 'level' },
