@@ -45,8 +45,9 @@ def = round(3 + index*0.25*(보스면 1.6)*chapterStep)
 
 - 스킬 사용 시 버튼 테두리에 시계방향으로 채워지는 원형 링(`conic-gradient` + mask로 도넛 형태, `requestAnimationFrame`으로 매 프레임 갱신)
 - 실제 쿨타임 종료 판정은 부모의 `setTimeout` 기반 `cooldowns` state가 담당, 링은 순수 시각효과(`cooldownStarts`에 사용 시각 기록해서 계산)라 로직에 영향 없음
-- `BattleScreen`/`DungeonBattle`/`JobDungeonBattle` 세 전투 화면이 이 컴포넌트를 공유
-- 헤이스트로 실제 쿨타임이 줄면 `skill.cooldown` 대신 `effectiveCooldowns[skill.id]`를 넘겨서 링도 정확한 시간에 맞춰 돎([`skills.md`](./skills.md))
+- `BattleScreen`/`DungeonBattle`/`JobDungeonBattle`/`RubyDungeonBattle`/`WorldBossBattle`/`GuildRaidBattle`/`StreakDungeonBattle`/`SealedDungeonBattle` 8개 전투 화면이 이 컴포넌트를 공유(PvP 연출만 자동 재생이라 제외)
+- 헤이스트/유물 쿨타임감소%로 실제 쿨타임이 줄면 `displayCooldown` prop으로 넘겨서 링도 정확한 시간에 맞춰 돎([`skills.md`](./skills.md))
+- ⚠️ **[심각] 버그 수정(사용자 제보 — "쿨타임이 처음에만 돌고 다시 쓸 때는 잘 적용 안 됨")**: `SkillButton`에 링 표시용으로 넘기던 `skill` prop이 `{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }`처럼 **원본 스킬의 `cooldown` 필드 자체를 덮어쓴 객체**였는데, 버튼 클릭 시 `onUse(skill)`이 **이 덮어써진 객체를 그대로** 부모의 `useSkill`에 전달하고 있었음. `useSkill`은 그 안의 `skill.cooldown`으로 다음 `effectiveCooldown`을 다시 계산하므로, 헤이스트나 유물 쿨타임감소%가 조금이라도 있으면(`relicCooldownMult < 1` 또는 헤이스트 활성 중) **매 사용마다 "직전에 이미 줄어든 값"을 기준으로 또 줄이는 복리 축소**가 발생 — 몇 번만 써도 쿨타임이 사실상 0에 수렴해 "두 번째부터 쿨타임이 안 먹히는" 현상으로 체감됨. 첫 사용은 항상 정상이었던 이유도 이것 — 최초 1회는 `effectiveCooldowns[skill.id]`가 비어있어 원본 기본값을 썼기 때문. **수정**: `SkillButton`에 `displayCooldown`이라는 별도 prop을 신설해 링 애니메이션 전용으로만 쓰고, `skill` prop 자체는 절대 변형하지 않고 원본 그대로 `onUse`에 전달하도록 8개 전투 화면 전부 일괄 수정 — `useSkill`은 이제 항상 진짜 기본 쿨타임을 기준으로만 계산함
 - 버튼 모서리에 `1`~`9` 숫자 배지, 동일 숫자키로 즉시 사용 가능([`ui-and-ux.md`](./ui-and-ux.md))
 
 ## 키보드 단축키 (전투 관련)

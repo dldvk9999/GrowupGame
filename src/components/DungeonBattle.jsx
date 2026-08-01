@@ -342,7 +342,8 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
             return (
             <SkillButton
               key={skill.id}
-              skill={{ ...skill, cooldown: effectiveCooldowns[skill.id] ?? skill.cooldown }}
+              skill={skill}
+              displayCooldown={effectiveCooldowns[skill.id] ?? skill.cooldown}
               disabled={!!cooldowns[skill.id]}
               startedAt={cooldownStarts[skill.id]}
               onUse={useSkill}

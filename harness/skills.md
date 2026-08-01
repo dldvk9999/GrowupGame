@@ -42,7 +42,7 @@
 
 부가 UI:
 - 버프/기절 상태는 `BuffStatusRow`가 HP바 아래 배지로 표시(⚔️공격력상승/🛡️방어력상승/💫적기절중). 헤이스트는 배지 대신 캐릭터 위 아이콘으로만 표시(중복 정보 정리)
-- 헤이스트로 쿨타임이 줄면 `SkillButton`에 `skill.cooldown` 대신 `effectiveCooldowns[skill.id]`를 넘겨 링 애니메이션도 정확히 맞춰 돎
+- 헤이스트로 쿨타임이 줄면 `SkillButton`에 `displayCooldown` prop으로 실제 소요시간을 별도로 넘겨 링 애니메이션도 정확히 맞춰 돎(`skill` prop 자체는 원본 그대로 유지 — 과거 이걸 덮어쓰다가 쿨타임이 복리로 줄어드는 심각한 버그가 있었음, [`combat.md`](./combat.md) 참고)
 - **캐릭터 위 상태 아이콘**: 헤이스트(⚡, 지속시간 동안 회전)와 회복(💚, 1.3초 팝업)은 배지뿐 아니라 **플레이어 스프라이트 바로 위**에도 표시(`player-status-fx`, 4개 전투화면 전부)
 - **전직(각성) 스킬 전용 강화 이펙트**: `getJobSkillTier(skillId)`로 전직 스킬 여부 판별, 맞으면 **차수가 높을수록 파티클이 커지고**(`spawnParticles`의 `sizeMult`), **3차 이상부터 타격 순간 등급별 색상 화면 플래시**(`job-skill-flash`, `mix-blend-mode: screen`). 1~5차 색상은 노랑→주황→빨강→핑크→보라
 
