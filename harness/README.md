@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 163까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 165까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -33,6 +33,7 @@
 | [`pvp.md`](./pvp.md) | PvP 비동기 매칭전투, PvP 재화/코스튬 상점, PvP 티어, 다이아몬드 업적 |
 | [`social-chat.md`](./social-chat.md) | 로비 실시간 채팅, 랭킹 통합허브(전투력/업적/탑/친구추천/골드), 순위변동 추적 |
 | [`mailbox-and-coupons.md`](./mailbox-and-coupons.md) | 정기 우편함, 쿠폰 시스템 |
+| [`coupon.md`](./coupon.md) | **발행된 쿠폰 코드 전체 목록**(단일 진실 공급원) - 새 쿠폰 발행 시 반드시 여기에 추가 |
 | [`guide-missions.md`](./guide-missions.md) | 가이드 미션(반복형+온보딩 우선순위) |
 | [`attendance-and-achievements.md`](./attendance-and-achievements.md) | 출석체크(7일 주기 보상, 365일 마일스톤), 업적 시스템(45개), 칭호 갤러리, 카테고리 접기 |
 | [`referral-system.md`](./referral-system.md) | 친구 추천 시스템, 추천 마일스톤 업적 |
