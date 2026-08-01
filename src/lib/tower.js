@@ -24,7 +24,7 @@ export function getTowerFloorMonster(floor) {
     isBoss: true,
     dungeonType: 'tower',
     stage: floor,
-    expReward: Math.round(hp * 1.5),
+    expReward: Math.round(hp * 0.375), // (수정, 사용자 요청) 1.5 -> 0.375, 던전 밸런스 조정과 동일 비율
     goldReward: Math.round(hp * 1.1), // 클라이언트 추정치일 뿐, 실제 지급액은 서버(calc_tower_gold)가 결정
   };
 }

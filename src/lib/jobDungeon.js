@@ -49,6 +49,6 @@ export function getJobDungeonBoss(tier, element) {
     isBoss: true,
     tier,
     requiredLevel: base.requiredLevel,
-    expReward: Math.round(base.hp * 1.5),
+    expReward: Math.round(base.hp * 0.375), // (수정, 사용자 요청) 1.5 -> 0.375, 던전 밸런스 조정과 동일 비율
   };
 }

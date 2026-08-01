@@ -38,7 +38,9 @@ export const DUNGEON_STAGE_COUNT = 500;
 // 필요경험치의 150배가 넘음 - 한 번의 클리어로 수백 레벨이 뛰는 밸런스 붕괴).
 // 골드는 add_gold의 100만 상한과 맞춰 클램프하고, 경험치도 상식적인 범위로
 // 클램프해서 "고층일수록 보상이 크지만 게임이 깨지진 않는" 선을 지킴.
-const MAX_DUNGEON_EXP_REWARD = 200000;
+// (수정, 사용자 요청) "만렙까지 너무 쉽다" - 던전 클리어 경험치를 대폭 감소(약 1/4).
+// 상한도 비례 축소(20만 -> 5만). 정예레벨(growth.js) 도입과 함께 적용된 종합 밸런스 조정.
+const MAX_DUNGEON_EXP_REWARD = 50000;
 const MAX_DUNGEON_GOLD_REWARD = 1000000;
 
 /** 경험치 던전: 경험치 위주, 골드는 조금만 */
@@ -46,7 +48,7 @@ export function getExpDungeonStage(stage) {
   const boss = dungeonBoss(stage);
   return {
     ...boss, dungeonType: 'exp', stage,
-    expReward: Math.min(MAX_DUNGEON_EXP_REWARD, Math.round(boss.maxHp * 3.2)),
+    expReward: Math.min(MAX_DUNGEON_EXP_REWARD, Math.round(boss.maxHp * 0.8)), // (수정) 3.2 -> 0.8
     goldReward: Math.min(MAX_DUNGEON_GOLD_REWARD, Math.round(boss.maxHp * 0.6)),
   };
 }
@@ -56,7 +58,7 @@ export function getGoldDungeonStage(stage) {
   const boss = dungeonBoss(stage);
   return {
     ...boss, dungeonType: 'gold', stage,
-    expReward: Math.min(MAX_DUNGEON_EXP_REWARD, Math.round(boss.maxHp * 0.6)),
+    expReward: Math.min(MAX_DUNGEON_EXP_REWARD, Math.round(boss.maxHp * 0.15)), // (수정) 0.6 -> 0.15
     goldReward: Math.min(MAX_DUNGEON_GOLD_REWARD, Math.round(boss.maxHp * 3.2)),
   };
 }

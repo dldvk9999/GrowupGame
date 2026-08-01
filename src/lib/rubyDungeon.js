@@ -11,7 +11,7 @@ export function getRubyDungeonBoss(level, elementIcon = '💎') {
     spriteKey: 'ruby_guardian',
     icon: elementIcon,
     maxHp, hp: maxHp, atk, def,
-    expReward: Math.round(maxHp * 0.05), // 소량의 경험치도 곁들임
+    expReward: Math.round(maxHp * 0.0125), // (수정, 사용자 요청) 0.05 -> 0.0125, 던전 밸런스 조정과 동일 비율
   };
 }
 

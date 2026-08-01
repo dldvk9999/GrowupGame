@@ -15,7 +15,7 @@ export function getStreakDungeonBoss(level, streak) {
     name: `${st}연승 광전사`,
     icon: '🔥',
     maxHp, hp: maxHp, atk, def,
-    expReward: Math.round(maxHp * 0.06),
+    expReward: Math.round(maxHp * 0.015), // (수정, 사용자 요청) 0.06 -> 0.015, 던전 밸런스 조정과 동일 비율
   };
 }
 
