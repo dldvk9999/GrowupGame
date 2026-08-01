@@ -568,3 +568,6 @@
 
 **160_sealed_dungeon_achievements.sql** — 신규 콘텐츠(159 연동)
 - `check_achievement_eligibility`/`claim_all_achievements` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 봉인 파편 마일스톤 업적 3종(`seal_fragments_100`/`500`/`2000`) CASE/배열 추가, diff로 기존 로직(156까지의 스트릭 업적 포함) 순수 보존 확인. 자세한 내용은 [`sealed-dungeon.md`](./sealed-dungeon.md)
+
+**161_fix_guild_raid_gold_crash.sql** — [긴급/치명적] 78차 정기점검에서 자체 발견
+- `sync_guild_raid` 재정의(반환타입 그대로, DROP 불필요) — 미클리어 주간보상 루프가 다른 기여자에게 `add_gold`를 직접 호출해서(auth.uid() 불일치로 예외 발생) 기여자 2명 이상이면 트랜잭션 전체가 롤백되고 그 길드가 새 레이드를 영구히 시작 못 하게 되는 치명적 버그 수정. 정확히 월드보스가 110에서 겪었던 것과 동일한 버그 — 158 작성 시 world-boss의 옛(033) 버전을 참고 모델로 삼은 게 원인. add_gold 직접호출 제거 + 우편 단일경로로 수정(110과 동일 패턴), diff로 순수 제거만 확인. 자세한 내용은 [`security.md`](./security.md) 78차, [`guild-raid.md`](./guild-raid.md)
