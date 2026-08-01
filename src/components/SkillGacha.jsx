@@ -10,7 +10,7 @@ import { copyToClipboardWithFeedback } from '../lib/clipboard';
 
 const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 
-export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRefresh }) {
+export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRefresh, onDrawCountChange }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]); // 항상 배열로 통일 (1회도 배열 1개)
   const [error, setError] = useState('');
@@ -37,6 +37,7 @@ export default function SkillGacha({ gold, totalDraws, onGoldChange, onSkillsRef
       const totalSpent = results.reduce((sum, r) => sum + r.cost, 0);
       setLastResults(results);
       onGoldChange(gold - totalSpent);
+      onDrawCountChange?.(results.length);
       onSkillsRefresh();
       bumpMission('spend_gold', totalSpent);
       const bestRarity = results

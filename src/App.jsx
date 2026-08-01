@@ -1165,6 +1165,8 @@ export default function App() {
                 onGoldChange={handleGoldChange}
                 onSkillsRefresh={refreshSkills}
                 onRubiesChange={(gained) => setProfile((p) => (p ? { ...p, rubies: (p.rubies ?? 0) + gained } : p))}
+                onRelicDrawCountChange={(count) => setProfile((p) => (p ? { ...p, total_relic_draws: (p.total_relic_draws ?? 0) + count } : p))}
+                onSkillDrawCountChange={(count) => setProfile((p) => (p ? { ...p, total_skill_draws: (p.total_skill_draws ?? 0) + count } : p))}
               />
             )}
             {activeTab === 'inventory' && (

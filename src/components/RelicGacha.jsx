@@ -12,7 +12,7 @@ const RARITY_ORDER = ['normal', 'rare', 'epic', 'legendary', 'mythic'];
 const RARITY_LABEL = { normal: '노멀', rare: '레어', epic: '에픽', legendary: '전설', mythic: '신화' };
 const RARITY_COLOR = { normal: '#9aa0b8', rare: '#3aa8e0', epic: '#b566e0', legendary: '#f2b705', mythic: '#ff5a7a' };
 
-export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, onRubiesChange, refreshSignal }) {
+export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, onRubiesChange, refreshSignal, onDrawCountChange }) {
   const [drawing, setDrawing] = useState(false);
   const [lastResults, setLastResults] = useState([]);
   const [error, setError] = useState('');
@@ -53,6 +53,9 @@ export default function RelicGacha({ userId, gold, totalDraws, onGoldChange, onR
       const totalBonusRubies = results.reduce((sum, r) => sum + (r.bonus_rubies ?? 0), 0);
       setLastResults(results);
       onGoldChange(gold - totalSpent);
+      // (수정, 사용자 제보) 뽑기 직후 뽑기레벨/경험치 바가 즉시 반영 안 되던 문제 -
+      // totalDraws는 profile.total_relic_draws에서 오는데 이걸 갱신하는 콜백이 없었음
+      onDrawCountChange?.(results.length);
       if (totalBonusRubies > 0) {
         onRubiesChange?.(totalBonusRubies);
         showToast(`💎 만강 유물이 대신 루비로! +${totalBonusRubies}개`, 'success');
