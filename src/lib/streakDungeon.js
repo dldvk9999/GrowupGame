@@ -27,7 +27,7 @@ export function previewStreakDungeonGold(level, streak) {
   const lv = Math.max(1, level);
   const st = Math.max(1, streak);
   const base = 220 + Math.pow(lv, 1.25) * 6;
-  return Math.min(1000000, Math.round(base * Math.pow(1.3, st - 1)));
+  return Math.min(2000000, Math.round(base * Math.pow(1.3, st - 1))); // (수정) 100만 -> 200만
 }
 
 /** 내 최고 연승 기록 조회 (tower.js의 fetchMyTowerProgress와 동일 패턴) */
