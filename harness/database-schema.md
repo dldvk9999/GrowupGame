@@ -583,3 +583,9 @@
 
 **165_guild_raid_boss_buff.sql** — 사용자 요청
 - `sync_guild_raid` 재정의(반환타입 없음, DROP 불필요) — 길드 레이드 보스 체력 1,500만 → 5,000만, 방어력 1,000 → 10,000(10배) 상향, diff로 순수 상수 변경만 확인. 자세한 내용은 [`guild-raid.md`](./guild-raid.md)
+
+**166_public_profile_view.sql** — 신규 콘텐츠(사용자 요청)
+- `fetch_public_profile(p_user_id)` 신설(신규 함수, DROP 불필요) — 랭킹에서 유저 클릭 시 장비/강화/레벨/전투력/코스튬/던전클리어/전직정보를 종합 조회. `fetch_my_combat_power`(120)와 동일 계산 함수들(`calc_monster_stats`/`calc_equipped_stat_bonus`/`calc_relic_bonus`, 전부 p_user_id 파라미터화됨)을 재사용. 자세한 내용은 [`public-profile.md`](./public-profile.md)
+
+**167_leaderboard_expose_user_id.sql** — 신규 콘텐츠(166 연동)
+- 기존 랭킹 함수 9종(`fetch_leaderboard`/`fetch_achievement_leaderboard`/`fetch_tower_leaderboard`/`fetch_referral_leaderboard`/`fetch_gold_leaderboard`/`fetch_pvp_leaderboard`/`fetch_streak_dungeon_leaderboard`/`fetch_seal_leaderboard`/`fetch_guild_raid_contributors`) 전부 재정의(반환 컬럼에 `user_id` 추가, 전부 DROP FUNCTION 포함) — 계산/정렬/limit 로직은 diff로 순수 보존 확인. 자세한 내용은 [`public-profile.md`](./public-profile.md)

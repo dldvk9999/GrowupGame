@@ -4,7 +4,7 @@
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
 
-마지막 정리: migration 165까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 167까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -23,6 +23,7 @@
 | [`dungeon-time-limit.md`](./dungeon-time-limit.md) | 모든 던전 1분 제한시간 + 시각적 게이지(TimeLimitBar) |
 | [`guild.md`](./guild.md) | 길드(클랜) 시스템 - 생성/가입/탈퇴/랭킹/공지 |
 | [`guild-raid.md`](./guild-raid.md) | 길드 레이드 던전 - 비동기 협동 공유체력 보스 |
+| [`public-profile.md`](./public-profile.md) | 랭킹 유저 클릭 시 상세 프로필 팝업(장비/전투력/코스튬/던전진행도) |
 | [`dungeon-character-theming.md`](./dungeon-character-theming.md) | 던전별 캐릭터 테마 오라(DungeonAura) - 스테이지/경험치/골드/전직/무한의탑 |
 | [`tooltips.md`](./tooltips.md) | 설명 텍스트 툴팁화(PC 호버/모바일 클릭+닫기버튼) - 적용범위 목록 |
 | [`combat.md`](./combat.md) | 전투 방식(자동사냥/스테이지도전), 데미지 공식, 방어력, 전투력 계산, 스킬 쿨타임 UI |
@@ -86,6 +87,7 @@ GrowupGame/
 │  │  ├─ TimeLimitBar.jsx          # 던전 제한시간 시각적 게이지 - dungeon-time-limit.md
 │  │  ├─ GuildPanel.jsx            # 길드 화면(Friends.jsx 안에 통합) - guild.md
 │  │  ├─ GuildLobby.jsx            # 길드 로비(장식용, 사용자 요청) - guild.md
+│  │  ├─ PublicProfileModal.jsx    # 랭킹 유저 클릭 시 상세 프로필 팝업 - public-profile.md
 │  │  ├─ DungeonAura.jsx           # 던전별 캐릭터 테마 오라 - dungeon-character-theming.md
 │  │  ├─ RubyDungeonBattle.jsx     # 루비 던전 전투 화면 - ruby-and-job-enhancement.md
 │  │  ├─ StreakDungeonBattle.jsx   # 연승 던전 전투 화면(수령/이어가기 선택 UI) - streak-dungeon.md
@@ -129,6 +131,7 @@ GrowupGame/
 │     ├─ rubyDungeon.js            # 루비 던전 RPC 연동 - ruby-and-job-enhancement.md
 │     ├─ streakDungeon.js          # 연승 던전 RPC 연동(공식 미러 포함) - streak-dungeon.md
 │     ├─ sealedDungeon.js          # 봉인된 던전 RPC 연동(공식 미러 포함) - sealed-dungeon.md
+│     ├─ publicProfile.js          # 타인 프로필 상세조회 RPC 연동 - public-profile.md
 │     ├─ sealCostumeCatalog.js     # 봉인의 상점 전용 코스튬 4종 카탈로그(기존 20종과 분리) - sealed-dungeon.md
 │     ├─ jobSkillEnhance.js        # 전직스킬 강화 RPC 연동 - ruby-and-job-enhancement.md
 │     ├─ skills.js                 # 안전 폴백용 기본 스킬 5종 정의 (실제 플레이는 뽑기 스킬 사용)
