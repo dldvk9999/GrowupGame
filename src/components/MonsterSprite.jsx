@@ -65,6 +65,7 @@ export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys,
             fontSize: Math.round(badgeSize * 0.55),
             boxShadow: `0 0 6px ${color}`,
             pointerEvents: 'none',
+            zIndex: 2, // (수정, 사용자 제보) 캐릭터 스프라이트가 zIndex:1이라 코스튬 배지가 그 뒤에 가려졌음
           }}
         >
           {item.icon}
