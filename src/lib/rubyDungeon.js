@@ -10,6 +10,7 @@ export function getRubyDungeonBoss(level, elementIcon = '💎') {
     name: '루비 수호자',
     spriteKey: 'ruby_guardian',
     icon: elementIcon,
+    element: 'fire', // (신규, 사용자 요청) 속성상성 계산용 - 루비=붉은 보석 테마라 화(불) 속성으로 고정
     maxHp, hp: maxHp, atk, def,
     expReward: Math.round(maxHp * 0.0125), // (수정, 사용자 요청) 0.05 -> 0.0125, 던전 밸런스 조정과 동일 비율
   };

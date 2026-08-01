@@ -3,6 +3,7 @@ import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
+import { getElementMultiplier } from '../lib/elements';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound } from '../lib/audio';
 import { reportGuildRaidDamage } from '../lib/guildRaid';
@@ -213,7 +214,7 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
 
     const jobTier = getJobSkillTier(skill.id);
     if (skill.type === 'damage') {
-      const dmg = mitigateDamage(effAtk * skill.multiplier, enemy.def);
+      const dmg = mitigateDamage(effAtk * skill.multiplier, enemy.def, getElementMultiplier(skill.element, enemy.element));
       setLog(`${player.name}의 ${skill.name}!`);
       playAttackSound();
       damageEnemy(dmg);
@@ -241,7 +242,7 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
       setLog(`${player.name}의 ${skill.name}! 레이드 보스를 ${(stunMs / 1000).toFixed(1)}초간 기절시켰다!`);
       spawnParticles(0.8, 0.35, '#ffe680');
     } else if (skill.type === 'dot') {
-      const perTick = mitigateDamage(effAtk * skill.multiplier, enemy.def);
+      const perTick = mitigateDamage(effAtk * skill.multiplier, enemy.def, getElementMultiplier(skill.element, enemy.element));
       const ticks = skill.ticks ?? 4;
       const tickInterval = skill.tickInterval ?? 1500;
       setLog(`${player.name}의 ${skill.name}! 지속 피해 시작`);

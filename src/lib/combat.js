@@ -2,10 +2,12 @@
  * 방어력에 따른 데미지 경감. 고전 RPG식 수렴 공식(100/(100+def))을 사용해서,
  * 방어력이 아무리 높아도 데미지가 완전히 0이 되지는 않되(최소 1) 후반부로 갈수록
  * 공격력만으로 밀어붙이기 어렵게 만듦.
+ * elementMultiplier(신규, 사용자 요청): 속성 상성 배율(1.25 유리/0.8 불리/1 무관,
+ * lib/elements.js의 getElementMultiplier로 계산). 생략하면 기존과 동일하게 1배.
  */
-export function mitigateDamage(rawDamage, defenderDef) {
+export function mitigateDamage(rawDamage, defenderDef, elementMultiplier = 1) {
   const def = defenderDef ?? 0;
-  const mitigated = rawDamage * (100 / (100 + def));
+  const mitigated = rawDamage * elementMultiplier * (100 / (100 + def));
   return Math.max(1, Math.round(mitigated));
 }
 

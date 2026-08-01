@@ -12,6 +12,7 @@ export function getSealedDungeonBoss(level) {
   return {
     name: '봉인의 파수꾼',
     icon: '🗝️',
+    element: 'water', // (신규, 사용자 요청) 속성상성 계산용 - 신비로운 보라/남색 테마라 물 속성으로 고정
     maxHp, hp: maxHp, atk, def,
   };
 }

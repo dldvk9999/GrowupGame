@@ -14,6 +14,7 @@ export function getStreakDungeonBoss(level, streak) {
   return {
     name: `${st}연승 광전사`,
     icon: '🔥',
+    element: 'fire', // (신규, 사용자 요청) 속성상성 계산용 - "광전사" 테마라 화(불) 속성으로 고정
     maxHp, hp: maxHp, atk, def,
     expReward: Math.round(maxHp * 0.015), // (수정, 사용자 요청) 0.06 -> 0.015, 던전 밸런스 조정과 동일 비율
   };
