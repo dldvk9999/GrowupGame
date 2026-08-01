@@ -127,8 +127,15 @@ export default function GuildPanel({ userId, onGoToGuildRaid }) {
           style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
           onClick={() => setShowLobby(true)}
         >
-          <div className="worldboss-hp-title">🛡️ [{myGuild.tag}] {myGuild.name}</div>
+          <div className="worldboss-hp-title">🛡️ [{myGuild.tag}] {myGuild.name} <span className="app-title-badge">Lv.{myGuild.level}</span></div>
           <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>길드원 {myGuild.memberCount} / 30 · 🏰 눌러서 로비 보기</p>
+          {myGuild.level < 20 ? (
+            <div className="bar-track" style={{ marginTop: 8 }}>
+              <div className="bar-fill" style={{ width: `${Math.min(100, (myGuild.exp / Math.max(1, myGuild.expToNext)) * 100)}%`, background: 'linear-gradient(90deg, var(--accent-fire), var(--accent-gold))' }} />
+            </div>
+          ) : (
+            <p className="mypage-locked-hint" style={{ margin: '8px 0 0', color: 'var(--accent-gold)' }}>✨ 길드 최고 레벨 달성!</p>
+          )}
         </button>
 
         {onGoToGuildRaid && (

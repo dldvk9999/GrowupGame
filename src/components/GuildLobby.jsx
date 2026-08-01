@@ -47,12 +47,12 @@ function GuildLobbyArtwork() {
 export default function GuildLobby({ guild, onBack }) {
   return (
     <div className="story-popup-card">
-      <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>🏰 [{guild.tag}] {guild.name} 로비</h3>
+      <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>🏰 [{guild.tag}] {guild.name} 로비 <span className="app-title-badge">Lv.{guild.level}</span></h3>
       <div className="story-artwork">
         <GuildLobbyArtwork />
       </div>
       <p className="story-paragraph">
-        길드원 {guild.memberCount} / 30명이 모인 곳이에요. 길드 채팅, 창고, 공동 목표 같은 로비 전용 콘텐츠는 준비 중이에요 — 지금은 분위기만 먼저 느껴보세요!
+        길드원 {guild.memberCount} / 30명이 모인 곳이에요. 길드 레이드 보스에게 데미지를 입힐 때마다 길드 경험치가 쌓여요(레벨당 레이드 골드 보상 +1%, 최대 +20%). 길드 채팅, 창고 같은 다른 로비 전용 콘텐츠는 준비 중이에요!
       </p>
       <button type="button" className="btn btn-neutral" onClick={onBack}>← 길드 정보로 돌아가기</button>
     </div>

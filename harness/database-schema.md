@@ -592,3 +592,6 @@
 
 **168_elite_level.sql** — 밸런스 조정(사용자 요청 — "만렙까지 너무 쉬움")
 - `owned_monsters.elite_level`/`elite_exp` 컬럼 신설, `save_monster_growth`(127) 재정의(파라미터 2개 추가, DROP FUNCTION 포함 — 정예레벨은 레벨500일 때만 0보다 클 수 있고 급격한 변화량 차단하는 검증 추가, diff로 기존 검증 로직 100% 보존 확인) — 레벨 500 이후 이어지는 별도의 훨씬 가파른 성장축(최대 100레벨), 던전 클리어 경험치도 전반적으로 약 1/4로 감소(클라이언트 전용 값이라 SQL 변경 없음). 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
+
+**169_guild_level.sql** — 신규 콘텐츠(todo.md 후속과제 이행)
+- `guilds.level`/`exp` 컬럼 신설, `calc_guild_exp_to_next`/`grant_guild_exp`(내부전용, authenticated 실행권한 회수) 신설, `fetch_my_guild`(154) 재정의(반환컬럼 추가, DROP FUNCTION 포함), `report_guild_raid_damage`(158)/`sync_guild_raid`(165) 재정의(반환타입 그대로, DROP 불필요 — 길드경험치 지급 + 길드레벨 레이드골드보너스 추가, diff로 기존 로직 순수 보존 확인) — 길드 레이드 데미지 50당 길드 경험치 1, 최대 레벨20, 레벨당 레이드 골드보상 +1%(최대+20%). 자세한 내용은 [`guild.md`](./guild.md)
