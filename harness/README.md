@@ -85,6 +85,7 @@ GrowupGame/
 │  │  ├─ JobDungeonBattle.jsx      # 전직 던전 전투 화면
 │  │  ├─ TimeLimitBar.jsx          # 던전 제한시간 시각적 게이지 - dungeon-time-limit.md
 │  │  ├─ GuildPanel.jsx            # 길드 화면(Friends.jsx 안에 통합) - guild.md
+│  │  ├─ GuildLobby.jsx            # 길드 로비(장식용, 사용자 요청) - guild.md
 │  │  ├─ DungeonAura.jsx           # 던전별 캐릭터 테마 오라 - dungeon-character-theming.md
 │  │  ├─ RubyDungeonBattle.jsx     # 루비 던전 전투 화면 - ruby-and-job-enhancement.md
 │  │  ├─ StreakDungeonBattle.jsx   # 연승 던전 전투 화면(수령/이어가기 선택 UI) - streak-dungeon.md

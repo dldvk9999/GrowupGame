@@ -40,11 +40,11 @@ def = round((3 + index*0.6*(isBoss?2.7:1)) * stepMultiplier)
 ### 보상 공식
 
 ```
-expReward  = round(hp * (isBoss ? 1.15 : 0.65))
+expReward  = round(hp * (isBoss ? 1.15 : 0.65) * 0.6)   -- (수정, 사용자 요청) 보상 경험치 60%로 조정
 goldReward = (round(hp * (isBoss ? 0.9 : 0.4)) + stage*2) * 5
 ```
 
-서버 `calc_stage_gold`도 동일 공식을 SQL로 반영(골드는 서버 최종 계산, `def`는 골드 공식에 미영향).
+서버 `calc_stage_gold`도 동일 공식을 SQL로 반영(골드는 서버 최종 계산, `def`는 골드 공식에 미영향). `expReward`는 골드와 달리 서버 미러가 없는 순수 클라이언트 계산(경험치/레벨은 클라이언트 신뢰 모델, [`security.md`](./security.md))이라 이 파일의 ×0.6 배율만 조정하면 됨.
 
 ⚠️ **경험치 하향 이력(사용자 요청)**: 원래 배율(일반몹 0.85 / 보스 1.5)에서 각각 0.65 / 1.15로 하향(약 23~24% 감소). 골드는 유지, 경험치만 조정. 레벨업/경험치는 서버 검증 없이 클라이언트 계산값을 `save_monster_growth`로 그대로 저장하는 구조([`security.md`](./security.md))라, 클라이언트 배율만 조정하면 바로 반영됨.
 

@@ -114,7 +114,7 @@ export function getStageEnemy(chapter, stage) {
     hp,
     atk,
     def,
-    expReward: Math.round(hp * (isBoss ? 1.15 : 0.65)),
+    expReward: Math.round(hp * (isBoss ? 1.15 : 0.65) * 0.6), // 보상 경험치 60%로 조정(사용자 요청)
     goldReward: (Math.round(hp * (isBoss ? 0.9 : 0.4)) + stage * 2) * 5,
   };
 }
