@@ -5,6 +5,7 @@ import {
 } from '../lib/guild';
 import { showToast } from '../lib/toast';
 import InfoTooltip from './InfoTooltip';
+import GuildLobby from './GuildLobby';
 
 export default function GuildPanel({ userId, onGoToGuildRaid }) {
   const [myGuild, setMyGuild] = useState(undefined); // undefined=로딩중, null=미가입
@@ -13,6 +14,7 @@ export default function GuildPanel({ userId, onGoToGuildRaid }) {
   const [guildList, setGuildList] = useState(null);
   const [leaderboard, setLeaderboard] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [showLobby, setShowLobby] = useState(false);
   const [newName, setNewName] = useState('');
   const [newTag, setNewTag] = useState('');
   const [announcementDraft, setAnnouncementDraft] = useState('');
@@ -114,12 +116,20 @@ export default function GuildPanel({ userId, onGoToGuildRaid }) {
 
   // ---- 가입한 길드가 있으면: 내 길드 정보 화면 ----
   if (myGuild) {
+    if (showLobby) {
+      return <GuildLobby guild={myGuild} onBack={() => setShowLobby(false)} />;
+    }
     return (
       <div>
-        <div className="worldboss-hp-card">
+        <button
+          type="button"
+          className="worldboss-hp-card"
+          style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+          onClick={() => setShowLobby(true)}
+        >
           <div className="worldboss-hp-title">🛡️ [{myGuild.tag}] {myGuild.name}</div>
-          <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>길드원 {myGuild.memberCount} / 30</p>
-        </div>
+          <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>길드원 {myGuild.memberCount} / 30 · 🏰 눌러서 로비 보기</p>
+        </button>
 
         {onGoToGuildRaid && (
           <button className="btn btn-challenge" style={{ marginTop: 10 }} onClick={onGoToGuildRaid}>
