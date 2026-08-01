@@ -577,3 +577,9 @@
 
 **163_seal_costume_achievement.sql** — 신규 콘텐츠(162 연동)
 - `check_achievement_eligibility`/`claim_all_achievements` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 봉인 세트 완성 업적(`seal_costume_set`) CASE/배열 추가, diff로 기존 로직(160까지 포함) 순수 보존 확인. 자세한 내용은 [`sealed-dungeon.md`](./sealed-dungeon.md)
+
+**164_streak_dungeon_gold_cap_increase.sql** — 사용자 요청
+- `calc_streak_dungeon_gold`/`bank_streak_dungeon` 재정의(둘 다 반환타입 그대로, DROP 불필요) — 연승 던전 최대 골드 100만 → 200만 상향, 클라이언트 미리보기 공식(`previewStreakDungeonGold`)도 동기화. 자세한 내용은 [`streak-dungeon.md`](./streak-dungeon.md)
+
+**165_guild_raid_boss_buff.sql** — 사용자 요청
+- `sync_guild_raid` 재정의(반환타입 없음, DROP 불필요) — 길드 레이드 보스 체력 1,500만 → 5,000만, 방어력 1,000 → 10,000(10배) 상향, diff로 순수 상수 변경만 확인. 자세한 내용은 [`guild-raid.md`](./guild-raid.md)
