@@ -27,6 +27,7 @@ import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
 import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
 import { fetchMySealStatus, enterSealedDungeon, getSealedDungeonBoss, fetchMySealCostumes } from './lib/sealedDungeon';
+import { fetchEliteTrialAttemptsToday, enterEliteTrial, getEliteTrialBoss } from './lib/eliteTrial';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
@@ -74,6 +75,7 @@ import JobDungeonBattle from './components/JobDungeonBattle';
 import RubyDungeonBattle from './components/RubyDungeonBattle';
 import StreakDungeonBattle from './components/StreakDungeonBattle';
 import SealedDungeonBattle from './components/SealedDungeonBattle';
+import EliteTrialBattle from './components/EliteTrialBattle';
 import Settings from './components/Settings';
 import PvP from './components/PvP';
 import LobbyChat from './components/LobbyChat';
@@ -141,6 +143,11 @@ export default function App() {
   const [sealedError, setSealedError] = useState('');
   const [sealStatus, setSealStatus] = useState(null); // { sealKeys, sealFragments } | null
   const [sealCostumeCount, setSealCostumeCount] = useState(0);
+
+  const [eliteTrialBattle, setEliteTrialBattle] = useState(false);
+  const [eliteEntering, setEliteEntering] = useState(false);
+  const [eliteError, setEliteError] = useState('');
+  const [eliteAttemptsRemaining, setEliteAttemptsRemaining] = useState(null);
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
@@ -317,7 +324,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg, sealStatusVal, sealCostumeKeysVal] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg, sealStatusVal, sealCostumeKeysVal, eliteAttemptsVal] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -348,6 +355,7 @@ export default function App() {
         fetchMyGuildRaidProgress().catch(() => null),
         fetchMySealStatus().catch(() => null),
         fetchMySealCostumes().catch(() => []),
+        fetchEliteTrialAttemptsToday().catch(() => 3),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -374,6 +382,7 @@ export default function App() {
       setGuildRaidProgress(guildRaidProg);
       setSealStatus(sealStatusVal);
       setSealCostumeCount(sealCostumeKeysVal.length);
+      setEliteAttemptsRemaining(eliteAttemptsVal);
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
@@ -702,6 +711,38 @@ export default function App() {
       // 보였음(사용자 제보). 실패 원인을 토스트로 반드시 알려주도록 수정.
       console.error('전직 적용 실패', err);
       showToast(err.message ?? '전직 적용에 실패했어요. 다시 시도해주세요.', 'error');
+    }
+  }
+
+  async function handleEnterEliteTrial() {
+    setEliteError('');
+    setEliteEntering(true);
+    try {
+      await enterEliteTrial();
+      setEliteTrialBattle(true);
+    } catch (err) {
+      const message = err.message ?? '입장에 실패했어요.';
+      setEliteError(message);
+      showToast(message, 'error');
+    } finally {
+      setEliteEntering(false);
+      setEliteAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
+    }
+  }
+
+  // 정예의 시련은 골드/새 재화 없이 정예 경험치만 지급 - 별도 클레임 RPC 없이 승리 즉시
+  // 경험치를 저장하기만 하면 됨(입장 시점에 이미 하루 3회 제한을 서버가 강제했음)
+  async function handleEliteTrialWin(grownBase) {
+    setActiveMonster(grownBase);
+    try {
+      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
+      bumpMission('kill_monsters', 1);
+      if (grownBase.eliteLevel > (activeMonster?.eliteLevel ?? 0)) {
+        showToast(`✨ 정예 레벨 ${grownBase.eliteLevel} 달성!`, 'success');
+      }
+    } catch (err) {
+      console.error('정예의 시련 경험치 저장 실패', err);
+      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
     }
   }
 
@@ -1232,6 +1273,18 @@ export default function App() {
                   onClaimed={handleSealedDungeonClaimed}
                   onExit={() => setSealedDungeonBattle(null)}
                 />
+              ) : eliteTrialBattle ? (
+                <EliteTrialBattle
+                  key={`elite-${activeMonster.eliteLevel}-${eliteAttemptsRemaining}`}
+                  initialMonster={activeMonster}
+                  equipmentBonus={equipmentBonus}
+                  equippedSkills={equippedSkills}
+                  equippedCostumes={profile?.equipped_costumes}
+                  jobSkillEnhancements={jobSkillEnhancements}
+                  eliteBoss={getEliteTrialBoss(activeMonster.eliteLevel)}
+                  onWin={handleEliteTrialWin}
+                  onExit={() => setEliteTrialBattle(false)}
+                />
               ) : dungeonBattle ? (
                 <DungeonBattle
                   key={`${dungeonBattle.type}-${dungeonBattle.stage}-${dungeonBattle.sessionId}`}
@@ -1330,6 +1383,11 @@ export default function App() {
                   equippedCostumes={profile?.equipped_costumes}
                   onCostumeLoadoutChange={handleCostumeLoadoutChange}
                   onSealCostumePurchased={() => setSealCostumeCount((c) => c + 1)}
+                  onEnterEliteTrial={handleEnterEliteTrial}
+                  eliteEntering={eliteEntering}
+                  eliteError={eliteError}
+                  eliteAttemptsRemaining={eliteAttemptsRemaining}
+                  eliteLevel={activeMonster?.eliteLevel ?? 0}
                 />
               )
             )}
