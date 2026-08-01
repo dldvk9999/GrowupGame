@@ -6,12 +6,14 @@ import { fetchTowerLeaderboard, fetchMyTowerRank } from '../lib/tower';
 import { fetchReferralLeaderboard, fetchMyReferralRank } from '../lib/auth';
 import { trackRankChange } from '../lib/rankHistory';
 import { showToast } from '../lib/toast';
+import PublicProfileModal from './PublicProfileModal';
 
 const ELEMENT_ICON = { fire: '🔥', water: '💧', grass: '🌿' };
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 
 export default function Leaderboard({ profile, activeMonster }) {
   const [kind, setKind] = useState('power'); // 'power' | 'achievement' | 'tower' | 'pvp' | 'referral' | 'gold'
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   return (
     <div className="leaderboard-screen">
@@ -23,18 +25,19 @@ export default function Leaderboard({ profile, activeMonster }) {
         <button className={`shop-tab ${kind === 'referral' ? 'active' : ''}`} onClick={() => setKind('referral')}>🤝 친구추천</button>
         <button className={`shop-tab ${kind === 'gold' ? 'active' : ''}`} onClick={() => setKind('gold')}>💰 재산</button>
       </div>
-      {kind === 'power' && <PowerLeaderboard profile={profile} activeMonster={activeMonster} />}
-      {kind === 'achievement' && <SimpleLeaderboard kind="achievement" fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." />}
-      {kind === 'tower' && <SimpleLeaderboard kind="tower" fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." />}
-      {kind === 'pvp' && <SimpleLeaderboard kind="pvp" fetchList={fetchPvpLeaderboard} fetchMyRank={fetchMyPvpRank} valueKey="pvp_wins" valueIcon="🥊" valueSuffix="승" emptyText="아직 PvP에서 승리한 유저가 없어요." />}
-      {kind === 'referral' && <SimpleLeaderboard kind="referral" fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." />}
-      {kind === 'gold' && <SimpleLeaderboard kind="gold" fetchList={fetchGoldLeaderboard} fetchMyRank={fetchMyGoldRank} valueKey="gold" valueIcon="💰" valueSuffix="" emptyText="아직 골드를 모은 유저가 없어요." formatValue />}
+      {kind === 'power' && <PowerLeaderboard profile={profile} activeMonster={activeMonster} onSelectUser={setSelectedUserId} />}
+      {kind === 'achievement' && <SimpleLeaderboard kind="achievement" fetchList={fetchAchievementLeaderboard} fetchMyRank={fetchMyAchievementRank} valueKey="achievement_count" valueIcon="🏆" valueSuffix="개" emptyText="아직 업적을 달성한 유저가 없어요." onSelectUser={setSelectedUserId} />}
+      {kind === 'tower' && <SimpleLeaderboard kind="tower" fetchList={fetchTowerLeaderboard} fetchMyRank={fetchMyTowerRank} valueKey="highest_floor" valueIcon="🗼" valueSuffix="층" emptyText="아직 무한의 탑에 도전한 유저가 없어요." onSelectUser={setSelectedUserId} />}
+      {kind === 'pvp' && <SimpleLeaderboard kind="pvp" fetchList={fetchPvpLeaderboard} fetchMyRank={fetchMyPvpRank} valueKey="pvp_wins" valueIcon="🥊" valueSuffix="승" emptyText="아직 PvP에서 승리한 유저가 없어요." onSelectUser={setSelectedUserId} />}
+      {kind === 'referral' && <SimpleLeaderboard kind="referral" fetchList={fetchReferralLeaderboard} fetchMyRank={fetchMyReferralRank} valueKey="referral_count" valueIcon="🤝" valueSuffix="명" emptyText="아직 친구를 추천한 유저가 없어요." onSelectUser={setSelectedUserId} />}
+      {kind === 'gold' && <SimpleLeaderboard kind="gold" fetchList={fetchGoldLeaderboard} fetchMyRank={fetchMyGoldRank} valueKey="gold" valueIcon="💰" valueSuffix="" emptyText="아직 골드를 모은 유저가 없어요." formatValue onSelectUser={setSelectedUserId} />}
+      {selectedUserId && <PublicProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />}
     </div>
   );
 }
 
 /** 업적/무한의 탑처럼 "순위·닉네임·값 하나"로 구성된 단순한 랭킹 공용 렌더러 */
-function SimpleLeaderboard({ kind, fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText, formatValue }) {
+function SimpleLeaderboard({ kind, fetchList, fetchMyRank, valueKey, valueIcon, valueSuffix, emptyText, formatValue, onSelectUser }) {
   const [rows, setRows] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const [error, setError] = useState('');
@@ -55,7 +58,12 @@ function SimpleLeaderboard({ kind, fetchList, fetchMyRank, valueKey, valueIcon, 
   return (
     <div className="leaderboard-list">
       {rows.map((row) => (
-        <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+        <div
+          key={row.rank}
+          className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}
+          onClick={() => row.user_id && onSelectUser?.(row.user_id)}
+          style={{ cursor: row.user_id ? 'pointer' : 'default' }}
+        >
           <span className="worldboss-contributor-rank">{MEDAL[row.rank] ?? row.rank}</span>
           <span className="worldboss-contributor-nickname">
             {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
@@ -78,7 +86,7 @@ function SimpleLeaderboard({ kind, fetchList, fetchMyRank, valueKey, valueIcon, 
   );
 }
 
-function PowerLeaderboard({ profile, activeMonster }) {
+function PowerLeaderboard({ profile, activeMonster, onSelectUser }) {
   const [rows, setRows] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const [myPower, setMyPower] = useState(null);
@@ -139,7 +147,12 @@ function PowerLeaderboard({ profile, activeMonster }) {
       </div>
       <div className="leaderboard-list">
         {rows.map((row) => (
-          <div key={row.rank} className={`leaderboard-row ${row.is_me ? 'leaderboard-row--me' : ''}`}>
+          <div
+            key={row.rank}
+            className={`leaderboard-row ${row.is_me ? 'leaderboard-row--me' : ''}`}
+            onClick={() => row.user_id && onSelectUser?.(row.user_id)}
+            style={{ cursor: row.user_id ? 'pointer' : 'default' }}
+          >
             <span className="leaderboard-rank">{MEDAL[row.rank] ?? row.rank}</span>
             <span className="leaderboard-element">{ELEMENT_ICON[row.element] ?? ''}</span>
             <span className="leaderboard-nickname">

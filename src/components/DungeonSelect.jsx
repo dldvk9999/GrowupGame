@@ -13,6 +13,7 @@ import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countd
 import { showToast } from '../lib/toast';
 import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpeditions } from '../lib/expedition';
 import InfoTooltip from './InfoTooltip';
+import PublicProfileModal from './PublicProfileModal';
 
 const DUNGEON_TABS = ['exp', 'gold', 'job', 'ruby', 'streak', 'sealed', 'worldboss', 'guildraid', 'tower', 'expedition'];
 
@@ -29,6 +30,8 @@ export default function DungeonSelect({
   onEnterSealedDungeon, sealedEntering, sealedError, sealStatus,
   equippedCostumes, onCostumeLoadoutChange, onSealCostumePurchased,
 }) {
+  const [selectedUserId, setSelectedUserId] = useState(null);
+
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
     function handleKeyDown(e) {
@@ -48,6 +51,7 @@ export default function DungeonSelect({
   return (
     <div className="dungeon-select">
       <h2>던전</h2>
+      {selectedUserId && <PublicProfileModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />}
 
       <div className="shop-tabs">
         <button className={`shop-tab ${activeType === 'exp' ? 'active' : ''}`} onClick={() => onActiveTypeChange('exp')}>
@@ -109,6 +113,7 @@ export default function DungeonSelect({
           error={streakError}
           attemptsRemaining={streakAttemptsRemaining}
           streakBest={streakBest}
+          onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'sealed' ? (
         <SealedDungeonPanel
@@ -120,6 +125,7 @@ export default function DungeonSelect({
           equippedCostumes={equippedCostumes}
           onCostumeLoadoutChange={onCostumeLoadoutChange}
           onSealCostumePurchased={onSealCostumePurchased}
+          onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'worldboss' ? (
         <WorldBossPanel
@@ -128,6 +134,7 @@ export default function DungeonSelect({
           onEnter={onEnterWorldBoss}
           entering={worldBossEntering}
           error={worldBossError}
+          onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'guildraid' ? (
         <GuildRaidPanel
@@ -137,6 +144,7 @@ export default function DungeonSelect({
           entering={guildRaidEntering}
           error={guildRaidError}
           onGoToGuild={onGoToGuild}
+          onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'tower' ? (
         <TowerPanel
@@ -144,6 +152,7 @@ export default function DungeonSelect({
           onEnter={onEnterTower}
           entering={towerEntering}
           error={towerError}
+          onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'expedition' ? (
         <ExpeditionPanel userId={userId} onGoldChange={onExpeditionGoldChange} />
@@ -277,7 +286,7 @@ function RubyDungeonPanel({ activeMonster, onEnter, entering, error, attemptsRem
   );
 }
 
-function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsRemaining, streakBest }) {
+function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsRemaining, streakBest, onSelectUser }) {
   const [leaderboard, setLeaderboard] = useState(null);
   const [myRank, setMyRank] = useState(null);
 
@@ -321,7 +330,12 @@ function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsR
           <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 최고 연승 TOP {leaderboard.length}</h4>
           <div className="worldboss-contributor-list">
             {leaderboard.map((row) => (
-              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+              <div
+                key={row.rank}
+                className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}
+                onClick={() => row.user_id && onSelectUser?.(row.user_id)}
+                style={{ cursor: row.user_id ? 'pointer' : 'default' }}
+              >
                 <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
                 <span className="worldboss-contributor-nickname">
                   {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
@@ -340,7 +354,7 @@ function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsR
   );
 }
 
-function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatus, equippedCostumes, onCostumeLoadoutChange, onSealCostumePurchased }) {
+function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatus, equippedCostumes, onCostumeLoadoutChange, onSealCostumePurchased, onSelectUser }) {
   const [leaderboard, setLeaderboard] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const [ownedCostumeKeys, setOwnedCostumeKeys] = useState(null);
@@ -452,7 +466,12 @@ function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatu
           <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 누적 파편 TOP {leaderboard.length}</h4>
           <div className="worldboss-contributor-list">
             {leaderboard.map((row) => (
-              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+              <div
+                key={row.rank}
+                className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}
+                onClick={() => row.user_id && onSelectUser?.(row.user_id)}
+                style={{ cursor: row.user_id ? 'pointer' : 'default' }}
+              >
                 <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
                 <span className="worldboss-contributor-nickname">
                   {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}
@@ -539,7 +558,7 @@ function JobDungeonPanel({ activeMonster, onEnter, entering, error, towerHighest
   );
 }
 
-function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
+function WorldBossPanel({ boss, progress, onEnter, entering, error, onSelectUser }) {
   const [topContributors, setTopContributors] = useState(null);
   const [myRank, setMyRank] = useState(null);
   const resetIn = useCountdownToDaily8AM();
@@ -608,7 +627,12 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
           <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 이번 주 기여자 TOP {topContributors.length}</h4>
           <div className="worldboss-contributor-list">
             {topContributors.map((c, i) => (
-              <div key={i} className="worldboss-contributor-row">
+              <div
+                key={i}
+                className="worldboss-contributor-row"
+                onClick={() => c.userId && onSelectUser?.(c.userId)}
+                style={{ cursor: c.userId ? 'pointer' : 'default' }}
+              >
                 <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][i] ?? i + 1}</span>
                 <span className="worldboss-contributor-nickname">{c.nickname}</span>
                 <span className="worldboss-contributor-damage">🐉{c.damage.toLocaleString()}</span>
@@ -621,7 +645,7 @@ function WorldBossPanel({ boss, progress, onEnter, entering, error }) {
   );
 }
 
-function GuildRaidPanel({ guildRaid, progress, onEnter, entering, error, onGoToGuild }) {
+function GuildRaidPanel({ guildRaid, progress, onEnter, entering, error, onGoToGuild, onSelectUser }) {
   const [contributors, setContributors] = useState(null);
   const weeklyResetIn = useCountdownToWeeklyReset();
   const resetIn = useCountdownToDaily8AM();
@@ -695,7 +719,12 @@ function GuildRaidPanel({ guildRaid, progress, onEnter, entering, error, onGoToG
           <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 이번 주 길드원 기여도</h4>
           <div className="worldboss-contributor-list">
             {contributors.map((c, i) => (
-              <div key={i} className={`worldboss-contributor-row ${c.is_me ? 'inventory-row--equipped' : ''}`}>
+              <div
+                key={i}
+                className={`worldboss-contributor-row ${c.is_me ? 'inventory-row--equipped' : ''}`}
+                onClick={() => c.user_id && onSelectUser?.(c.user_id)}
+                style={{ cursor: c.user_id ? 'pointer' : 'default' }}
+              >
                 <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][i] ?? i + 1}</span>
                 <span className="worldboss-contributor-nickname">
                   {c.equipped_title && <span className="app-title-badge">[{c.equipped_title}]</span>}
@@ -711,7 +740,7 @@ function GuildRaidPanel({ guildRaid, progress, onEnter, entering, error, onGoToG
   );
 }
 
-function TowerPanel({ highestFloor, onEnter, entering, error }) {
+function TowerPanel({ highestFloor, onEnter, entering, error, onSelectUser }) {
   const [leaderboard, setLeaderboard] = useState(null);
   const [myRank, setMyRank] = useState(null);
 
@@ -767,7 +796,12 @@ function TowerPanel({ highestFloor, onEnter, entering, error }) {
           <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🏅 최고 도달 층수 TOP {leaderboard.length}</h4>
           <div className="worldboss-contributor-list">
             {leaderboard.map((row) => (
-              <div key={row.rank} className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}>
+              <div
+                key={row.rank}
+                className={`worldboss-contributor-row ${row.is_me ? 'inventory-row--equipped' : ''}`}
+                onClick={() => row.user_id && onSelectUser?.(row.user_id)}
+                style={{ cursor: row.user_id ? 'pointer' : 'default' }}
+              >
                 <span className="worldboss-contributor-rank">{['🥇', '🥈', '🥉'][row.rank - 1] ?? row.rank}</span>
                 <span className="worldboss-contributor-nickname">
                   {row.equipped_title && <span className="app-title-badge">[{row.equipped_title}]</span>}

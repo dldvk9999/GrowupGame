@@ -28,12 +28,13 @@ export async function fetchWorldBossTopContributors(weekKey) {
   if (!weekKey) return [];
   const { data, error } = await supabase
     .from('world_boss_contributions')
-    .select('total_damage, profiles(nickname)')
+    .select('user_id, total_damage, profiles(nickname)')
     .eq('week_key', weekKey)
     .order('total_damage', { ascending: false })
     .limit(10);
   if (error) throw error;
   return (data ?? []).map((row) => ({
+    userId: row.user_id,
     nickname: row.profiles?.nickname ?? '알 수 없음',
     damage: Number(row.total_damage),
   }));
