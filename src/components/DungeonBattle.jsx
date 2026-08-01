@@ -144,7 +144,11 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
       if (grownBase.events.some((e) => e.includes('레벨'))) {
         setTimeout(() => playLevelUpSound(), 300);
       }
-      onClear?.(grownBase, dungeonEnemy.goldReward);
+      // (수정, 사용자 제보) 서버의 "세션 생성 후 최소 1초" 안티치트 게이트(claim_dungeon_reward)를
+      // 강해진 캐릭터가 1초 안에 이겨버리면 걸려서 "저장에 실패했어요" 오류로 보였음(149에서
+      // 2초->1초로 완화했지만, 그 이후로도 캐릭터가 더 강해지면서 재발) - 승리 화면(setResult)은
+      // 즉시 보여주되, 실제 보상 요청(onClear)만 1초 늦춰서 게이트를 항상 여유 있게 통과시킴
+      setTimeout(() => onClear?.(grownBase, dungeonEnemy.goldReward), 1000);
     } else if (player.hp <= 0) {
       setResult('lose');
       const loseMsg = dungeonEnemy.dungeonType === 'tower'

@@ -122,6 +122,7 @@ goldReward = max(5, round(hp*0.15)*5*8)
 - 전투는 `DungeonBattle.jsx`(`BattleScreen`의 챌린지 모드만 떼어낸 단순화 버전, 자동사냥 없음), 승리 시 `persistMonsterGrowth`로 저장
 - 골드는 `use_dungeon_attempt`가 발급한 `dungeon_sessions` 세션 id로 `claim_dungeon_reward`를 호출해 받음(세션당 1회, [`security.md`](./security.md)). 클리어 시 `dungeon_progress.cleared_stage`도 같이 갱신
 - ⚠️ `claim_dungeon_reward`는 "세션 생성 후 최소 1초"(149에서 2초→1초로 완화, 사용자 제보 — "경험치/골드 던전 클리어 시 저장에 실패했어요" 에러의 원인이 이 게이트였음. 저층(1층 HP 405 수준)을 충분히 강해진 캐릭터가 스킬 한두 번으로 2초 안에 이겨버리면 걸렸음 — 전직던전(140)/루비던전과 동일하게 완화) 경과해야 클레임 가능(037) — "실제로 이겼는지" 검증은 아니고, 입장 직후 바로 클레임하는 가장 단순한 우회만 막는 부분적 완화책([`security.md`](./security.md))
+- ⚠️ **같은 "저장에 실패했어요" 오류 재발(사용자 재제보) — 이번엔 근본 원인을 클라이언트에서 수정**: 게이트를 1초로 완화해도, 캐릭터가 계속 강해지면서 승리 감지 직후 `onClear`를 곧바로 호출하는 `DungeonBattle.jsx`의 구조상 "세션 생성 후 1초 이내에 이기는" 경우가 다시 생길 수 있었음. 서버 게이트를 더 줄이는 대신(줄일수록 어뷰징 방지 효과가 약해짐), 클라이언트가 승리 화면은 즉시 보여주되 실제 `onClear`(보상 요청) 호출만 1초 지연시키도록 수정 — 게이트 자체는 그대로 유지하면서 재발 원인을 제거함(봉인된 던전의 `claimSealedDungeonReward` 지연 패턴과 동일)
 - 입장은 전투 시작 "전에" 소모(패배해도 복구 안 됨)
 - 던전 서브탭(경험치/골드/전직) 선택 상태는 `App.jsx`의 `dungeonActiveType`으로 끌어올려져, 전투 후 목록으로 돌아와도 마지막 탭이 유지됨
 - `Tab`/`Shift+Tab`으로 경험치→골드→전직 던전 순환 이동
