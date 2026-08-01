@@ -46,7 +46,7 @@ export default function MonsterSprite({ speciesKey, size = 90, alt, costumeKeys,
     return costumeBadges.map((item) => {
       const pos = COSTUME_SLOT_POSITION[item.slot];
       if (!pos) return null;
-      const color = RARITIES[item.rarity]?.color ?? '#9aa0b8';
+      const color = item.color ?? RARITIES[item.rarity]?.color ?? '#9aa0b8';
       return (
         <span
           key={item.itemKey}

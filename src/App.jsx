@@ -26,7 +26,7 @@ import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
 import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
-import { fetchMySealStatus, enterSealedDungeon, getSealedDungeonBoss } from './lib/sealedDungeon';
+import { fetchMySealStatus, enterSealedDungeon, getSealedDungeonBoss, fetchMySealCostumes } from './lib/sealedDungeon';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
@@ -140,6 +140,7 @@ export default function App() {
   const [sealedEntering, setSealedEntering] = useState(false);
   const [sealedError, setSealedError] = useState('');
   const [sealStatus, setSealStatus] = useState(null); // { sealKeys, sealFragments } | null
+  const [sealCostumeCount, setSealCostumeCount] = useState(0);
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
@@ -316,7 +317,7 @@ export default function App() {
       // 둘 다 실패해도 로그인 자체는 막지 않음(순수 부가 기능).
       const offlineResult = await claimOfflineGoldReward().catch(() => null);
       const comebackResult = await claimComebackRewardIfEligible().catch(() => null);
-      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg, sealStatusVal] = await Promise.all([
+      const [p, monster, cleared, inv, skills, dungeon, progress, equipDraws, missionState, worldBossState, worldBossProg, mails, attendance, everParticipated, freeDrawState, costumes, towerFloor, relics, claimedAch, rubyAttempts, jobEnh, streakAttempts, streakBestVal, activeStreakRun, guildRaidState, guildRaidProg, sealStatusVal, sealCostumeKeysVal] = await Promise.all([
         getMyProfile(),
         getActiveMonster(userId),
         fetchClearedStageIds(userId),
@@ -346,6 +347,7 @@ export default function App() {
         fetchGuildRaidState().catch(() => null),
         fetchMyGuildRaidProgress().catch(() => null),
         fetchMySealStatus().catch(() => null),
+        fetchMySealCostumes().catch(() => []),
       ]);
       setProfile(p);
       setClearedStageIds(cleared);
@@ -371,6 +373,7 @@ export default function App() {
       setGuildRaid(guildRaidState);
       setGuildRaidProgress(guildRaidProg);
       setSealStatus(sealStatusVal);
+      setSealCostumeCount(sealCostumeKeysVal.length);
       setHasUnreadMail(mails.some((m) => !m.claimed));
       setAttendanceState(attendance);
       setEverParticipatedWorldBoss(everParticipated);
@@ -945,6 +948,7 @@ export default function App() {
     towerHighestFloor,
     streakBest,
     sealFragments: sealStatus?.sealFragments ?? 0,
+    sealCostumeCount,
     attendanceTotal: attendanceState?.total_claim_count ?? 0,
     dungeonDepth: Math.max(dungeonProgress?.exp ?? 0, dungeonProgress?.gold ?? 0),
     maxEnhanceLevel: inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0),
@@ -1321,6 +1325,9 @@ export default function App() {
                   sealedEntering={sealedEntering}
                   sealedError={sealedError}
                   sealStatus={sealStatus}
+                  equippedCostumes={profile?.equipped_costumes}
+                  onCostumeLoadoutChange={handleCostumeLoadoutChange}
+                  onSealCostumePurchased={() => setSealCostumeCount((c) => c + 1)}
                 />
               )
             )}

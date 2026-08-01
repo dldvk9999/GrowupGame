@@ -6,7 +6,9 @@ import { fetchWorldBossTopContributors, fetchMyWorldBossRank } from '../lib/worl
 import { fetchTowerLeaderboard, fetchMyTowerRank, getTowerFloorMonster } from '../lib/tower';
 import { fetchStreakDungeonLeaderboard, fetchMyStreakDungeonRank, previewStreakDungeonGold } from '../lib/streakDungeon';
 import { fetchGuildRaidState, fetchMyGuildRaidProgress, fetchGuildRaidContributors } from '../lib/guildRaid';
-import { fetchMySealStatus, fetchSealLeaderboard, fetchMySealRank } from '../lib/sealedDungeon';
+import { fetchMySealStatus, fetchSealLeaderboard, fetchMySealRank, fetchMySealCostumes, buySealCostume } from '../lib/sealedDungeon';
+import { SEAL_COSTUME_CATALOG } from '../lib/sealCostumeCatalog';
+import { setCostumeLoadout } from '../lib/pvp';
 import { useCountdownToDaily8AM, useCountdownToWeeklyReset } from '../lib/countdown';
 import { showToast } from '../lib/toast';
 import { EXPEDITION_TIERS, startExpedition, claimExpedition, fetchMyExpeditions } from '../lib/expedition';
@@ -25,6 +27,7 @@ export default function DungeonSelect({
   onEnterStreakDungeon, streakEntering, streakError, streakAttemptsRemaining, streakBest,
   guildRaid, guildRaidProgress, onEnterGuildRaid, guildRaidEntering, guildRaidError, onGoToGuild,
   onEnterSealedDungeon, sealedEntering, sealedError, sealStatus,
+  equippedCostumes, onCostumeLoadoutChange, onSealCostumePurchased,
 }) {
   // Tab / Shift+Tab으로 던전 탭 순환
   useEffect(() => {
@@ -114,6 +117,9 @@ export default function DungeonSelect({
           entering={sealedEntering}
           error={sealedError}
           sealStatus={sealStatus}
+          equippedCostumes={equippedCostumes}
+          onCostumeLoadoutChange={onCostumeLoadoutChange}
+          onSealCostumePurchased={onSealCostumePurchased}
         />
       ) : activeType === 'worldboss' ? (
         <WorldBossPanel
@@ -334,9 +340,12 @@ function StreakDungeonPanel({ activeMonster, onEnter, entering, error, attemptsR
   );
 }
 
-function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatus }) {
+function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatus, equippedCostumes, onCostumeLoadoutChange, onSealCostumePurchased }) {
   const [leaderboard, setLeaderboard] = useState(null);
   const [myRank, setMyRank] = useState(null);
+  const [ownedCostumeKeys, setOwnedCostumeKeys] = useState(null);
+  const [shopError, setShopError] = useState('');
+  const [shopBusyKey, setShopBusyKey] = useState(null);
 
   useEffect(() => {
     Promise.all([fetchSealLeaderboard(), fetchMySealRank()])
@@ -344,10 +353,43 @@ function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatu
       .catch(() => setLeaderboard([]));
   }, [sealStatus?.sealFragments]);
 
+  useEffect(() => {
+    fetchMySealCostumes().then(setOwnedCostumeKeys).catch(() => setOwnedCostumeKeys([]));
+  }, [sealStatus?.sealFragments]);
+
   if (!activeMonster) return null;
   const keys = sealStatus?.sealKeys ?? 0;
   const fragments = sealStatus?.sealFragments ?? 0;
   const iAmInTop20 = leaderboard?.some((r) => r.is_me);
+
+  async function handleBuyCostume(item) {
+    setShopError('');
+    setShopBusyKey(item.itemKey);
+    try {
+      await buySealCostume(item.itemKey);
+      setOwnedCostumeKeys((prev) => [...(prev ?? []), item.itemKey]);
+      onSealCostumePurchased?.();
+      showToast(`🗝️ ${item.name}을(를) 구매했어요!`, 'success');
+    } catch (err) {
+      const message = err.message ?? '구매에 실패했어요.';
+      setShopError(message);
+      showToast(message, 'error');
+    } finally {
+      setShopBusyKey(null);
+    }
+  }
+
+  async function handleToggleEquip(item) {
+    const isEquipped = (equippedCostumes ?? []).includes(item.itemKey);
+    const withoutSameSlot = (equippedCostumes ?? []).filter((k) => k !== item.itemKey && !k.startsWith(`${item.slot}_`));
+    const next = isEquipped ? withoutSameSlot : [...withoutSameSlot, item.itemKey];
+    try {
+      await setCostumeLoadout(next);
+      onCostumeLoadoutChange?.(next);
+    } catch (err) {
+      showToast(err.message ?? '착용 변경에 실패했어요.', 'error');
+    }
+  }
 
   return (
     <div>
@@ -372,6 +414,38 @@ function SealedDungeonPanel({ activeMonster, onEnter, entering, error, sealStatu
       >
         {keys <= 0 ? '열쇠 없음' : entering ? '입장 중...' : '🗝️ 봉인된 던전 도전하기 (경험치 없음, 파편 +3)'}
       </button>
+
+      <div style={{ marginTop: 18 }}>
+        <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🛍️ 봉인의 상점 (파편으로 구매, 전투 스탯 영향 없음)</h4>
+        {shopError && <p className="shop-error">{shopError}</p>}
+        <div className="inventory-list">
+          {SEAL_COSTUME_CATALOG.map((item) => {
+            const owned = (ownedCostumeKeys ?? []).includes(item.itemKey);
+            const equipped = (equippedCostumes ?? []).includes(item.itemKey);
+            return (
+              <div key={item.itemKey} className={`inventory-row ${equipped ? 'inventory-row--equipped' : ''}`}>
+                <span className="inventory-icon" style={{ color: item.color }}>{item.icon}</span>
+                <span className="inventory-name">{item.name} <span className="owned-skill-rarity">({item.slotLabel})</span></span>
+                <div className="inventory-row-actions">
+                  {owned ? (
+                    <button className={`btn ${equipped ? 'btn-neutral' : 'btn-ghost'}`} onClick={() => handleToggleEquip(item)}>
+                      {equipped ? '착용중' : '착용'}
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-challenge"
+                      disabled={shopBusyKey === item.itemKey || fragments < item.price}
+                      onClick={() => handleBuyCostume(item)}
+                    >
+                      {shopBusyKey === item.itemKey ? '구매 중...' : `🧩 ${item.price}로 구매`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {leaderboard && leaderboard.length > 0 && (
         <div className="worldboss-top-contributors">

@@ -1,3 +1,5 @@
+import { getSealCostumeItem } from './sealCostumeCatalog';
+
 export const SLOTS = {
   weapon: { label: '무기', statKey: 'atk', base: 6, icon: '⚔️' },
   armor: { label: '보호구', statKey: 'def', base: 6, icon: '🛡️' },
@@ -35,7 +37,7 @@ export const ITEM_CATALOG = Object.entries(SLOTS).flatMap(([slotKey, slot]) =>
 );
 
 export function getItem(itemKey) {
-  return ITEM_CATALOG.find((i) => i.itemKey === itemKey);
+  return ITEM_CATALOG.find((i) => i.itemKey === itemKey) ?? getSealCostumeItem(itemKey);
 }
 
 export const MAX_ENHANCE_LEVEL = 1000;

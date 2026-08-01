@@ -48,3 +48,18 @@ export async function fetchMySealRank() {
   if (error) throw error;
   return data;
 }
+
+/** 봉인의 상점 - 내가 보유한 봉인 코스튬 item_key 목록 */
+export async function fetchMySealCostumes() {
+  const { data, error } = await supabase.rpc('fetch_my_seal_costumes');
+  if (error) throw error;
+  return (data ?? []).map((row) => row.item_key);
+}
+
+/** 봉인의 상점 - 코스튬 구매(파편만 소비, 골드 무관) */
+export async function buySealCostume(itemKey) {
+  const { data, error } = await supabase.rpc('buy_seal_costume', { p_item_key: itemKey });
+  if (error) throw new Error(error.message);
+  const row = data?.[0];
+  return { remainingFragments: row.remaining_fragments };
+}
