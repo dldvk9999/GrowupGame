@@ -143,7 +143,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             </button>
           </div>
           <div className="character-card-sub">
-            {activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}
+            {activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}{activeMonster.eliteLevel > 0 && <span className="login-streak-badge"> ✨정예 Lv.{activeMonster.eliteLevel}</span>}
             {loginStreak >= 2 && <span className="login-streak-badge"> 🔥{loginStreak}일 연속 접속</span>}
           </div>
           <div className="character-card-stats">
@@ -200,7 +200,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
         {activeMonster && (
           <div className="mypage-row">
             <span>대표 몬스터</span>
-            <strong>{activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}</strong>
+            <strong>{activeMonster.name}{activeMonster.jobTitle ? ` · ${activeMonster.jobTitle}` : ''} Lv.{activeMonster.level}{activeMonster.eliteLevel > 0 ? ` · ✨정예 Lv.${activeMonster.eliteLevel}` : ''}</strong>
           </div>
         )}
         {activeMonster && (

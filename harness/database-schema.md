@@ -589,3 +589,6 @@
 
 **167_leaderboard_expose_user_id.sql** — 신규 콘텐츠(166 연동)
 - 기존 랭킹 함수 9종(`fetch_leaderboard`/`fetch_achievement_leaderboard`/`fetch_tower_leaderboard`/`fetch_referral_leaderboard`/`fetch_gold_leaderboard`/`fetch_pvp_leaderboard`/`fetch_streak_dungeon_leaderboard`/`fetch_seal_leaderboard`/`fetch_guild_raid_contributors`) 전부 재정의(반환 컬럼에 `user_id` 추가, 전부 DROP FUNCTION 포함) — 계산/정렬/limit 로직은 diff로 순수 보존 확인. 자세한 내용은 [`public-profile.md`](./public-profile.md)
+
+**168_elite_level.sql** — 밸런스 조정(사용자 요청 — "만렙까지 너무 쉬움")
+- `owned_monsters.elite_level`/`elite_exp` 컬럼 신설, `save_monster_growth`(127) 재정의(파라미터 2개 추가, DROP FUNCTION 포함 — 정예레벨은 레벨500일 때만 0보다 클 수 있고 급격한 변화량 차단하는 검증 추가, diff로 기존 검증 로직 100% 보존 확인) — 레벨 500 이후 이어지는 별도의 훨씬 가파른 성장축(최대 100레벨), 던전 클리어 경험치도 전반적으로 약 1/4로 감소(클라이언트 전용 값이라 SQL 변경 없음). 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)

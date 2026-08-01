@@ -34,6 +34,8 @@ export function hydrateMonster(row) {
     unlockedJobTier,
     level: row.level,
     exp: row.exp,
+    eliteLevel: row.elite_level ?? 0,
+    eliteExp: row.elite_exp ?? 0,
     hp: stats.maxHp, // 재접속 시 만피 상태로 시작
     maxHp: stats.maxHp,
     atk: stats.atk,
@@ -41,7 +43,7 @@ export function hydrateMonster(row) {
   };
 }
 
-/** 성장 결과(레벨/경험치/스탯/진화)를 DB에 반영 - 서버(RPC)에서 상한선 재검증됨 */
+/** 성장 결과(레벨/경험치/스탯/진화/정예레벨)를 DB에 반영 - 서버(RPC)에서 상한선 재검증됨 */
 export async function persistMonsterGrowth(ownedMonsterId, monster) {
   const { error } = await supabase.rpc('save_monster_growth', {
     p_owned_monster_id: ownedMonsterId,
@@ -51,6 +53,8 @@ export async function persistMonsterGrowth(ownedMonsterId, monster) {
     p_atk: monster.atk,
     p_def: monster.def,
     p_species_id: speciesKeyToDbId[monster.speciesId],
+    p_elite_level: monster.eliteLevel ?? 0,
+    p_elite_exp: monster.eliteExp ?? 0,
   });
   if (error) throw error;
 }

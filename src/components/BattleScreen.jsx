@@ -465,7 +465,7 @@ export default function BattleScreen({
 
       <div className="hud-row">
         <HpBar
-          label={`${player.name}${player.jobTitle ? ' · ' + player.jobTitle : ''} Lv.${player.level}`}
+          label={`${player.name}${player.jobTitle ? ' · ' + player.jobTitle : ''} Lv.${player.level}${player.eliteLevel > 0 ? ' ✨' + player.eliteLevel : ''}`}
           hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]}
         />
         <HpBar label={displayEnemy.name} hp={displayEnemy.hp} maxHp={displayEnemy.maxHp} color={ELEMENT_COLORS[displayEnemy.element]} />
