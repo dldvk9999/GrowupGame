@@ -21,7 +21,8 @@ import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
 import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
-import { enterTower, claimTowerFloor, fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
+import { fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
+import { useTower } from './hooks/useTower';
 import { getDungeonStage } from './lib/dungeonStages';
 import { useJobDungeon } from './hooks/useJobDungeon';
 import { getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
@@ -126,10 +127,7 @@ export default function App() {
   const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
   const [dungeonProgress, setDungeonProgress] = useState({ exp: 0, gold: 0 });
   const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage, sessionId } | null
-  const [towerBattle, setTowerBattle] = useState(null); // { floor, sessionId } | null
-  const [towerHighestFloor, setTowerHighestFloor] = useState(0);
-  const [towerEntering, setTowerEntering] = useState(false);
-  const [towerError, setTowerError] = useState('');
+  // (useTower 훅은 setHasUnreadMail 선언 이후로 옮겨서 호출 - 아래 참고)
   const [dungeonEntering, setDungeonEntering] = useState(false);
   const [dungeonError, setDungeonError] = useState('');
   const {
@@ -180,6 +178,10 @@ export default function App() {
   const [loginStreak, setLoginStreak] = useState(0);
   const [pvpAttemptedToday, setPvpAttemptedToday] = useState(false);
   const [hasUnreadMail, setHasUnreadMail] = useState(false);
+  const {
+    towerBattle, setTowerBattle, towerHighestFloor, setTowerHighestFloor,
+    towerEntering, towerError, handleEnterTower, handleTowerClear,
+  } = useTower(setActiveMonster, setProfile, setHasUnreadMail);
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
@@ -651,44 +653,6 @@ export default function App() {
     }
   }
 
-  async function handleEnterTower() {
-    setTowerError('');
-    setTowerEntering(true);
-    try {
-      const { sessionId, floor } = await enterTower();
-      setTowerBattle({ floor, sessionId });
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setTowerError(message);
-      showToast(message, 'error');
-    } finally {
-      setTowerEntering(false);
-    }
-  }
-
-  async function handleTowerClear(grownBase, _clientGoldEstimate) {
-    setActiveMonster(grownBase);
-    try {
-      const [, reward] = await Promise.all([
-        persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
-        claimTowerFloor(towerBattle.sessionId),
-      ]);
-      setProfile((p) => ({ ...p, gold: p.gold + reward.gold }));
-      setTowerHighestFloor(reward.newHighestFloor);
-      bumpMission('kill_monsters', 1);
-      if (reward.isNewRecord && reward.newHighestFloor % 10 === 0) {
-        playNewRecordSound();
-        setHasUnreadMail(true);
-        showToast(`🗼 ${reward.newHighestFloor}층 돌파! 축하 보너스가 우편함에 도착했어요.`, 'success');
-      } else if (reward.isNewRecord) {
-        playNewRecordSound();
-        showToast(`🗼 신기록! ${reward.newHighestFloor}층 달성!`, 'success');
-      }
-    } catch (err) {
-      console.error('무한의 탑 보상 저장 실패', err);
-      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
-    }
-  }
 
   async function handleEnhanceJobSkill(skillId) {
     const res = await enhanceJobSkill(skillId); // 실패 시 예외를 그대로 던져서 호출부(SkillLoadout)가 처리
