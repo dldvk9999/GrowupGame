@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
@@ -10,6 +10,7 @@ import { playAttackSound, playHealSound, playBuffSound, playVictorySound } from 
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 import { getEnhancedJobSkillMultiplier } from '../lib/jobSkillEnhance';
 import { useBattleFx } from '../hooks/useBattleFx';
+import { useBattleHotkeys } from '../hooks/useBattleHotkeys';
 import HpBar from './atoms/HpBar';
 import ExpBar from './atoms/ExpBar';
 import BuffStatusRow from './molecules/BuffStatusRow';
@@ -179,35 +180,7 @@ export default function RubyDungeonBattle({ initialMonster, equipmentBonus, equi
     setTimeout(() => setCooldowns((prev) => ({ ...prev, [skill.id]: false })), effectiveCooldown);
   }
 
-  const keyStateRef = useRef();
-  keyStateRef.current = { result, availableSkills, useSkill, onExit };
-
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-      const { result, availableSkills, useSkill, onExit } = keyStateRef.current;
-
-      if (/^[1-9]$/.test(e.key)) {
-        if (!result) {
-          const skill = availableSkills[Number(e.key) - 1];
-          if (skill) { e.preventDefault(); useSkill(skill); }
-        }
-        return;
-      }
-      const pressedKey = e.key.toLowerCase();
-      if (!result && jobKeybinds.includes(pressedKey)) {
-        const jobTier = jobKeybinds.indexOf(pressedKey) + 1;
-        const skill = availableSkills.find((s) => getJobSkillTier(s.id) === jobTier);
-        if (skill) { e.preventDefault(); useSkill(skill); return; }
-      }
-      if (e.code === 'Space' && result) {
-        e.preventDefault();
-        onExit?.();
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  useBattleHotkeys({ result, availableSkills, useSkill, onExit, jobKeybinds });
 
   return (
     <div className={`battle-screen ${shake ? 'shake' : ''}`}>

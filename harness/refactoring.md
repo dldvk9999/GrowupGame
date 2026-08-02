@@ -20,13 +20,19 @@
 
 **성과**: 9개 파일 합계 약 3,505줄 → 약 3,020줄(약 490줄 감소, 신규 공용 파일 4개 약 130줄 추가로 순감소는 이보다 큼). 번들 크기도 약간 감소(중복 코드 제거 효과).
 
+## 2단계 완료 (이번 세션) — 키보드 단축키 처리 통합
+
+- **`src/hooks/useBattleHotkeys.js`**(신규) — 숫자키(1~9)/전직스킬 단축키/Space로 결과화면 나가기 처리. 7개 파일(`DungeonBattle`/`JobDungeonBattle`/`RubyDungeonBattle`/`EliteTrialBattle`/`SealedDungeonBattle`/`WorldBossBattle`/`GuildRaidBattle`)에서 사실상 동일했던 걸 통합
+- **`BattleScreen.jsx`(자동사냥/도전 듀얼모드 + R키 재도전)와 `StreakDungeonBattle.jsx`(승리 시 나가기 대신 수령/이어가기 선택이라 Space 나가기 자체가 없음)는 동작이 실제로 달라서 의도적으로 제외** — 억지로 통합하면 동작이 바뀌어버릴 위험이 있어 정확히 동일한 부분만 추출하는 원칙을 지킴
+- 사용하지 않게 된 `useRef` import도 3개 파일(`RubyDungeonBattle`/`EliteTrialBattle`/`SealedDungeonBattle`)에서 같이 정리
+- 7개 파일 합계 추가로 약 150줄 감소, `npm run build` 통과
+
 ## 다음 단계 (아직 안 함, 순서대로 진행 예정)
 
 1. **`useSkill` 로직 통합** — 9개 파일에 남은 가장 큰 중복(스킬 타입별 damage/heal/stun/dot/buff_atk/buff_def/haste 분기, 파일당 약 70~90줄). 파일마다 `effMultiplier` 계산 방식이 살짝 다름(전직스킬 강화 반영 여부) — 이 차이를 훅 파라미터로 흡수할 수 있는지 설계 필요
-2. **키보드 입력 처리 effect 통합** — 이것도 9개 파일에 거의 동일하게 중복
-3. **각 전투화면을 200줄 이하로** — 위 1/2단계가 끝나도 파일마다 고유한 부분(보스 소스, 보상 클레임 방식, 결과 화면 문구)이 남아있어서 순수하게 얇은 래퍼 컴포넌트 + 커스텀 훅 조합으로 재설계해야 함
-4. **`App.jsx`(1,494줄) 분해** — 던전별/화면별 상태를 커스텀 훅(`useDungeonState`, `useGuildState` 등)으로 뽑아내는 대규모 작업. 리스크가 가장 큼(전체 앱의 상태관리 중심축)
-5. **`DungeonSelect.jsx`(996줄) 분해** — 던전 종류별 패널(`StreakDungeonPanel`, `SealedDungeonPanel` 등)이 이미 한 파일에 다 들어있음 — 각각 별도 파일로 분리
-6. **아토믹디자인 전면 재배치** — `organisms`/`templates` 폴더까지 구성해서 기존 `components/` 평면 구조를 계층화
+2. **각 전투화면을 200줄 이하로** — 위 단계가 끝나도 파일마다 고유한 부분(보스 소스, 보상 클레임 방식, 결과 화면 문구)이 남아있어서 순수하게 얇은 래퍼 컴포넌트 + 커스텀 훅 조합으로 재설계해야 함
+3. **`App.jsx`(1,494줄) 분해** — 던전별/화면별 상태를 커스텀 훅(`useDungeonState`, `useGuildState` 등)으로 뽑아내는 대규모 작업. 리스크가 가장 큼(전체 앱의 상태관리 중심축)
+4. **`DungeonSelect.jsx`(996줄) 분해** — 던전 종류별 패널(`StreakDungeonPanel`, `SealedDungeonPanel` 등)이 이미 한 파일에 다 들어있음 — 각각 별도 파일로 분리
+5. **아토믹디자인 전면 재배치** — `organisms`/`templates` 폴더까지 구성해서 기존 `components/` 평면 구조를 계층화
 
 각 단계마다 이번처럼 "동일성 먼저 확인 → 안전하게 추출 → build 검증 → 커밋" 순서로 진행할 예정.
