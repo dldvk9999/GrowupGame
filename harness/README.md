@@ -44,6 +44,7 @@
 | [`security.md`](./security.md) | 보안 감사에서 발견/수정한 취약점, 알려진 한계, 정기점검 로그(55차+) |
 | [`todo.md`](./todo.md) | 알려진 미구현 기능 목록 |
 | [`dev-guide.md`](./dev-guide.md) | 로컬 개발/배포 방법, CI(GitHub Actions), 과거 버그 노트, 문서 관리 원칙 |
+| [`refactoring.md`](./refactoring.md) | 코드 리팩토링 진행상황(아토믹디자인/재사용/200줄 제한, 단계적 진행 중) |
 
 ---
 

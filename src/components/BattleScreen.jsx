@@ -10,12 +10,15 @@ import { getEnhancedJobSkillMultiplier } from '../lib/jobSkillEnhance';
 import TimeLimitBar from './TimeLimitBar';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
-import { getElementMultiplier } from '../lib/elements';
+import { getElementMultiplier, ELEMENT_COLORS } from '../lib/elements';
 import { bumpMission } from '../lib/missions';
 import { maybePickIdleFlavor } from '../lib/idleFlavor';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
+import { useBattleFx } from '../hooks/useBattleFx';
+import HpBar from './atoms/HpBar';
+import ExpBar from './atoms/ExpBar';
+import BuffStatusRow from './molecules/BuffStatusRow';
 
-const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const TIME_LIMIT_MS = 60000; // 스테이지 도전 제한시간 1분(신규, 사용자 요청) - 유휴(자동사냥) 모드에는 적용 안 됨
 const IDLE_KILL_INTERVAL = 1500; // ms, 자동 사냥 처치 텀 (2배 상향)
 
@@ -79,79 +82,13 @@ export default function BattleScreen({
   const [enemyStunnedUntil, setEnemyStunnedUntil] = useState(0);
   const [playerBuffs, setPlayerBuffs] = useState({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
   const [log, setLog] = useState(flavor);
-  const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
   const [showHealFx, setShowHealFx] = useState(false); // 회복 스킬 사용 시 캐릭터 위 아이콘 표시
   const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS); // 제한시간(신규, 사용자 요청) - 도전(challenge) 모드에서만 적용
   const challengeStartedAtRef = useRef(Date.now());
 
-  const canvasRef = useRef(null);
-  const particlesRef = useRef([]);
-  const rafRef = useRef(null);
-  const dimsRef = useRef({ w: 600, h: 220 });
-
-  // 스테이지가 바뀌면 완전 초기화하고 자동 사냥부터 다시 시작
-  useEffect(() => {
-    setPlayer(withEquipment(initialMonster, equipmentBonus));
-    setIdleEnemy(getIdleMonster(chapter, initialMonster.level));
-    setMode('idle');
-    setResult(null);
-    setCooldowns({});
-    setEnemyStunnedUntil(0);
-    setPlayerBuffs({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
-    setLog(flavor);
-  }, [chapter, stage]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    function resize() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      dimsRef.current = { w: rect.width, h: rect.height };
-    }
-    resize();
-    window.addEventListener('resize', resize);
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-      for (const p of particlesRef.current) {
-        p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 1;
-        ctx.globalAlpha = Math.max(p.life / p.maxLife, 0);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      rafRef.current = requestAnimationFrame(loop);
-    }
-    rafRef.current = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  const spawnParticles = useCallback((xr, yr, color, count = 18, sizeMult = 1) => {
-    const { w, h } = dimsRef.current;
-    const x = w * xr, y = h * yr;
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 4;
-      particlesRef.current.push({
-        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        size: (2 + Math.random() * 3) * sizeMult, color, life: 30 + Math.random() * 20, maxLife: 50,
-      });
-    }
-  }, []);
-
-  const triggerShake = useCallback(() => {
-    setShake(true);
-    setTimeout(() => setShake(false), 200);
-  }, []);
+  const { canvasRef, shake, spawnParticles, triggerShake } = useBattleFx();
 
   // ---------- 자동 사냥 루프 (챌린지 중이 아닐 때만) ----------
   useEffect(() => {
@@ -539,39 +476,5 @@ export default function BattleScreen({
   );
 }
 
-function BuffStatusRow({ buffs, enemyStunnedUntil }) {
-  const now = Date.now();
-  const tags = [];
-  if (buffs.atkUntil > now) tags.push({ key: 'atk', label: '⚔️ 공격력 상승', cls: 'buff-atk' });
-  if (buffs.defUntil > now) tags.push({ key: 'def', label: '🛡️ 방어력 상승', cls: 'buff-def' });
-  if (enemyStunnedUntil > now) tags.push({ key: 'stun', label: '💫 적 기절중', cls: 'buff-stun' });
-  if (tags.length === 0) return null;
-  return (
-    <div className="buff-status-row">
-      {tags.map((t) => (
-        <span key={t.key} className={`buff-tag ${t.cls}`}>{t.label}</span>
-      ))}
-    </div>
-  );
-}
 
-function ExpBar({ level, exp }) {
-  const need = expToNextLevel(level);
-  const pct = Math.min((exp / need) * 100, 100);
-  return (
-    <div className="exp-bar-wrap">
-      <div className="exp-label">Lv.{level} 경험치 ({exp}/{need})</div>
-      <div className="bar-track exp-track"><div className="bar-fill exp-fill" style={{ width: `${pct}%` }} /></div>
-    </div>
-  );
-}
 
-function HpBar({ label, hp, maxHp, color }) {
-  const pct = Math.max((hp / maxHp) * 100, 0);
-  return (
-    <div className="hp-bar">
-      <div className="hp-label">{label} ({Math.ceil(hp)}/{maxHp})</div>
-      <div className="bar-track"><div className="bar-fill" style={{ width: `${pct}%`, background: color }} /></div>
-    </div>
-  );
-}

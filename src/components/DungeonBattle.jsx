@@ -4,14 +4,17 @@ import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
-import { getElementMultiplier } from '../lib/elements';
+import { getElementMultiplier, ELEMENT_COLORS } from '../lib/elements';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
 import { getDungeonAttackInterval } from '../lib/dungeonStages';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 import TimeLimitBar from './TimeLimitBar';
+import { useBattleFx } from '../hooks/useBattleFx';
+import HpBar from './atoms/HpBar';
+import ExpBar from './atoms/ExpBar';
+import BuffStatusRow from './molecules/BuffStatusRow';
 
-const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 const TIME_LIMIT_MS = 60000; // 제한시간 1분(신규, 사용자 요청) - 시간 안에 못 이기면 패배 처리
 
 function withEquipment(monster, bonus) {
@@ -52,7 +55,6 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   const [enemyStunnedUntil, setEnemyStunnedUntil] = useState(0);
   const [playerBuffs, setPlayerBuffs] = useState({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
   const [log, setLog] = useState(`${dungeonEnemy.name} 등장!`);
-  const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
   const [jobKeybinds] = useState(() => getJobSkillKeybinds());
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
@@ -60,60 +62,7 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   const [timeLeftMs, setTimeLeftMs] = useState(TIME_LIMIT_MS); // 제한시간(신규, 사용자 요청)
   const startedAtRef = useRef(Date.now());
 
-  const canvasRef = useRef(null);
-  const particlesRef = useRef([]);
-  const rafRef = useRef(null);
-  const dimsRef = useRef({ w: 600, h: 220 });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    function resize() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      dimsRef.current = { w: rect.width, h: rect.height };
-    }
-    resize();
-    window.addEventListener('resize', resize);
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-      for (const p of particlesRef.current) {
-        p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 1;
-        ctx.globalAlpha = Math.max(p.life / p.maxLife, 0);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      rafRef.current = requestAnimationFrame(loop);
-    }
-    rafRef.current = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  const spawnParticles = useCallback((xr, yr, color, count = 18, sizeMult = 1) => {
-    const { w, h } = dimsRef.current;
-    const x = w * xr, y = h * yr;
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 4;
-      particlesRef.current.push({
-        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        size: (2 + Math.random() * 3) * sizeMult, color, life: 30 + Math.random() * 20, maxLife: 50,
-      });
-    }
-  }, []);
-
-  const triggerShake = useCallback(() => {
-    setShake(true);
-    setTimeout(() => setShake(false), 200);
-  }, []);
+  const { canvasRef, shake, spawnParticles, triggerShake } = useBattleFx();
 
   const damageEnemy = useCallback((amount) => {
     setEnemy((prev) => ({ ...prev, hp: Math.max(prev.hp - amount, 0) }));
@@ -360,39 +309,5 @@ export default function DungeonBattle({ initialMonster, equipmentBonus, equipped
   );
 }
 
-function BuffStatusRow({ buffs, enemyStunnedUntil }) {
-  const now = Date.now();
-  const tags = [];
-  if (buffs.atkUntil > now) tags.push({ key: 'atk', label: '⚔️ 공격력 상승', cls: 'buff-atk' });
-  if (buffs.defUntil > now) tags.push({ key: 'def', label: '🛡️ 방어력 상승', cls: 'buff-def' });
-  if (enemyStunnedUntil > now) tags.push({ key: 'stun', label: '💫 적 기절중', cls: 'buff-stun' });
-  if (tags.length === 0) return null;
-  return (
-    <div className="buff-status-row">
-      {tags.map((t) => (
-        <span key={t.key} className={`buff-tag ${t.cls}`}>{t.label}</span>
-      ))}
-    </div>
-  );
-}
 
-function ExpBar({ level, exp }) {
-  const need = expToNextLevel(level);
-  const pct = Math.min((exp / need) * 100, 100);
-  return (
-    <div className="exp-bar-wrap">
-      <div className="exp-label">Lv.{level} 경험치 ({exp}/{need})</div>
-      <div className="bar-track exp-track"><div className="bar-fill exp-fill" style={{ width: `${pct}%` }} /></div>
-    </div>
-  );
-}
 
-function HpBar({ label, hp, maxHp, color }) {
-  const pct = Math.max((hp / maxHp) * 100, 0);
-  return (
-    <div className="hp-bar">
-      <div className="hp-label">{label} ({Math.ceil(hp)}/{maxHp})</div>
-      <div className="bar-track"><div className="bar-fill" style={{ width: `${pct}%`, background: color }} /></div>
-    </div>
-  );
-}

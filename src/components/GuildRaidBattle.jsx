@@ -3,14 +3,16 @@ import MonsterSprite from './MonsterSprite';
 import SkillButton from './SkillButton';
 import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJobSkillCooldowns } from '../lib/jobAdvancement';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
-import { getElementMultiplier } from '../lib/elements';
+import { getElementMultiplier, ELEMENT_COLORS } from '../lib/elements';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound } from '../lib/audio';
 import { reportGuildRaidDamage } from '../lib/guildRaid';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
 import TimeLimitBar from './TimeLimitBar';
+import { useBattleFx } from '../hooks/useBattleFx';
+import HpBar from './atoms/HpBar';
+import BuffStatusRow from './molecules/BuffStatusRow';
 
-const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
 // 월드보스보다 참여 인원이 적은(최대 30명) 길드 단위 레이드라 데미지/체력 규모를 축소.
 // 공격 텀도 살짝 여유있게(0.8초) - 월드보스보다 소규모 인원이 오래 버텨야 하는 특성 반영.
 const GUILD_RAID_NORMAL_DAMAGE = 6000;
@@ -65,7 +67,6 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
   const [enemyStunnedUntil, setEnemyStunnedUntil] = useState(0);
   const [playerBuffs, setPlayerBuffs] = useState({ atkUntil: 0, atkMult: 1, defUntil: 0, defMult: 1, hasteUntil: 0, hasteReduction: 0 });
   const [log, setLog] = useState('길드 레이드 보스가 그 모습을 드러냈다!');
-  const [shake, setShake] = useState(false);
   const [result, setResult] = useState(null);
   const [jobKeybinds] = useState(() => getJobSkillKeybinds());
   const [screenFlash, setScreenFlash] = useState(null); // 고티어 전직스킬용 화면 플래시 색상
@@ -76,60 +77,7 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
   const damageDealtRef = useRef(0);
   const battleStartRef = useRef(Date.now());
   const enemyAttackCountRef = useRef(0);
-  const canvasRef = useRef(null);
-  const particlesRef = useRef([]);
-  const rafRef = useRef(null);
-  const dimsRef = useRef({ w: 600, h: 220 });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    function resize() {
-      const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
-      dimsRef.current = { w: rect.width, h: rect.height };
-    }
-    resize();
-    window.addEventListener('resize', resize);
-    function loop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-      for (const p of particlesRef.current) {
-        p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 1;
-        ctx.globalAlpha = Math.max(p.life / p.maxLife, 0);
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-      rafRef.current = requestAnimationFrame(loop);
-    }
-    rafRef.current = requestAnimationFrame(loop);
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  const spawnParticles = useCallback((xr, yr, color, count = 18, sizeMult = 1) => {
-    const { w, h } = dimsRef.current;
-    const x = w * xr, y = h * yr;
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 4;
-      particlesRef.current.push({
-        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        size: (2 + Math.random() * 3) * sizeMult, color, life: 30 + Math.random() * 20, maxLife: 50,
-      });
-    }
-  }, []);
-
-  const triggerShake = useCallback(() => {
-    setShake(true);
-    setTimeout(() => setShake(false), 200);
-  }, []);
+  const { canvasRef, shake, spawnParticles, triggerShake } = useBattleFx();
 
   const damageEnemy = useCallback((amount) => {
     damageDealtRef.current += amount;
@@ -332,7 +280,7 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
 
       <div className="hud-row">
         <HpBar label={`${player.name} Lv.${player.level}`} hp={player.hp} maxHp={player.maxHp} color={ELEMENT_COLORS[player.element]} />
-        <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color="#5cb83c" />
+        <HpBar label={enemy.name} hp={enemy.hp} maxHp={enemy.maxHp} color="#5cb83c" formatNumbers />
       </div>
 
       <BuffStatusRow buffs={playerBuffs} enemyStunnedUntil={enemyStunnedUntil} />
@@ -379,28 +327,4 @@ export default function GuildRaidBattle({ initialMonster, equipmentBonus, equipp
   );
 }
 
-function BuffStatusRow({ buffs, enemyStunnedUntil }) {
-  const now = Date.now();
-  const tags = [];
-  if (buffs.atkUntil > now) tags.push({ key: 'atk', label: '⚔️ 공격력 상승', cls: 'buff-atk' });
-  if (buffs.defUntil > now) tags.push({ key: 'def', label: '🛡️ 방어력 상승', cls: 'buff-def' });
-  if (enemyStunnedUntil > now) tags.push({ key: 'stun', label: '💫 적 기절중', cls: 'buff-stun' });
-  if (tags.length === 0) return null;
-  return (
-    <div className="buff-status-row">
-      {tags.map((t) => (
-        <span key={t.key} className={`buff-tag ${t.cls}`}>{t.label}</span>
-      ))}
-    </div>
-  );
-}
 
-function HpBar({ label, hp, maxHp, color }) {
-  const pct = Math.max((hp / maxHp) * 100, 0);
-  return (
-    <div className="hp-bar">
-      <div className="hp-label">{label} ({Math.ceil(hp).toLocaleString()}/{maxHp.toLocaleString()})</div>
-      <div className="bar-track"><div className="bar-fill" style={{ width: `${pct}%`, background: color }} /></div>
-    </div>
-  );
-}

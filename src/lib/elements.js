@@ -28,3 +28,7 @@ export function getElementRelation(attackerElement, defenderElement) {
 }
 
 export const ELEMENT_LABEL = { fire: '불', water: '물', grass: '풀' };
+
+// 리팩토링(사용자 요청 - 상수값 별도 export): 9개 전투화면에 중복 정의돼있던
+// 속성별 UI 색상(플레이어 체력바/파티클 색 등에 사용)을 여기 하나로 통합.
+export const ELEMENT_COLORS = { fire: '#ff5a1f', water: '#3aa8e0', grass: '#5cb83c' };
