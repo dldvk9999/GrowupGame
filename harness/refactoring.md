@@ -59,8 +59,10 @@
 - **`src/hooks/useEliteTrial.js`** — 정예의 시련 상태 4개 + 핸들러 2개(`activeMonster`/`setActiveMonster`만 외부에서 받고 나머지는 전부 자기소유)
 - **`src/hooks/useSealedDungeon.js`** — 봉인된 던전 상태 5개 + 핸들러 2개(외부 상태 의존 전혀 없음 - 골드/경험치를 안 주는 설계라 더 단순)
 - **`src/hooks/useGuildRaid.js`** — 길드 레이드 상태 5개 + 함수 3개(`fetchGuildRaidState`/`fetchMyGuildRaidProgress`는 App.jsx의 초기 로드 `Promise.all`에서도 별도로 쓰이고 있어서 import는 App.jsx에도 남겨둠 — 훅으로 옮긴 건 "새로고침/입장/정산" 로직만)
+- **`src/hooks/useRubyDungeon.js`** — 루비 던전 상태 4개 + 핸들러 2개(`setActiveMonster`/`setProfile` 외부 전달)
+- **`src/hooks/useStreakDungeon.js`** — 연승 던전 상태 5개 + 핸들러 5개(가장 복잡한 상태 흐름 — 수령/이어가기/포기 3갈래, `fetchStreakDungeonAttemptsToday`가 App.jsx 초기로드에서도 쓰여서 import 유지)
 
-`App.jsx` 1,494줄 → 1,410줄. 아직 갈 길이 멀지만(연승던전/봉인상점/루비던전/월드보스/PvP/우편함/업적 등 훨씬 많은 기능이 남음), 매번 "외부에서 이 state/setter를 또 어디서 쓰고 있는지"(특히 초기 로드 `Promise.all`과 로그아웃 리셋 블록)를 `grep`으로 먼저 확인하고 나서만 추출하는 원칙을 지키고 있어서 지금까지 리스크 없이 진행 중.
+`App.jsx` 1,494줄 → 1,332줄. 아직 갈 길이 멀지만(전직던전/월드보스/PvP/우편함/업적/친구/뽑기 등 훨씬 많은 기능이 남음), 매번 "외부에서 이 state/setter를 또 어디서 쓰고 있는지"(특히 초기 로드 `Promise.all`과 로그아웃 리셋 블록)를 `grep`으로 먼저 확인하고 나서만 추출하는 원칙을 지키고 있어서 지금까지 리스크 없이 진행 중.
 
 ## 다음 단계
 

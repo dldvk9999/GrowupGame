@@ -24,8 +24,10 @@ import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, cla
 import { enterTower, claimTowerFloor, fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
 import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
-import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
-import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
+import { getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
+import { useRubyDungeon } from './hooks/useRubyDungeon';
+import { fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
+import { useStreakDungeon } from './hooks/useStreakDungeon';
 import { fetchMySealStatus, getSealedDungeonBoss, fetchMySealCostumes } from './lib/sealedDungeon';
 import { useSealedDungeon } from './hooks/useSealedDungeon';
 import { fetchEliteTrialAttemptsToday, getEliteTrialBoss } from './lib/eliteTrial';
@@ -130,16 +132,17 @@ export default function App() {
   const [dungeonEntering, setDungeonEntering] = useState(false);
   const [dungeonError, setDungeonError] = useState('');
   const [jobDungeonBattle, setJobDungeonBattle] = useState(null); // { tier, sessionId } | null
-  const [rubyDungeonBattle, setRubyDungeonBattle] = useState(null); // { sessionId } | null
-  const [rubyEntering, setRubyEntering] = useState(false);
-  const [rubyError, setRubyError] = useState('');
-  const [rubyAttemptsRemaining, setRubyAttemptsRemaining] = useState(null);
+  const {
+    rubyDungeonBattle, setRubyDungeonBattle, rubyEntering, rubyError,
+    rubyAttemptsRemaining, setRubyAttemptsRemaining, handleEnterRubyDungeon, handleRubyDungeonWin,
+  } = useRubyDungeon(setActiveMonster, setProfile);
 
-  const [streakDungeonBattle, setStreakDungeonBattle] = useState(null); // { sessionId, streak } | null
-  const [streakEntering, setStreakEntering] = useState(false);
-  const [streakError, setStreakError] = useState('');
-  const [streakAttemptsRemaining, setStreakAttemptsRemaining] = useState(null);
-  const [streakBest, setStreakBest] = useState(0);
+  const {
+    streakDungeonBattle, setStreakDungeonBattle, streakEntering, streakError,
+    streakAttemptsRemaining, setStreakAttemptsRemaining, streakBest, setStreakBest,
+    handleEnterStreakDungeon, handleStreakDungeonWin,
+    handleStreakContinueSuccess, handleStreakBankSuccess, handleStreakForfeit,
+  } = useStreakDungeon(setActiveMonster, setProfile);
 
   const {
     sealedDungeonBattle, setSealedDungeonBattle, sealedEntering, sealedError,
@@ -715,87 +718,6 @@ export default function App() {
       console.error('전직 적용 실패', err);
       showToast(err.message ?? '전직 적용에 실패했어요. 다시 시도해주세요.', 'error');
     }
-  }
-
-  async function handleEnterRubyDungeon() {
-    setRubyError('');
-    setRubyEntering(true);
-    try {
-      const sessionId = await startRubyDungeon();
-      setRubyDungeonBattle({ sessionId });
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setRubyError(message);
-      showToast(message, 'error');
-    } finally {
-      setRubyEntering(false);
-      setRubyAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
-    }
-  }
-
-  async function handleRubyDungeonWin(grownBase) {
-    setActiveMonster(grownBase);
-    try {
-      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
-      const rubies = await claimRubyDungeonReward(rubyDungeonBattle.sessionId);
-      setProfile((p) => (p ? { ...p, rubies: (p.rubies ?? 0) + rubies } : p));
-      showToast(`💎 루비 던전 클리어! 루비 +${rubies}개`, 'success');
-      bumpMission('kill_monsters', 1);
-    } catch (err) {
-      console.error('루비 지급 실패', err);
-      showToast(err.message ?? '루비 지급에 실패했어요. 다시 시도해주세요.', 'error');
-    }
-  }
-
-  async function handleEnterStreakDungeon() {
-    setStreakError('');
-    setStreakEntering(true);
-    try {
-      const { sessionId, streak } = await startStreakDungeon();
-      setStreakDungeonBattle({ sessionId, streak });
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setStreakError(message);
-      showToast(message, 'error');
-    } finally {
-      setStreakEntering(false);
-      setStreakAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
-    }
-  }
-
-  // 연승 던전은 이길 때마다 호출(경험치 저장) - 루비 던전(handleRubyDungeonWin)과 동일 패턴,
-  // 골드는 여기서 지급하지 않고 "수령"을 눌러야만 확정 지급됨(handleStreakBankSuccess)
-  async function handleStreakDungeonWin(grownBase) {
-    setActiveMonster(grownBase);
-    try {
-      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
-      bumpMission('kill_monsters', 1);
-    } catch (err) {
-      console.error('연승 던전 경험치 저장 실패', err);
-    }
-  }
-
-  // "이어서 도전" 성공 - streak만 갱신하면 StreakDungeonBattle의 key가 바뀌어 다음 라운드로 리마운트됨
-  function handleStreakContinueSuccess(newStreak) {
-    setStreakDungeonBattle((prev) => (prev ? { ...prev, streak: newStreak } : prev));
-  }
-
-  // "지금 수령" 성공 - 골드는 이미 서버에서 지급 완료된 상태라 잔액만 반영, 던전 종료
-  function handleStreakBankSuccess(gold, finalStreak) {
-    setProfile((p) => (p ? { ...p, gold: (p.gold ?? 0) + gold } : p));
-    showToast(`🔥 ${finalStreak}연승 수령! 골드 +${gold.toLocaleString()}`, 'success');
-    setStreakDungeonBattle(null);
-    setStreakBest((prev) => Math.max(prev, finalStreak));
-    fetchStreakDungeonAttemptsToday().then(setStreakAttemptsRemaining).catch(() => {});
-  }
-
-  // 패배로 포기 - 이번 판 보상 없음, 연승 기록(streakBest)은 도달했던 최고치가 이미 반영돼있음
-  function handleStreakForfeit() {
-    setStreakDungeonBattle((prev) => {
-      if (prev) setStreakBest((best) => Math.max(best, prev.streak));
-      return null;
-    });
-    fetchStreakDungeonAttemptsToday().then(setStreakAttemptsRemaining).catch(() => {});
   }
 
   async function handleEnhanceJobSkill(skillId) {
