@@ -20,7 +20,8 @@ import { fetchEquipmentDrawProgress } from './lib/equipmentDrawProgress';
 import { fetchUserSkills } from './lib/skillGacha';
 import { resolveLoadout, getSkillSlotCount, sumSkillPossessionBonus } from './lib/skillCatalog';
 import { SKILLS as FALLBACK_SKILLS } from './lib/skills';
-import { fetchDungeonAttemptsToday, fetchDungeonProgress, useDungeonAttempt, claimDungeonReward } from './lib/dungeon';
+import { fetchDungeonAttemptsToday, fetchDungeonProgress } from './lib/dungeon';
+import { useExpGoldDungeon } from './hooks/useExpGoldDungeon';
 import { fetchMyTowerProgress, getTowerFloorMonster } from './lib/tower';
 import { useTower } from './hooks/useTower';
 import { getDungeonStage } from './lib/dungeonStages';
@@ -124,12 +125,12 @@ export default function App() {
   }, [activeTab, stage]);
   const [starterLoading, setStarterLoading] = useState(false);
   const [error, setError] = useState('');
-  const [dungeonAttempts, setDungeonAttempts] = useState({ exp: 3, gold: 3 });
-  const [dungeonProgress, setDungeonProgress] = useState({ exp: 0, gold: 0 });
-  const [dungeonBattle, setDungeonBattle] = useState(null); // { type, stage, sessionId } | null
+  const {
+    dungeonAttempts, setDungeonAttempts, dungeonProgress, setDungeonProgress,
+    dungeonBattle, setDungeonBattle, dungeonEntering, dungeonError,
+    handleEnterDungeon, handleDungeonClear,
+  } = useExpGoldDungeon(setActiveMonster, setProfile);
   // (useTower 훅은 setHasUnreadMail 선언 이후로 옮겨서 호출 - 아래 참고)
-  const [dungeonEntering, setDungeonEntering] = useState(false);
-  const [dungeonError, setDungeonError] = useState('');
   const {
     jobDungeonBattle, setJobDungeonBattle, jobEntering, jobError,
     handleEnterJobDungeon, handleJobDungeonWin,
@@ -605,53 +606,6 @@ export default function App() {
     handleSelectStage(nextChapter, nextStage);
   }
 
-  async function handleEnterDungeon(type) {
-    setDungeonError('');
-    setDungeonEntering(true);
-    try {
-      const { sessionId, remaining, stage } = await useDungeonAttempt(type);
-      setDungeonAttempts((prev) => ({ ...prev, [type]: remaining }));
-      setDungeonBattle({ type, stage, sessionId });
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setDungeonError(message);
-      showToast(message, 'error');
-    } finally {
-      setDungeonEntering(false);
-    }
-  }
-
-  async function handleDungeonClear(grownBase, _clientGoldEstimate) {
-    setActiveMonster(grownBase);
-    try {
-      const [, reward] = await Promise.all([
-        persistMonsterGrowth(grownBase.ownedMonsterId, grownBase),
-        claimDungeonReward(dungeonBattle.sessionId),
-      ]);
-      setProfile((p) => ({ ...p, gold: p.gold + reward.gold + (reward.comboBonus ?? 0) }));
-      setDungeonProgress((prev) => ({
-        ...prev,
-        [dungeonBattle.type]: Math.max(prev[dungeonBattle.type] ?? 0, dungeonBattle.stage),
-      }));
-      bumpMission('kill_monsters', 1);
-      if (reward.comboBonus > 0) {
-        playNewRecordSound();
-        showToast(`🔥 오늘 이 던전 입장권을 전부 클리어했어요! 콤보 보너스 +${reward.comboBonus.toLocaleString()}`, 'success');
-      } else if (reward.isElite) {
-        playGoldenMonsterSound();
-        showToast(`👑 정예 몬스터였어요! 골드 2배 획득 (+${reward.gold.toLocaleString()})`, 'success');
-      } else if (reward.isLuckyWeek) {
-        showToast(`🍀 이번 주 행운의 던전! 골드 1.5배 획득 (+${reward.gold.toLocaleString()})`, 'success');
-      } else if (reward.isGoldenHour) {
-        showToast(`🕗 골든타임! 골드 1.4배 획득 (+${reward.gold.toLocaleString()})`, 'success');
-      } else if (reward.isDailyBonus) {
-        showToast(`📅 오늘의 요일 보너스! 골드 1.3배 획득 (+${reward.gold.toLocaleString()})`, 'success');
-      }
-    } catch (err) {
-      console.error('던전 보상 저장 실패', err);
-      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
-    }
-  }
 
 
   async function handleEnhanceJobSkill(skillId) {
