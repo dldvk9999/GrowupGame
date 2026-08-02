@@ -249,4 +249,12 @@ goldReward = max(5, round(hp*0.15)*5*8)
 - **오프라인 골드 보상(103/106)과 역할 분리**: 오프라인 보상은 "앱을 닫고 있던 짧은~중간 시간"(최대 2시간, 50% 효율)을 커버하고, 파견은 "몇 시간 뒤 다시 켤 생각으로 미리 걸어두는" 장시간(최대 12시간) 용도. 전투/자동사냥과 전혀 안 겹침(몬스터를 "떼어가는" 게 아니라 그냥 병행되는 타이머일 뿐이라 앱을 켜놓고 계속 플레이해도 무방).
 - **골드 공식을 `calc_idle_gold`(2.5초 틱 기준)를 재사용하지 않고 완전히 새로 만듦**: 12시간을 틱 단위로 환산하면 `add_gold`의 100만 상한을 손쉽게 넘어 크래시하는 걸 시뮬레이션으로 미리 확인함(117/118에서 겪은 것과 같은 클래스의 함정을 사전에 피함). 대신 `calc_expedition_gold_per_hour(chapter, level)` — `calc_idle_gold`와 같은 v_hp 베이스를 쓰되 배율을 15로 훨씬 작게 잡은(calc_idle_gold는 2.5초당 40배) "시간당 요율" 전용 공식을 신설. 최종 결과는 그래도 방어적으로 100만 클램프.
 - **파견 슬롯 다중화 (migration 132, 신규, 사용자 요청)**: 기존엔 유저당 1개만 동시에 보낼 수 있었는데, **레벨 100마다 슬롯이 1개씩 늘어남**(`calc_expedition_slots(level) = 1 + floor(level/100)` — 레벨100=2개, 200=3개, ..., 만렙500=6개). `expeditions` 테이블을 `user_id` 단독 PK에서 별도 `id`(uuid) PK로 바꿔서 유저당 여러 행을 가질 수 있게 함. `start_expedition`/`claim_expedition` 둘 다 반환/인자가 바뀌어(`claim_expedition`이 이제 `p_expedition_id`를 받음) DROP FUNCTION 포함. 조회용 `fetch_my_expeditions()`가 진행 중인 파견 전부 + 총 슬롯 수를 같이 반환. 클라이언트/서버 둘 다 슬롯 계산식을 각자 갖고 있으므로(`expedition.js`의 `calcExpeditionSlots`) **하나 바꾸면 반드시 둘 다 같이 바꿔야 함**.
-- 클라이언트(`ExpeditionPanel`, `DungeonSelect.jsx` 내부)는 1초마다 남은시간을 재계산해서 표시, 완료되면 "수령" 버튼으로 전환. 슬롯이 남아있을 때만 새 파견 시작 버튼 노출.
+- 클라이언트(`ExpeditionPanel`, `components/organisms/ExpeditionPanel.jsx`)는 1초마다 남은시간을 재계산해서 표시, 완료되면 "수령" 버튼으로 전환. 슬롯이 남아있을 때만 새 파견 시작 버튼 노출.
+
+## 파견 보너스 재화 (migration 174, 신규, 사용자 요청)
+
+"긴 파견을 보낼수록 골드 외 다른 재화도 뜰 수 있게" — `claim_expedition` 재정의(반환 컬럼에 `bonus_currency`/`bonus_amount` 추가, DROP FUNCTION 포함)로 파견 길이에 비례한 랜덤 보너스를 추가함.
+
+- **확률**: 짧은 파견(30분) 0% / 중간 파견(4시간) 5% / 긴 파견(12시간) 20% — 파견이 길수록 확률이 오름
+- **인플레이션 방지**: 재화 종류는 루비(job스킬 강화/유물뽑기용, 이미 통제된 재화) 또는 봉인의 파편(순수 수집용, 전투력 무관) 둘 중 랜덤 하나만, 지급량도 1~3개(루비)/1~2개(파편)로 소량 고정 — 확률·수량 둘 다 낮게 잡아서 기존 파편/루비 획득 경로(봉인된 던전, 루비 던전 등)를 대체하지 않고 "덤"으로만 기능하게 설계
+- 클라이언트: `ExpeditionPanel`의 `handleClaim`이 `bonusCurrency`에 따라 `onRubiesChange`/`onSealFragmentsChange` 콜백을 호출(→ `App.jsx`에서 `profile.rubies`/`sealStatus.sealFragments`에 반영) + 토스트로 안내

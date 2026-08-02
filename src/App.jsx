@@ -1051,6 +1051,8 @@ export default function App() {
                   towerError={towerError}
                   userId={session.user.id}
                   onExpeditionGoldChange={(gained) => setProfile((p) => ({ ...p, gold: (p?.gold ?? 0) + gained }))}
+                  onExpeditionRubiesChange={(gained) => setProfile((p) => ({ ...p, rubies: (p?.rubies ?? 0) + gained }))}
+                  onExpeditionSealFragmentsChange={(gained) => setSealStatus((s) => (s ? { ...s, sealFragments: (s.sealFragments ?? 0) + gained } : s))}
                   missionNumber={mission?.mission_number}
                   onEnterRubyDungeon={handleEnterRubyDungeon}
                   rubyEntering={rubyEntering}

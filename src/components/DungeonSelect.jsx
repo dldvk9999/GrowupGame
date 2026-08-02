@@ -21,7 +21,7 @@ export default function DungeonSelect({
   activeType, onActiveTypeChange,
   worldBoss, worldBossProgress, onEnterWorldBoss, worldBossEntering, worldBossError,
   towerHighestFloor, onEnterTower, towerEntering, towerError,
-  userId, onExpeditionGoldChange, missionNumber,
+  userId, onExpeditionGoldChange, onExpeditionRubiesChange, onExpeditionSealFragmentsChange, missionNumber,
   onEnterRubyDungeon, rubyEntering, rubyError, rubyAttemptsRemaining, rubies,
   onEnterStreakDungeon, streakEntering, streakError, streakAttemptsRemaining, streakBest,
   guildRaid, guildRaidProgress, onEnterGuildRaid, guildRaidEntering, guildRaidError, onGoToGuild,
@@ -166,7 +166,12 @@ export default function DungeonSelect({
           onSelectUser={setSelectedUserId}
         />
       ) : activeType === 'expedition' ? (
-        <ExpeditionPanel userId={userId} onGoldChange={onExpeditionGoldChange} />
+        <ExpeditionPanel
+          userId={userId}
+          onGoldChange={onExpeditionGoldChange}
+          onRubiesChange={onExpeditionRubiesChange}
+          onSealFragmentsChange={onExpeditionSealFragmentsChange}
+        />
       ) : (
         <ProgressiveDungeon
           type={activeType}

@@ -24,7 +24,7 @@ export async function claimExpedition(expeditionId) {
   const { data, error } = await supabase.rpc('claim_expedition', { p_expedition_id: expeditionId });
   if (error) throw new Error(error.message);
   const row = data?.[0];
-  return { gold: row.gold, tier: row.tier };
+  return { gold: row.gold, tier: row.tier, bonusCurrency: row.bonus_currency, bonusAmount: row.bonus_amount };
 }
 
 /** 진행 중인 파견 전부 + 총 슬롯 수 - { expeditions: [...], totalSlots } */
