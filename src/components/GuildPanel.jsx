@@ -31,7 +31,11 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
   useEffect(() => { loadMyGuild(); }, [userId, loadMyGuild]);
 
   useEffect(() => {
-    if (myGuild === undefined || myGuild) return; // 이미 가입 중이면 목록 안 불러옴
+    if (myGuild === undefined) return; // 아직 내 길드 정보 로딩 중이면 대기
+    // (버그 수정, 사용자 제보) 길드 목록/랭킹 재설계 당시, 예전 설계("가입 중이면 목록
+    // 자체를 안 봄")의 가드(`|| myGuild`)를 지우는 걸 빠뜨렸었음 - 그래서 가입한 유저는
+    // 길드 탭에 들어와도 guildList가 영원히 null로 남아 "불러오는 중..."에서 멈춰있었음.
+    // 이제 가입 여부와 무관하게 항상 불러옴(가입 중에도 다른 길드 목록을 볼 수 있어야 함).
     if (subTab === 'list' && guildList === null) {
       fetchGuildList().then(setGuildList).catch(() => setGuildList([]));
     }

@@ -48,7 +48,7 @@ export const ACHIEVEMENT_CATALOG = [
   { key: 'stage_clear_10', category: 'stage', icon: '🗺️', title: '초보 모험가', desc: '스테이지 10개 클리어', reward: 500, target: 10, stat: 'stageCleared' },
   { key: 'stage_clear_100', category: 'stage', icon: '🧭', title: '숙련 모험가', desc: '스테이지 100개 클리어', reward: 3000, target: 100, stat: 'stageCleared' },
   { key: 'stage_clear_500', category: 'stage', icon: '🏔️', title: '베테랑 모험가', desc: '스테이지 500개 클리어', reward: 15000, target: 500, stat: 'stageCleared' },
-  { key: 'stage_clear_1000', category: 'stage', icon: '🌌', title: '전설의 모험가', desc: '스테이지 1000개(전체) 클리어', reward: 40000, target: 1000, stat: 'stageCleared' },
+  { key: 'stage_clear_1000', category: 'stage', icon: '🌌', title: '차원의 정복자', desc: '스테이지 1000개(전체) 클리어', reward: 40000, target: 1000, stat: 'stageCleared' },
 
   { key: 'gacha_100', category: 'gacha', icon: '🎰', title: '뽑기 입문', desc: '스킬+장비 통산 뽑기 100회', reward: 1000, target: 100, stat: 'gachaTotal' },
   { key: 'gacha_1000', category: 'gacha', icon: '🎲', title: '뽑기 중독', desc: '스킬+장비 통산 뽑기 1,000회', reward: 5000, target: 1000, stat: 'gachaTotal' },
