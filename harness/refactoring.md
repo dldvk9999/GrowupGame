@@ -29,10 +29,17 @@
 
 ## 다음 단계 (아직 안 함, 순서대로 진행 예정)
 
-1. **`useSkill` 로직 통합** — 9개 파일에 남은 가장 큰 중복(스킬 타입별 damage/heal/stun/dot/buff_atk/buff_def/haste 분기, 파일당 약 70~90줄). 파일마다 `effMultiplier` 계산 방식이 살짝 다름(전직스킬 강화 반영 여부) — 이 차이를 훅 파라미터로 흡수할 수 있는지 설계 필요
-2. **각 전투화면을 200줄 이하로** — 위 단계가 끝나도 파일마다 고유한 부분(보스 소스, 보상 클레임 방식, 결과 화면 문구)이 남아있어서 순수하게 얇은 래퍼 컴포넌트 + 커스텀 훅 조합으로 재설계해야 함
-3. **`App.jsx`(1,494줄) 분해** — 던전별/화면별 상태를 커스텀 훅(`useDungeonState`, `useGuildState` 등)으로 뽑아내는 대규모 작업. 리스크가 가장 큼(전체 앱의 상태관리 중심축)
-4. **`DungeonSelect.jsx`(996줄) 분해** — 던전 종류별 패널(`StreakDungeonPanel`, `SealedDungeonPanel` 등)이 이미 한 파일에 다 들어있음 — 각각 별도 파일로 분리
-5. **아토믹디자인 전면 재배치** — `organisms`/`templates` 폴더까지 구성해서 기존 `components/` 평면 구조를 계층화
+1. **`useSkill` 로직 통합** — 보류. 실제로 파일마다 미묘하게 다른 동작이 있음을 확인함(전직스킬 강화 반영 여부가 패턴별로 다르고, 전직스킬 이펙트 화려함 정도도 다름) — 억지로 통합하면 게임플레이가 바뀌어버릴 위험이 있어서, "완전히 동일한 것만 추출한다"는 원칙에 따라 더 신중한 설계가 필요할 때까지 보류
+2. **`App.jsx`(1,494줄) 분해** — 다음 작업 대상
+3. **아토믹디자인 전면 재배치** — `organisms`/`templates` 폴더까지 구성해서 기존 `components/` 평면 구조를 계층화 (`organisms/`는 3단계에서 이미 시작함)
 
-각 단계마다 이번처럼 "동일성 먼저 확인 → 안전하게 추출 → build 검증 → 커밋" 순서로 진행할 예정.
+각 단계마다 이번처럼 "동일성 먼저 확인 → 안전하게 추출 → build 검증 → 커밋" 순서로 진행할 예정. **App.jsx 리팩토링이 끝나면 harness/ 폴더의 기능별 문서와 대조해서 실제 동작이 문서와 일치하는지 최종 점검할 예정.**
+
+## 3단계 완료 (이번 세션) — `DungeonSelect.jsx`(996줄) 패널별 분리
+
+`DungeonSelect.jsx`는 사실 하나의 오케스트레이터 컴포넌트 + 서로 독립적인 패널 컴포넌트 10개가 한 파일에 그대로 뭉쳐있던 구조였음(각 패널이 이미 `function XxxPanel({ ... }) { ... }` 형태로 명확히 분리돼있어서, **로직을 전혀 안 건드리고 파일만 나누는 완전히 기계적인 작업**이라 리스크가 매우 낮았음).
+
+- **`src/components/organisms/`**(신규 폴더, 아토믹디자인 organism 계층) — `ProgressiveDungeon`/`RubyDungeonPanel`/`StreakDungeonPanel`/`SealedDungeonPanel`/`EliteTrialPanel`/`JobDungeonPanel`/`WorldBossPanel`/`GuildRaidPanel`/`TowerPanel`/`ExpeditionPanel` 10개 파일로 분리(전부 200줄 이하, 최대 143줄)
+- **`src/lib/formatTime.js`**(신규) — `ExpeditionPanel`에서만 쓰던 `formatRemaining` 순수 함수를 재사용 가능한 유틸로 분리
+- `DungeonSelect.jsx`는 **996줄 → 182줄**로 감소, 탭 전환 + 각 패널에 props 전달만 담당하는 순수 오케스트레이터로 정리됨
+- 빌드 결과물(번들 크기)이 리팩토링 전후로 **완전히 동일**(752.47kB)함을 확인 — 로직이 한 글자도 안 바뀌었다는 강력한 방증

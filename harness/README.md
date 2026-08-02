@@ -82,7 +82,11 @@ GrowupGame/
 │  │  ├─ ChapterStory.jsx          # 새 챕터 진입/인터루드 시 스토리 배너 (stageStory.js/storyArc.js 사용) - story.md
 │  │  ├─ StoryArtwork.jsx          # 스토리 삽화 - 9종 재사용 SVG 무드아트 - story.md
 │  │  ├─ BattleScreen.jsx          # 전투 화면 (자동사냥 + 스테이지 도전) - combat.md
-│  │  ├─ DungeonSelect.jsx         # 일일/전직 던전 선택 UI - stages-and-dungeons.md
+│  │  ├─ DungeonSelect.jsx         # 던전 탭 오케스트레이터(182줄, 각 패널은 organisms/로 분리됨) - stages-and-dungeons.md, refactoring.md
+│  │  ├─ organisms/                # 리팩토링(사용자 요청): DungeonSelect.jsx에서 분리된 던전 패널 10종
+│  │  │  ├─ ProgressiveDungeon.jsx, RubyDungeonPanel.jsx, StreakDungeonPanel.jsx, SealedDungeonPanel.jsx
+│  │  │  ├─ EliteTrialPanel.jsx, JobDungeonPanel.jsx, WorldBossPanel.jsx, GuildRaidPanel.jsx
+│  │  │  └─ TowerPanel.jsx, ExpeditionPanel.jsx
 │  │  ├─ DungeonBattle.jsx         # 일일 던전 전투 화면
 │  │  ├─ JobDungeonBattle.jsx      # 전직 던전 전투 화면
 │  │  ├─ TimeLimitBar.jsx          # 던전 제한시간 시각적 게이지 - dungeon-time-limit.md
