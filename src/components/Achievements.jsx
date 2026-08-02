@@ -27,6 +27,8 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
   const [referralCount, setReferralCount] = useState(null);
   const [worldBossTotalDamage, setWorldBossTotalDamage] = useState(null);
   const [manuallyToggledCategories, setManuallyToggledCategories] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [conditionPopup, setConditionPopup] = useState(null); // 조건 팝업으로 보여줄 업적 객체 | null
 
   function loadAchLeaderboard() {
     Promise.all([fetchAchievementLeaderboard(), fetchMyAchievementRank()])
@@ -189,12 +191,40 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
 
       {error && <p className="shop-error">{error}</p>}
 
+      <input
+        type="text"
+        className="achievement-search-input"
+        placeholder="🔍 업적 이름/조건 검색..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ width: '100%', marginBottom: 14 }}
+      />
+
+      {conditionPopup && (
+        <div className="modal-backdrop" onClick={() => setConditionPopup(null)}>
+          <div className="story-popup-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 320 }}>
+            <h3 className="mypage-subtitle" style={{ marginTop: 0 }}>{conditionPopup.icon} {conditionPopup.title}</h3>
+            <p className="story-paragraph" style={{ margin: '0 0 10px' }}>{conditionPopup.desc}</p>
+            <p className="stage-select-hint" style={{ margin: 0 }}>
+              목표: {conditionPopup.target.toLocaleString()} · 보상: 💰{conditionPopup.reward.toLocaleString()}
+              {TITLE_BY_ACHIEVEMENT[conditionPopup.key] && ` · 칭호 "${TITLE_BY_ACHIEVEMENT[conditionPopup.key]}"`}
+            </p>
+            <button type="button" className="btn btn-neutral" onClick={() => setConditionPopup(null)} style={{ marginTop: 12 }}>닫기</button>
+          </div>
+        </div>
+      )}
+
       {categories.map((cat) => {
-        const catAchievements = ACHIEVEMENT_CATALOG.filter((a) => a.category === cat);
+        const q = searchQuery.trim().toLowerCase();
+        const catAchievements = ACHIEVEMENT_CATALOG.filter((a) =>
+          a.category === cat && (!q || a.title.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q))
+        );
+        if (q && catAchievements.length === 0) return null; // 검색 중엔 매칭 없는 카테고리는 아예 숨김
         const catClaimed = catAchievements.filter((a) => claimedKeys.has(a.key)).length;
         const isFullyDone = catClaimed === catAchievements.length;
-        // 기본값: 이미 다 완료한 카테고리는 접어서 시작(스크롤 부담 완화), 사용자가 직접 누르면 그 선택을 우선함
-        const isCollapsed = manuallyToggledCategories[cat] ?? isFullyDone;
+        // 기본값: 이미 다 완료한 카테고리는 접어서 시작(스크롤 부담 완화), 사용자가 직접 누르면 그 선택을 우선함.
+        // 검색 중일 땐 결과를 숨기지 않도록 항상 펼침
+        const isCollapsed = q ? false : (manuallyToggledCategories[cat] ?? isFullyDone);
         return (
         <div key={cat} className="inventory-section">
           <h3
@@ -215,7 +245,18 @@ export default function Achievements({ userId, stats, onGoldChange, gold, equipp
                 <div key={a.key} className={`achievement-row ${claimed ? 'achievement-row--claimed' : ''}`}>
                   <span className="achievement-icon">{a.icon}</span>
                   <div className="achievement-info">
-                    <strong>{a.title}</strong>
+                    <strong>
+                      {a.title}{' '}
+                      <button
+                        type="button"
+                        className="btn-icon-inline"
+                        onClick={() => setConditionPopup(a)}
+                        title="달성 조건 보기"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 13 }}
+                      >
+                        ℹ️
+                      </button>
+                    </strong>
                     <span className="achievement-desc">{a.desc}</span>
                     {!claimed && TITLE_BY_ACHIEVEMENT[a.key] && (
                       <span className="achievement-title-preview">🎖️ 칭호 "{TITLE_BY_ACHIEVEMENT[a.key]}" 획득 가능</span>
