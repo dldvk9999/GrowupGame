@@ -72,7 +72,8 @@ import Friends from './components/Friends';
 import DungeonSelect from './components/DungeonSelect';
 import WorldBossBattle from './components/WorldBossBattle';
 import GuildRaidBattle from './components/GuildRaidBattle';
-import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
+import { fetchWorldBoss, fetchMyWorldBossProgress, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
+import { useWorldBoss } from './hooks/useWorldBoss';
 import { fetchGuildRaidState, fetchMyGuildRaidProgress } from './lib/guildRaid';
 import { useGuildRaid } from './hooks/useGuildRaid';
 import DungeonBattle from './components/DungeonBattle';
@@ -157,12 +158,12 @@ export default function App() {
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
-  const [worldBoss, setWorldBoss] = useState(null);
-  const [worldBossProgress, setWorldBossProgress] = useState(null);
-  const [everParticipatedWorldBoss, setEverParticipatedWorldBoss] = useState(false);
-  const [worldBossSession, setWorldBossSession] = useState(null); // enterWorldBoss() 결과 | null
-  const [worldBossEntering, setWorldBossEntering] = useState(false);
-  const [worldBossError, setWorldBossError] = useState('');
+  const {
+    worldBoss, setWorldBoss, worldBossProgress, setWorldBossProgress,
+    everParticipatedWorldBoss, setEverParticipatedWorldBoss,
+    worldBossSession, setWorldBossSession, worldBossEntering, worldBossError,
+    refreshWorldBoss, handleEnterWorldBoss, handleWorldBossSettled,
+  } = useWorldBoss(setProfile);
 
   const {
     guildRaid, setGuildRaid, guildRaidProgress, setGuildRaidProgress,
@@ -725,40 +726,6 @@ export default function App() {
     setJobSkillEnhancements((prev) => ({ ...prev, [skillId]: res.newLevel }));
     setProfile((p) => (p ? { ...p, rubies: res.rubiesBalance } : p));
     return res;
-  }
-
-  async function refreshWorldBoss() {
-    try {
-      const [boss, progress] = await Promise.all([fetchWorldBoss(), fetchMyWorldBossProgress()]);
-      setWorldBoss(boss);
-      setWorldBossProgress(progress);
-    } catch (err) {
-      console.error('월드보스 정보 로드 실패', err);
-    }
-  }
-
-  async function handleEnterWorldBoss() {
-    setWorldBossError('');
-    setWorldBossEntering(true);
-    try {
-      const sessionData = await enterWorldBoss();
-      setWorldBossSession(sessionData);
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setWorldBossError(message);
-      showToast(message, 'error');
-    } finally {
-      setWorldBossEntering(false);
-    }
-  }
-
-  function handleWorldBossSettled(res) {
-    setWorldBoss((prev) => (prev ? { ...prev, currentHp: res.newCurrentHp, cleared: res.clearedNow } : prev));
-    if (res.clearedNow) {
-      setProfile((p) => ({ ...p, dragon_buff_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }));
-      showToast('🐉 월드보스 처치! 7일간 용의 버프(공격력·방어력 20배)가 적용됐어요. 골드 보상은 우편함에서 받아가세요!', 'success');
-    }
-    refreshWorldBoss();
   }
 
   async function handleLogout() {

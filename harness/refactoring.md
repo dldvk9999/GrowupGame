@@ -61,8 +61,10 @@
 - **`src/hooks/useGuildRaid.js`** — 길드 레이드 상태 5개 + 함수 3개(`fetchGuildRaidState`/`fetchMyGuildRaidProgress`는 App.jsx의 초기 로드 `Promise.all`에서도 별도로 쓰이고 있어서 import는 App.jsx에도 남겨둠 — 훅으로 옮긴 건 "새로고침/입장/정산" 로직만)
 - **`src/hooks/useRubyDungeon.js`** — 루비 던전 상태 4개 + 핸들러 2개(`setActiveMonster`/`setProfile` 외부 전달)
 - **`src/hooks/useStreakDungeon.js`** — 연승 던전 상태 5개 + 핸들러 5개(가장 복잡한 상태 흐름 — 수령/이어가기/포기 3갈래, `fetchStreakDungeonAttemptsToday`가 App.jsx 초기로드에서도 쓰여서 import 유지)
+- **`src/hooks/useWorldBoss.js`** — 월드보스 상태 6개 + 함수 3개(`fetchWorldBoss`/`fetchMyWorldBossProgress`는 초기로드에서도 쓰여서 import 유지)
+  - ⚠️ **리팩토링 중 발견한 오래된 버그(수정)**: 월드보스 처치 토스트 문구가 "용의 버프 20배"라고 돼있었는데, 실제 배율은 144에서 이미 20배→2배로 하향된 상태였음(문구만 안 고쳐진 채로 방치돼있었음) — "2배"로 수정
 
-`App.jsx` 1,494줄 → 1,332줄. 아직 갈 길이 멀지만(전직던전/월드보스/PvP/우편함/업적/친구/뽑기 등 훨씬 많은 기능이 남음), 매번 "외부에서 이 state/setter를 또 어디서 쓰고 있는지"(특히 초기 로드 `Promise.all`과 로그아웃 리셋 블록)를 `grep`으로 먼저 확인하고 나서만 추출하는 원칙을 지키고 있어서 지금까지 리스크 없이 진행 중.
+`App.jsx` 1,494줄 → 1,299줄. 아직 갈 길이 멀지만(전직던전/PvP/우편함/업적/친구/뽑기 등 훨씬 많은 기능이 남음), 매번 "외부에서 이 state/setter를 또 어디서 쓰고 있는지"(특히 초기 로드 `Promise.all`과 로그아웃 리셋 블록)를 `grep`으로 먼저 확인하고 나서만 추출하는 원칙을 지키고 있어서 지금까지 리스크 없이 진행 중.
 
 ## 다음 단계
 
