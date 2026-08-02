@@ -146,7 +146,9 @@ export default function PvPBattleScene({ battle, mySpeciesKey, equippedCostumes,
       round += 1;
       const progress = round / ROUNDS;
       const loserFloor = 0;
-      const winnerFloor = 30 + Math.random() * 25;
+      // (수정, 사용자 요청) winnerFloor가 반올림 안 된 소수값이라, Math.max에서 이 값이
+      // 그대로 선택되면 체력%에 소수점이 노출되는 버그가 있었음 - 생성 시점에 반올림
+      const winnerFloor = Math.round(30 + Math.random() * 25);
       const isFinalRound = round >= ROUNDS;
 
       if (iWin) {

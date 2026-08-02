@@ -45,6 +45,13 @@ export default function PvPArena({ profile, activeMonster, onBattleResolved }) {
       const res = revengeOpponentId
         ? await startPvpRevengeBattle(revengeOpponentId)
         : await startPvpBattle();
+      if (res.result === 'no_opponent') {
+        // (신규, 사용자 요청) 적합한 상대를 못 찾았을 때 30% 확률로만 가상 상대가 나오고
+        // 나머지는 전투 연출 없이 이 안내만 뜸 - 재도전 쿨다운도 안 걸리니 바로 다시 시도 가능
+        showToast('😕 지금은 적합한 상대가 없어요. 잠시 후 다시 시도해보세요.', 'info');
+        setFighting(false);
+        return;
+      }
       setPendingBattle(res); // 결과는 이미 받았지만, 연출이 끝날 때까지 화면엔 안 보여줌
     } catch (err) {
       setError(err.message ?? '대결에 실패했어요.');
