@@ -1128,6 +1128,7 @@ export default function App() {
                 ownedSkillCount={new Set(userSkills.map((s) => s.skill_key)).size}
                 maxEnhanceLevel={inventory.reduce((max, row) => Math.max(max, row.enhance_level ?? 0), 0)}
                 onMonsterNicknameChange={(nick) => setActiveMonster((m) => (m ? { ...m, nickname: nick, name: nick || m.speciesName } : m))}
+                onGoToGuild={() => setActiveTab('friends')}
               />
             )}
             {activeTab === 'friends' && (
@@ -1182,7 +1183,7 @@ function HeaderActions({ canInstall, promptInstall, profile, dragonBuffActive, h
         📅 출석체크{!attendanceClaimedToday && <span className="mail-unread-dot" aria-label="오늘 출석 안 함" />}
       </button>
       <button className="btn btn-ghost" onClick={() => onNavigate('mypage')}>👤 마이페이지</button>
-      <button className="btn btn-ghost" onClick={() => onNavigate('friends')}>👥 친구</button>
+      <button className="btn btn-ghost" onClick={() => onNavigate('friends')}>👥 친구/길드</button>
       <button className="btn btn-ghost mail-badge-btn" onClick={() => onNavigate('settings')}>
         ⚙️ 설정{(hasUnreadMail || hasNewPatchNote || hasClaimableAchievement) && <span className="mail-unread-dot" aria-label="미수령 우편, 새 패치노트 또는 수령 가능한 업적 있음" />}
       </button>

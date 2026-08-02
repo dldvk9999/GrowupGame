@@ -11,11 +11,13 @@ import { estimateSecondsToNextLevel, formatDuration } from '../lib/idleTimeEstim
 import { playClickSound } from '../lib/audio';
 import { suggestMonsterName } from '../lib/nameSuggestion';
 import { copyToClipboardWithFeedback } from '../lib/clipboard';
+import { fetchMyGuild } from '../lib/guild';
 import AccountSecurityModal from './AccountSecurityModal';
 import InfoTooltip from './InfoTooltip';
 import MonsterDex from './MonsterDex';
 
-export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange }) {
+export default function MyPage({ session, profile, activeMonster, clearedCount, totalStages, onProfileUpdate, equipmentBonus, skillPossessionAtk, dragonBuffActive, towerHighestFloor, attendanceState, loginStreak, costumeCount, dungeonDepth, ownedSkillCount, maxEnhanceLevel, onMonsterNicknameChange, onGoToGuild }) {
+  const [myGuild, setMyGuild] = useState(undefined); // undefined=로딩중, null=미가입
   const [referrerInput, setReferrerInput] = useState('');
   const [referrerSaving, setReferrerSaving] = useState(false);
   const [referrerError, setReferrerError] = useState('');
@@ -40,6 +42,7 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
     if (!session?.user?.id) return;
     fetchMyReferralCount(session.user.id).then(setMyReferralCount).catch(() => setMyReferralCount(null));
     fetchClaimedAchievements(session.user.id).then((set) => setMyAchievementCount(set.size)).catch(() => setMyAchievementCount(null));
+    fetchMyGuild().then(setMyGuild).catch(() => setMyGuild(null));
   }, [session?.user?.id]);
 
   // 가입 후 24시간이 지났으면 클라이언트에서도 미리 폼을 숨김(서버가 최종 검증은 항상 다시 함)
@@ -186,6 +189,18 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
             ))}
           </div>
         </div>
+      )}
+
+      {myGuild && (
+        <button
+          type="button"
+          className="worldboss-hp-card"
+          style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
+          onClick={() => onGoToGuild?.()}
+        >
+          <div className="worldboss-hp-title">🛡️ [{myGuild.tag}] {myGuild.name} <span className="app-title-badge">Lv.{myGuild.level}</span></div>
+          <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>길드원 {myGuild.memberCount} / 30 · 눌러서 길드 화면으로 이동 →</p>
+        </button>
       )}
 
       <div className="mypage-card">

@@ -720,6 +720,16 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 
 `report_guild_raid_damage`(169)에서 `perform public.grant_guild_exp(v_session.guild_id, floor(v_applied / 50.0));`를 호출하는데, `50.0`이 numeric 리터럴이라 나눗셈 결과와 `floor()` 반환값이 전부 `numeric`이 됨 — `grant_guild_exp(uuid, bigint)`와 타입이 안 맞아서 `function public.grant_guild_exp(uuid, numeric) does not exist` 오류가 **길드 레이드 전투를 마칠 때마다** 발생하고 있었음. 169 작성 당시부터 있던 버그로, 실제 사용자가 겪고 나서야 발견됨 — diff/build 검증만으로는 이런 "함수는 존재하지만 인자 타입이 안 맞는" 클래스의 버그를 못 잡는다는 교훈. `floor(...)::bigint`로 명시 캐스팅해서 수정.
 
+### 81차 — 176(PvP 매칭) + 최근 클라이언트 변경분(길드목록 재설계/업적검색/마이페이지 길드카드) 점검
+
+**176(`start_pvp_battle` no_opponent 분기) 검토**: `no_opponent` 반환 경로가 `last_pvp_battle_at`(재도전 쿨다운)을 갱신하지 않도록 의도적으로 설계했는데, 이게 악용 가능한지 재확인 — 이 경로는 보상/재화/전적 어느 것도 변경하지 않는 순수 조회성 분기라(길찾기 실패에 가까움) 아무리 빠르게 반복 호출해도 얻을 수 있는 이득이 없음(오히려 매번 `calc_monster_stats`/`calc_equipped_stat_bonus`/`calc_relic_bonus`/`calc_skill_possession_bonus`를 다 계산해야 해서 스팸할 유인 자체가 없음). `add_gold` 3자지급 패턴 재스캔 — 0건. 클램프(`least(v_reward, 900000)`)는 그대로 유지됨. 문제 없음.
+
+**길드 목록 재설계(GuildPanel.jsx) 검토**: 가입 중에도 `fetch_guild_list`/`fetch_guild_leaderboard`에 접근 가능해졌는데, 이 두 함수는 애초에 154에서부터 "누구나 조회 가능"(RLS `using (true)`)으로 설계돼있어서 **이미 로그인한 사람이라면 가입 여부와 무관하게 항상 조회 가능했던 데이터**였음 — 이번 변경은 이미 공개돼있던 데이터에 대한 UI 접근성 개선일 뿐, 새로운 정보 노출은 없음. "다른 길드 가입" 버튼도 이미 가입 중이면 `disabled`로 막아뒀고, 설령 우회해서 호출해도 서버(`join_guild`)가 `guild_members.user_id` PK 제약으로 이중가입을 원천 차단함(재확인).
+
+**마이페이지 길드 카드(`MyPage.jsx`) 검토**: `fetchMyGuild()`는 이미 검증된 기존 RPC를 그대로 재사용한 것뿐이고(새 RPC 없음), 본인 소속 길드 정보만 노출함 — 새로운 보안 표면 없음.
+
+**결과**: 신규 발견 0건. 이번 점검분은 전부 클라이언트 UI 재구성이거나 이미 검증된 패턴의 재사용이라 위험도가 낮았음.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 
