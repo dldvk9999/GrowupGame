@@ -11,6 +11,7 @@ import TimeLimitBar from './TimeLimitBar';
 import { getStageFlavor } from '../lib/stageStory';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { getElementMultiplier, ELEMENT_COLORS } from '../lib/elements';
+import { hasFullSealCostumeSet, SEAL_SET_DAMAGE_MULTIPLIER } from '../lib/sealCostumeCatalog';
 import { bumpMission } from '../lib/missions';
 import { maybePickIdleFlavor } from '../lib/idleFlavor';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound, playLevelUpSound } from '../lib/audio';
@@ -89,6 +90,8 @@ export default function BattleScreen({
   const challengeStartedAtRef = useRef(Date.now());
 
   const { canvasRef, shake, spawnParticles, triggerShake } = useBattleFx();
+  // (신규, 사용자 요청) 봉인 코스튬 4종 전부 장착 시 데미지 250% 증폭(3.5배)
+  const sealSetMult = hasFullSealCostumeSet(equippedCostumes) ? SEAL_SET_DAMAGE_MULTIPLIER : 1;
 
   // ---------- 자동 사냥 루프 (챌린지 중이 아닐 때만) ----------
   useEffect(() => {
@@ -244,7 +247,7 @@ export default function BattleScreen({
 
     const jobTier = getJobSkillTier(skill.id);
     if (skill.type === 'damage') {
-      const dmg = mitigateDamage(effAtk * effMultiplier, enemy.def, getElementMultiplier(skill.element, enemy.element));
+      const dmg = mitigateDamage(effAtk * effMultiplier, enemy.def, getElementMultiplier(skill.element, enemy.element) * sealSetMult);
       setLog(`${player.name}의 ${skill.name}!`);
       playAttackSound();
       damageEnemy(dmg);
@@ -272,7 +275,7 @@ export default function BattleScreen({
       setLog(`${player.name}의 ${skill.name}! 적을 ${(stunMs / 1000).toFixed(1)}초간 기절시켰다!`);
       spawnParticles(0.8, 0.35, '#ffe680');
     } else if (skill.type === 'dot') {
-      const perTick = mitigateDamage(effAtk * effMultiplier, enemy.def, getElementMultiplier(skill.element, enemy.element));
+      const perTick = mitigateDamage(effAtk * effMultiplier, enemy.def, getElementMultiplier(skill.element, enemy.element) * sealSetMult);
       const ticks = skill.ticks ?? 4;
       const tickInterval = skill.tickInterval ?? 1500;
       setLog(`${player.name}의 ${skill.name}! 지속 피해 시작`);

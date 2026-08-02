@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchSealLeaderboard, fetchMySealRank, fetchMySealCostumes, buySealCostume } from '../../lib/sealedDungeon';
-import { SEAL_COSTUME_CATALOG } from '../../lib/sealCostumeCatalog';
+import { SEAL_COSTUME_CATALOG, hasFullSealCostumeSet } from '../../lib/sealCostumeCatalog';
 import { setCostumeLoadout } from '../../lib/pvp';
 import { showToast } from '../../lib/toast';
 import InfoTooltip from '../InfoTooltip';
@@ -26,6 +26,7 @@ export default function SealedDungeonPanel({ activeMonster, onEnter, entering, e
   if (!activeMonster) return null;
   const keys = sealStatus?.sealKeys ?? 0;
   const fragments = sealStatus?.sealFragments ?? 0;
+  const hasFullSet = hasFullSealCostumeSet(equippedCostumes);
   const iAmInTop20 = leaderboard?.some((r) => r.is_me);
 
   async function handleBuyCostume(item) {
@@ -82,7 +83,10 @@ export default function SealedDungeonPanel({ activeMonster, onEnter, entering, e
       </button>
 
       <div style={{ marginTop: 18 }}>
-        <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🛍️ 봉인의 상점 (파편으로 구매, 전투 스탯 영향 없음)</h4>
+        <h4 className="mypage-subtitle" style={{ margin: '0 0 8px' }}>🛍️ 봉인의 상점 (파편으로 구매)</h4>
+        <p className="stage-select-hint" style={{ color: 'var(--accent-fire)' }}>
+          ✨ 4종 전부 장착하면 세트효과로 전투 데미지가 250% 증폭돼요(3.5배)!{hasFullSet ? ' — 지금 세트효과가 적용 중이에요!' : ''}
+        </p>
         {shopError && <p className="shop-error">{shopError}</p>}
         <div className="inventory-list">
           {SEAL_COSTUME_CATALOG.map((item) => {
