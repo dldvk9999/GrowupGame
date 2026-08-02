@@ -716,6 +716,10 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 - **비밀키/PAT 노출**: 전체 git 이력 + 소스에서 재검색 — `.env`는 gitignore 처리돼있고 커밋 이력에 없음, 이번 세션에 사용한 GitHub PAT도 커밋/문서 어디에도 없음 확인
 - **`save_monster_growth`(168)의 레벨/정예레벨 델타 상한(+50/+20 회당)**: 이 게임 전체의 "클라이언트 계산 + 서버 사후 상한 클램프" 아키텍처(기존에 이미 문서화된 설계, 완전한 서버 권위 구조는 의도적으로 포기)와 일관된 수준임을 재확인 - 새로운 위험 등급 아님, 정예레벨도 동일한 신뢰 수준으로 확장한 것으로 판단
 
+### [긴급] `grant_guild_exp` 타입 불일치로 길드 레이드 전투 종료마다 오류 (migration 175, 사용자 제보)
+
+`report_guild_raid_damage`(169)에서 `perform public.grant_guild_exp(v_session.guild_id, floor(v_applied / 50.0));`를 호출하는데, `50.0`이 numeric 리터럴이라 나눗셈 결과와 `floor()` 반환값이 전부 `numeric`이 됨 — `grant_guild_exp(uuid, bigint)`와 타입이 안 맞아서 `function public.grant_guild_exp(uuid, numeric) does not exist` 오류가 **길드 레이드 전투를 마칠 때마다** 발생하고 있었음. 169 작성 당시부터 있던 버그로, 실제 사용자가 겪고 나서야 발견됨 — diff/build 검증만으로는 이런 "함수는 존재하지만 인자 타입이 안 맞는" 클래스의 버그를 못 잡는다는 교훈. `floor(...)::bigint`로 명시 캐스팅해서 수정.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 
