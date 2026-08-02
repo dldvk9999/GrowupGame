@@ -1,3 +1,6 @@
+import { JOB_DUNGEON_EXTRA_REQ } from './jobDungeon';
+import { ACHIEVEMENT_CATALOG } from './achievements';
+
 // 전직 시 statMultiplier가 growth.js의 레벨 성장 보정에 곱연산으로 추가 적용됨.
 // 전직 스킬은 SKILLS(기본 5종)에 추가로 사용 가능해짐 (해금될 때마다 +1개씩 누적).
 // 전직 배율은 대폭 강화됨(1차 2배/2차 3.5배/3차 6배/4차 10배/5차 16배) - save_monster_growth RPC의
@@ -138,9 +141,28 @@ export function getAvailableSkills(baseSkills, element, unlockedJobTier) {
   return [...baseSkills, ...unlocked.map((t) => t.skill)];
 }
 
-/** 전직 조건은 만족했지만(레벨업) 아직 전직 던전을 안 깬 상태인지 */
-export function hasPendingJobAdvancement(element, level, unlockedJobTier) {
-  return getEligibleTierNumber(element, level) > (unlockedJobTier ?? 0);
+/**
+ * 전직 조건을 "모두" 만족했는지 확인 (사용자 제보 - 예전엔 레벨 조건만 봐서 6~10차는
+ * 무한의 탑/미션/업적 조건이 안 채워졌는데도 "✨ 전직 가능!" 배너가 떴었음).
+ * JobDungeonPanel.jsx의 입장버튼 판정 로직과 동일한 기준(탑층수/미션진행도)을 재사용하고,
+ * 업적은 배너가 순수 안내용(입장을 막는 게이트가 아님)이라 클라이언트에서도 확인함 -
+ * 던전 입장 버튼 자체는 여전히 서버(start_job_dungeon)가 최종 검증(기존 원칙 유지).
+ */
+export function hasPendingJobAdvancement(element, level, unlockedJobTier, extra = {}) {
+  const eligibleTier = getEligibleTierNumber(element, level);
+  if (eligibleTier <= (unlockedJobTier ?? 0)) return false;
+
+  const req = JOB_DUNGEON_EXTRA_REQ[eligibleTier];
+  if (!req) return true; // 1~5차는 레벨 조건만 있음
+
+  if (req.towerFloor && (extra.towerHighestFloor ?? 0) < req.towerFloor) return false;
+  if (req.missionNumber && (extra.missionNumber ?? 1) < req.missionNumber) return false;
+  if (req.achievementTitle) {
+    const achievement = ACHIEVEMENT_CATALOG.find((a) => a.title === req.achievementTitle);
+    const claimed = extra.claimedAchievementKeys ?? new Set();
+    if (!achievement || !claimed.has(achievement.key)) return false;
+  }
+  return true;
 }
 
 /** 화면에 표시할 스프라이트 키 - 전직했으면 진화단계 대신 전직 전용 외형을 우선 표시 */

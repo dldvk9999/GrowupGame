@@ -694,7 +694,11 @@ export default function App() {
   // 스킬 뽑기 도입 이전 계정 등 장착 스킬이 하나도 없으면 전투 불가 상태가 되지 않도록 기본기 하나는 보장
   const equippedSkills = resolvedSkills.length > 0 ? resolvedSkills : [FALLBACK_SKILLS[0]];
   const jobAdvancementPending = activeMonster
-    ? hasPendingJobAdvancement(activeMonster.element, activeMonster.level, activeMonster.unlockedJobTier ?? 0)
+    ? hasPendingJobAdvancement(activeMonster.element, activeMonster.level, activeMonster.unlockedJobTier ?? 0, {
+        towerHighestFloor,
+        missionNumber: mission?.mission_number,
+        claimedAchievementKeys,
+      })
     : false;
   // 전직/스킬슬롯 온보딩 미션은 progress 카운터가 아니라 실제 게임 상태로 완료 여부를 판정해야 함
   const missionCompleted = isMissionComplete(mission, {
