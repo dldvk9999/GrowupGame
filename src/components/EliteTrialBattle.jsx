@@ -5,6 +5,7 @@ import { getDisplaySpriteKey, getAvailableSkills, getJobSkillTier, buildInitialJ
 import { applyExpGain, expToNextLevel } from '../lib/growth';
 import { mitigateDamage, calculateCombatPower } from '../lib/combat';
 import { getElementMultiplier, ELEMENT_COLORS } from '../lib/elements';
+import { isSkillBannedInEliteTrial, getTodayBannedSkillTypes, isMythicBannedToday } from '../lib/eliteTrial';
 import { bumpMission } from '../lib/missions';
 import { playAttackSound, playHealSound, playBuffSound, playVictorySound } from '../lib/audio';
 import { getJobSkillKeybinds, getKeyForJobTier } from '../lib/keybinds';
@@ -36,7 +37,15 @@ function withEquipment(monster, bonus) {
  * - onExit()
  */
 export default function EliteTrialBattle({ initialMonster, equipmentBonus, equippedSkills, equippedCostumes, jobSkillEnhancements, eliteBoss, onWin, onExit }) {
-  const availableSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
+  const eliteLevel = initialMonster.eliteLevel ?? 0;
+  const allSkills = getAvailableSkills(equippedSkills ?? [], initialMonster.element, initialMonster.unlockedJobTier ?? 0);
+  // (신규, 사용자 요청) 정예레벨 구간별 일일 스킬 제한 - 1~19단계는 치유/지속피해 고정 금지,
+  // 20~59단계는 매일 랜덤 3종류, 60단계 이상은 신화 등급 전부 금지(전직스킬은 등급 없음이라
+  // 이 제한을 안 받음 - 오히려 강화된 전직스킬을 쓰도록 유도하는 게 이 기능의 목적)
+  const availableSkills = allSkills.filter((skill) => !isSkillBannedInEliteTrial(skill, eliteLevel));
+  const bannedTypeLabels = { heal: '치유', stun: '기절', dot: '지속피해', buff_atk: '공격버프', buff_def: '방어버프', haste: '가속' };
+  const todayBannedTypes = getTodayBannedSkillTypes(eliteLevel);
+  const mythicBanned = isMythicBannedToday(eliteLevel);
   const [player, setPlayer] = useState(() => withEquipment(initialMonster, equipmentBonus));
   const [enemy, setEnemy] = useState(() => ({ ...eliteBoss }));
   const [initialJobCooldowns] = useState(() => buildInitialJobSkillCooldowns(availableSkills));
@@ -188,6 +197,11 @@ export default function EliteTrialBattle({ initialMonster, equipmentBonus, equip
         💠 정예의 시련
         <span className="combat-power-badge">⚔️ 나의 전투력 {calculateCombatPower(player).toLocaleString()}</span>
       </div>
+      {(todayBannedTypes.length > 0 || mythicBanned) && (
+        <p className="stage-select-hint" style={{ color: 'var(--accent-fire)' }}>
+          🚫 오늘 이 구간에서는 {mythicBanned ? '신화 등급 스킬 전부' : todayBannedTypes.map((t) => bannedTypeLabels[t] ?? t).join('/') + ' 타입'}을(를) 사용할 수 없어요(전직스킬은 영향 없음).
+        </p>
+      )}
 
       <div className="arena">
         <canvas ref={canvasRef} className="arena-fx" />
