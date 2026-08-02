@@ -142,6 +142,8 @@ export function resolveLoadout(equippedKeys, userSkills) {
         name: def.name,
         icon: def.icon,
         type: def.type,
+        rarity: def.rarity, // (신규) 정예의 시련 등급별 스킬 제한 판정에 필요
+        element: def.element, // (버그 수정, 사용자 요청 작업 중 발견) 속성상성 계산에 필요한데 누락돼있었음 - 항상 무효(1배)로만 동작하던 상태
         multiplier: getEffectiveSkillValue(def, level),
         cooldown: def.cooldown,
         duration: def.duration,
