@@ -605,4 +605,10 @@
 **172_elite_trial.sql** — 신규 콘텐츠(사용자 요청)
 - `elite_trial_attempts` 테이블 신설, `enter_elite_trial`/`fetch_elite_trial_attempts_today` 신설(전부 신규 함수, DROP 불필요) — 정예레벨 1부터 입장 가능한 던전, 골드 지급이 없어 세션/클레임 RPC 불필요(정예레벨 게이트+하루3회 제한만 서버가 강제). 자세한 내용은 [`character-and-growth.md`](./character-and-growth.md)
 
+**173_pvp_revenge_and_guild_reward_fixes.sql** — [심각+중간+경미] 80차 심층 보안점검(사용자 요청 "더 꼼꼼하게")에서 발견
+- `start_pvp_revenge_battle` 재정의(반환타입 그대로, DROP 불필요) — [심각] 위로금이 실제 골드로 무제한 지급되던 파밍 벡터를 5,000골드 상한 + 같은 상대 5분 쿨다운으로 수정
+- `report_guild_raid_damage`/`sync_guild_raid` 재정의(반환타입 그대로, DROP 불필요) — [중간] 길드레벨 보너스 클램프 순서 버그 수정(상한을 20% 초과할 수 있었음)
+- `set_chat_nickname` 재정의(반환타입 trigger 그대로, DROP 불필요) — [경미] 로비/길드채팅의 `created_at` 위조로 도배방지 우회 가능하던 문제 수정
+- 4개 함수 전부 diff로 순수 수정만 있는지 검증, SQL인젝션/RLS누락/EXECUTE권한 등 전체 재점검(신규 발견 없음). 자세한 내용은 [`security.md`](./security.md) 80차
+
 (참고: 속성 상성 시스템은 순수 클라이언트 구현이라 별도 migration 없음 — `character-and-growth.md` 참고)

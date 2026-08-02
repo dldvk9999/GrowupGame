@@ -34,6 +34,7 @@
 - **realtime publication 등록을 처음부터 포함** — 로비 채팅이 025에서야 뒤늦게 "메시지가 아무한테도 실시간으로 안 뜨는" 문제를 겪었던 걸 알고 있어서, 이번엔 마이그레이션에 바로 `alter publication supabase_realtime add table guild_chat_messages`를 포함시킴
 - **`GuildLobby.jsx`에 통합** — 별도 화면이 아니라 로비 화면 안에 채팅 UI를 그대로 넣음(로비 채팅과 동일한 `.lobby-chat-list`/`.lobby-chat-row`/`.lobby-chat-form` CSS 클래스 재사용, 시각적 일관성). `sinceIso`는 App.jsx의 `loginAt`을 `Friends`→`GuildPanel`→`GuildLobby`로 그대로 내려받아 로비 채팅과 동일하게 "로그인 시점 이후" 범위로 제한
 - 온라인 접속자 수(Presence)는 이번엔 안 붙임 — 로비처럼 사람이 몰리는 공간이 아니라서 우선순위 낮음(필요해지면 후속 추가 가능)
+- ⚠️ **[경미] `created_at` 위조로 도배방지 우회 가능하던 문제 수정(migration 173, 80차 심층점검에서 발견)**: 두 채팅 테이블은 이 프로젝트에서 클라이언트가 테이블에 직접 INSERT하는 유일한 경로라, `created_at`이 테이블 `DEFAULT(now())`일 뿐 강제 규칙이 아니었음 — 클라이언트가 과거 시각으로 위조한 `created_at`을 실어 보내면 도배방지 rate limit(027/170)의 "가장 최근 메시지가 몇 초 전인지" 확인을 항상 우회할 수 있었음. `set_chat_nickname`(로비/길드 채팅이 공유)에 `new.created_at := now();`를 추가해서 닉네임 위조 방지와 같은 지점에서 함께 차단
 
 
 
