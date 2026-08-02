@@ -26,8 +26,10 @@ import { getDungeonStage } from './lib/dungeonStages';
 import { startJobDungeon, claimJobDungeon } from './lib/jobDungeonApi';
 import { startRubyDungeon, claimRubyDungeonReward, getRubyDungeonBoss, fetchRubyDungeonAttemptsToday } from './lib/rubyDungeon';
 import { startStreakDungeon, fetchStreakDungeonAttemptsToday, fetchMyActiveStreakDungeon, fetchMyStreakDungeonBest, getStreakDungeonBoss } from './lib/streakDungeon';
-import { fetchMySealStatus, enterSealedDungeon, getSealedDungeonBoss, fetchMySealCostumes } from './lib/sealedDungeon';
-import { fetchEliteTrialAttemptsToday, enterEliteTrial, getEliteTrialBoss } from './lib/eliteTrial';
+import { fetchMySealStatus, getSealedDungeonBoss, fetchMySealCostumes } from './lib/sealedDungeon';
+import { useSealedDungeon } from './hooks/useSealedDungeon';
+import { fetchEliteTrialAttemptsToday, getEliteTrialBoss } from './lib/eliteTrial';
+import { useEliteTrial } from './hooks/useEliteTrial';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
@@ -69,7 +71,8 @@ import DungeonSelect from './components/DungeonSelect';
 import WorldBossBattle from './components/WorldBossBattle';
 import GuildRaidBattle from './components/GuildRaidBattle';
 import { fetchWorldBoss, fetchMyWorldBossProgress, enterWorldBoss, hasEverParticipatedInWorldBoss } from './lib/worldBoss';
-import { fetchGuildRaidState, fetchMyGuildRaidProgress, enterGuildRaid } from './lib/guildRaid';
+import { fetchGuildRaidState, fetchMyGuildRaidProgress } from './lib/guildRaid';
+import { useGuildRaid } from './hooks/useGuildRaid';
 import DungeonBattle from './components/DungeonBattle';
 import JobDungeonBattle from './components/JobDungeonBattle';
 import RubyDungeonBattle from './components/RubyDungeonBattle';
@@ -138,16 +141,16 @@ export default function App() {
   const [streakAttemptsRemaining, setStreakAttemptsRemaining] = useState(null);
   const [streakBest, setStreakBest] = useState(0);
 
-  const [sealedDungeonBattle, setSealedDungeonBattle] = useState(null); // { sessionId } | null
-  const [sealedEntering, setSealedEntering] = useState(false);
-  const [sealedError, setSealedError] = useState('');
-  const [sealStatus, setSealStatus] = useState(null); // { sealKeys, sealFragments } | null
-  const [sealCostumeCount, setSealCostumeCount] = useState(0);
+  const {
+    sealedDungeonBattle, setSealedDungeonBattle, sealedEntering, sealedError,
+    sealStatus, setSealStatus, sealCostumeCount, setSealCostumeCount,
+    handleEnterSealedDungeon, handleSealedDungeonClaimed,
+  } = useSealedDungeon();
 
-  const [eliteTrialBattle, setEliteTrialBattle] = useState(false);
-  const [eliteEntering, setEliteEntering] = useState(false);
-  const [eliteError, setEliteError] = useState('');
-  const [eliteAttemptsRemaining, setEliteAttemptsRemaining] = useState(null);
+  const {
+    eliteTrialBattle, setEliteTrialBattle, eliteEntering, eliteError,
+    eliteAttemptsRemaining, setEliteAttemptsRemaining, handleEnterEliteTrial, handleEliteTrialWin,
+  } = useEliteTrial(activeMonster, setActiveMonster);
   const [jobSkillEnhancements, setJobSkillEnhancements] = useState({});
   const [jobEntering, setJobEntering] = useState(false);
   const [jobError, setJobError] = useState('');
@@ -158,11 +161,11 @@ export default function App() {
   const [worldBossEntering, setWorldBossEntering] = useState(false);
   const [worldBossError, setWorldBossError] = useState('');
 
-  const [guildRaid, setGuildRaid] = useState(); // undefined=로딩중, null=길드미가입, object=정상
-  const [guildRaidProgress, setGuildRaidProgress] = useState(null);
-  const [guildRaidSession, setGuildRaidSession] = useState(null); // enterGuildRaid() 결과 | null
-  const [guildRaidEntering, setGuildRaidEntering] = useState(false);
-  const [guildRaidError, setGuildRaidError] = useState('');
+  const {
+    guildRaid, setGuildRaid, guildRaidProgress, setGuildRaidProgress,
+    guildRaidSession, setGuildRaidSession, guildRaidEntering, guildRaidError,
+    refreshGuildRaid, handleEnterGuildRaid, handleGuildRaidSettled,
+  } = useGuildRaid();
   const [dungeonActiveType, setDungeonActiveType] = useState('exp'); // 'exp' | 'gold' | 'job' - 던전 탭 안에서 왔다갔다 해도 유지
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loginAt, setLoginAt] = useState(null); // 로비 채팅을 "이 시점 이후"로만 보여주기 위한 기준시각
@@ -714,38 +717,6 @@ export default function App() {
     }
   }
 
-  async function handleEnterEliteTrial() {
-    setEliteError('');
-    setEliteEntering(true);
-    try {
-      await enterEliteTrial();
-      setEliteTrialBattle(true);
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setEliteError(message);
-      showToast(message, 'error');
-    } finally {
-      setEliteEntering(false);
-      setEliteAttemptsRemaining((r) => (r != null ? Math.max(0, r - 1) : r));
-    }
-  }
-
-  // 정예의 시련은 골드/새 재화 없이 정예 경험치만 지급 - 별도 클레임 RPC 없이 승리 즉시
-  // 경험치를 저장하기만 하면 됨(입장 시점에 이미 하루 3회 제한을 서버가 강제했음)
-  async function handleEliteTrialWin(grownBase) {
-    setActiveMonster(grownBase);
-    try {
-      await persistMonsterGrowth(grownBase.ownedMonsterId, grownBase);
-      bumpMission('kill_monsters', 1);
-      if (grownBase.eliteLevel > (activeMonster?.eliteLevel ?? 0)) {
-        showToast(`✨ 정예 레벨 ${grownBase.eliteLevel} 달성!`, 'success');
-      }
-    } catch (err) {
-      console.error('정예의 시련 경험치 저장 실패', err);
-      showToast('저장에 실패했어요. 네트워크 상태를 확인해주세요.', 'error');
-    }
-  }
-
   async function handleEnterRubyDungeon() {
     setRubyError('');
     setRubyEntering(true);
@@ -842,61 +813,6 @@ export default function App() {
     } catch (err) {
       console.error('월드보스 정보 로드 실패', err);
     }
-  }
-
-  async function refreshGuildRaid() {
-    try {
-      const [raid, progress] = await Promise.all([fetchGuildRaidState(), fetchMyGuildRaidProgress()]);
-      setGuildRaid(raid);
-      setGuildRaidProgress(progress);
-    } catch (err) {
-      console.error('길드 레이드 정보 로드 실패', err);
-    }
-  }
-
-  async function handleEnterSealedDungeon() {
-    setSealedError('');
-    setSealedEntering(true);
-    try {
-      const { sessionId, sealKeysRemaining } = await enterSealedDungeon();
-      setSealedDungeonBattle({ sessionId });
-      setSealStatus((prev) => (prev ? { ...prev, sealKeys: sealKeysRemaining } : prev));
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setSealedError(message);
-      showToast(message, 'error');
-    } finally {
-      setSealedEntering(false);
-    }
-  }
-
-  // 봉인된 던전은 골드/경험치를 전혀 안 줘서 activeMonster를 갱신할 필요가 없음(성장 무관 설계) -
-  // 파편 누적치만 반영
-  function handleSealedDungeonClaimed(fragmentsEarned, totalFragments) {
-    setSealStatus((prev) => (prev ? { ...prev, sealFragments: totalFragments } : { sealKeys: 0, sealFragments: totalFragments }));
-  }
-
-  async function handleEnterGuildRaid() {
-    setGuildRaidError('');
-    setGuildRaidEntering(true);
-    try {
-      const sessionData = await enterGuildRaid();
-      setGuildRaidSession(sessionData);
-    } catch (err) {
-      const message = err.message ?? '입장에 실패했어요.';
-      setGuildRaidError(message);
-      showToast(message, 'error');
-    } finally {
-      setGuildRaidEntering(false);
-    }
-  }
-
-  function handleGuildRaidSettled(res) {
-    setGuildRaid((prev) => (prev ? { ...prev, currentHp: res.newCurrentHp, cleared: res.clearedNow } : prev));
-    if (res.clearedNow) {
-      showToast('🛡️ 길드원들과 함께 레이드 보스를 처치했어요! 우편함을 확인해보세요.', 'success');
-    }
-    refreshGuildRaid();
   }
 
   async function handleEnterWorldBoss() {
