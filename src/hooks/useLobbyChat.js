@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * 로비 채팅 훅. 로그인한 시점(sinceIso) 이후의 메시지만 로드 + 실시간 신규 메시지 구독.

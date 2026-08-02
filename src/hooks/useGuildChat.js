@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from './supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * 길드 전용 채팅 훅. useLobbyChat.js와 완전히 동일한 설계(로그인 시점 이후 메시지만

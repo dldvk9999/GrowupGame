@@ -37,7 +37,7 @@ import { useEliteTrial } from './hooks/useEliteTrial';
 import { fetchMyJobSkillEnhancements, enhanceJobSkill } from './lib/jobSkillEnhance';
 import { getJobDungeonBoss } from './lib/jobDungeon';
 import { hasPendingJobAdvancement } from './lib/jobAdvancement';
-import { usePwaInstall } from './lib/usePwaInstall';
+import { usePwaInstall } from './hooks/usePwaInstall';
 import { showToast } from './lib/toast';
 import { fetchOrInitMissionState, claimMissionReward, bumpMission, subscribeMissionUpdate, isMissionComplete } from './lib/missions';
 import { fetchMails } from './lib/mail';

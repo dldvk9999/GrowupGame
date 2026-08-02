@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLobbyChat } from '../lib/useLobbyChat';
+import { useLobbyChat } from '../hooks/useLobbyChat';
 import Leaderboard from './Leaderboard';
 import InfoTooltip from './InfoTooltip';
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useGuildChat } from '../lib/useGuildChat';
+import { useGuildChat } from '../hooks/useGuildChat';
 
 // 길드 로비(신규 콘텐츠, 사용자 요청) - StoryArtwork.jsx와 동일한 방식으로 손으로 그린
 // SVG 한 장으로 "로비 같은 분위기"를 연출함(외부 이미지 에셋 불필요). 170부터 길드 전용
