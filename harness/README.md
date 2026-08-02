@@ -3,6 +3,8 @@
 > 이 폴더는 지금까지 구현된 모든 기능/구조/DB 스키마를 카테고리별로 기록한 문서 모음입니다.
 > **대화 맥락 없이 이 폴더만 읽어도 프로젝트 전체를 파악할 수 있도록 작성되어 있습니다.**
 > 기능이 추가/변경될 때마다 관련 파일이 함께 업데이트됩니다(`dev-guide.md`의 "문서 관리 원칙" 참고).
+>
+> ⚠️ **새 파일(컴포넌트/훅/유틸)을 만들기 전에는 반드시 [`architecture.md`](./architecture.md)를 먼저 읽고, 그 기준에 따라 어느 폴더에 어떤 이름으로 만들지 판단할 것.**
 
 마지막 정리: migration 173까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
@@ -44,6 +46,7 @@
 | [`security.md`](./security.md) | 보안 감사에서 발견/수정한 취약점, 알려진 한계, 정기점검 로그(55차+) |
 | [`todo.md`](./todo.md) | 알려진 미구현 기능 목록 |
 | [`dev-guide.md`](./dev-guide.md) | 로컬 개발/배포 방법, CI(GitHub Actions), 과거 버그 노트, 문서 관리 원칙 |
+| [`architecture.md`](./architecture.md) | **폴더 구조/파일 배치 기준(새 파일 만들 때 필독)** - atoms/molecules/organisms/hooks/lib 분류 규칙 |
 | [`refactoring.md`](./refactoring.md) | 코드 리팩토링 진행상황(아토믹디자인/재사용/200줄 제한, 단계적 진행 중) |
 
 ---
@@ -64,6 +67,8 @@
 - **CI**: GitHub Actions로 `supabase/migrations/**` push 시 자동 `supabase db push` (`dev-guide.md` 참고)
 
 ## 3. 파일 구조
+
+> 아래는 전체 개요용 트리입니다. **`src/` 안의 폴더를 어떤 기준으로 나눴는지, 새 파일을 어디에 만들어야 하는지는 [`architecture.md`](./architecture.md)가 훨씬 상세하고 최신입니다.**
 
 ```
 GrowupGame/
