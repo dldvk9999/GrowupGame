@@ -42,7 +42,10 @@ export default function MyPage({ session, profile, activeMonster, clearedCount, 
     if (!session?.user?.id) return;
     fetchMyReferralCount(session.user.id).then(setMyReferralCount).catch(() => setMyReferralCount(null));
     fetchClaimedAchievements(session.user.id).then((set) => setMyAchievementCount(set.size)).catch(() => setMyAchievementCount(null));
-    fetchMyGuild().then(setMyGuild).catch(() => setMyGuild(null));
+    fetchMyGuild().then(setMyGuild).catch((err) => {
+      console.error('마이페이지 길드 정보 조회 실패', err);
+      setMyGuild(null);
+    });
   }, [session?.user?.id]);
 
   // 가입 후 24시간이 지났으면 클라이언트에서도 미리 폼을 숨김(서버가 최종 검증은 항상 다시 함)

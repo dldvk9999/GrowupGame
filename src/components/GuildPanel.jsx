@@ -25,7 +25,14 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
       setMyGuild(g);
       setAnnouncementDraft(g?.announcement ?? '');
       if (g) fetchGuildMembers(g.guildId).then(setMembers).catch(() => setMembers([]));
-    }).catch(() => setMyGuild(null));
+    }).catch((err) => {
+      // (진단용, 사용자 제보 - "길드 정보가 안 보임") 예전엔 에러를 조용히 삼키고
+      // 무조건 미가입(null) 취급해서, 서버 쪽에 문제가 있어도 화면에서 전혀 티가
+      // 안 났음. 콘솔+토스트로 실제 에러를 드러내서 원인 파악이 가능하게 함.
+      console.error('길드 정보 조회 실패', err);
+      showToast(err.message ?? '길드 정보를 불러오지 못했어요.', 'error');
+      setMyGuild(null);
+    });
   }, []);
 
   useEffect(() => { loadMyGuild(); }, [userId, loadMyGuild]);
