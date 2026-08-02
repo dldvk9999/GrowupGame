@@ -15,6 +15,7 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
   const [leaderboard, setLeaderboard] = useState(null);
   const [busy, setBusy] = useState(false);
   const [showLobby, setShowLobby] = useState(false);
+  const [viewingMyGuild, setViewingMyGuild] = useState(false);
   const [newName, setNewName] = useState('');
   const [newTag, setNewTag] = useState('');
   const [announcementDraft, setAnnouncementDraft] = useState('');
@@ -114,13 +115,16 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
     return <p className="stage-select-hint">불러오는 중...</p>;
   }
 
-  // ---- 가입한 길드가 있으면: 내 길드 정보 화면 ----
-  if (myGuild) {
+  // ---- 가입한 길드가 있고, "내 길드 보기"를 눌렀으면: 내 길드 정보 화면 ----
+  if (myGuild && viewingMyGuild) {
     if (showLobby) {
       return <GuildLobby guild={myGuild} profile={profile} loginAt={loginAt} onBack={() => setShowLobby(false)} />;
     }
     return (
       <div>
+        <button type="button" className="btn btn-ghost" onClick={() => setViewingMyGuild(false)} style={{ marginBottom: 10 }}>
+          ← 길드 목록으로
+        </button>
         <button
           type="button"
           className="worldboss-hp-card"
@@ -187,31 +191,58 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
     );
   }
 
-  // ---- 미가입 상태: 목록/랭킹/창설 ----
+  // ---- 길드 목록/랭킹/창설 화면 (가입 전이거나, 가입 후 "길드 목록으로"를 누른 상태) ----
   return (
     <div>
       <p className="stage-select-hint">
         <InfoTooltip text="같은 뜻을 가진 유저들과 함께하는 그룹이에요. 길드원끼리 서로의 레벨을 확인할 수 있고, 길드 전체 랭킹에도 참여해요. 최대 30명까지 가입할 수 있어요." />
         {' '}길드 안내
       </p>
+
+      {myGuild && (
+        <button
+          type="button"
+          className="worldboss-hp-card"
+          style={{ border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', marginBottom: 14 }}
+          onClick={() => setViewingMyGuild(true)}
+        >
+          <div className="worldboss-hp-title">🛡️ 내가 가입한 길드 <span className="app-title-badge">Lv.{myGuild.level}</span></div>
+          <p className="mypage-locked-hint" style={{ margin: '4px 0 0' }}>[{myGuild.tag}] {myGuild.name} · 길드원 {myGuild.memberCount} / 30 · 눌러서 자세히 보기 →</p>
+        </button>
+      )}
+
       <div className="shop-tabs">
         <button className={`shop-tab ${subTab === 'list' ? 'active' : ''}`} onClick={() => setSubTab('list')}>📋 길드 목록</button>
         <button className={`shop-tab ${subTab === 'ranking' ? 'active' : ''}`} onClick={() => setSubTab('ranking')}>🏆 길드 랭킹</button>
-        <button className={`shop-tab ${subTab === 'create' ? 'active' : ''}`} onClick={() => setSubTab('create')}>➕ 길드 창설</button>
+        {!myGuild && (
+          <button className={`shop-tab ${subTab === 'create' ? 'active' : ''}`} onClick={() => setSubTab('create')}>➕ 길드 창설</button>
+        )}
       </div>
 
       {subTab === 'list' && (
         <>
           {guildList === null && <p className="stage-select-hint">불러오는 중...</p>}
           {guildList?.length === 0 && <p className="inventory-empty">아직 만들어진 길드가 없어요. 첫 길드를 창설해보세요!</p>}
-          {guildList?.map((g) => (
-            <div key={g.guildId} className="friend-row">
-              <span className="friend-row-name">[{g.tag}] {g.name} <span className="mypage-locked-hint">{g.memberCount}/30명</span></span>
-              <button type="button" className="btn btn-neutral" disabled={busy || g.memberCount >= 30} onClick={() => handleJoin(g.guildId, g.name)}>
-                {g.memberCount >= 30 ? '정원 마감' : '가입'}
-              </button>
-            </div>
-          ))}
+          {guildList?.map((g) => {
+            const isMine = myGuild?.guildId === g.guildId;
+            return (
+              <div key={g.guildId} className="friend-row">
+                <span className="friend-row-name">[{g.tag}] {g.name} <span className="mypage-locked-hint">{g.memberCount}/30명</span></span>
+                {isMine ? (
+                  <button type="button" className="btn btn-neutral" onClick={() => setViewingMyGuild(true)}>내 길드</button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-neutral"
+                    disabled={busy || !!myGuild || g.memberCount >= 30}
+                    onClick={() => handleJoin(g.guildId, g.name)}
+                  >
+                    {myGuild ? '가입중' : g.memberCount >= 30 ? '정원 마감' : '가입'}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </>
       )}
 
@@ -227,7 +258,7 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
         </>
       )}
 
-      {subTab === 'create' && (
+      {subTab === 'create' && !myGuild && (
         <div>
           <div className="field">
             <label>길드명 (2~12자)</label>
