@@ -730,6 +730,25 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 
 **결과**: 신규 발견 0건. 이번 점검분은 전부 클라이언트 UI 재구성이거나 이미 검증된 패턴의 재사용이라 위험도가 낮았음.
 
+### 82차 — 177~179(길드창고/시즌패스/길드랭킹보상) + 코드 레벨 취약점 관점 재점검(사용자 요청)
+
+이번엔 로직뿐 아니라 **코드 자체의 취약점**(타입 강제변환, 경계값, XSS, 동시성, 정수 처리)까지 의도적으로 함께 봄.
+
+**[코드 레벨] 클라이언트 금액 입력 처리**: `GuildPanel.jsx`의 기부/인출 폼이 `Math.floor(Number(donateAmount))`로 파싱하는데, 빈 문자열/음수/NaN/과도하게 큰 값을 넣었을 때 어떻게 되는지 각각 추적 — 빈 문자열→0, 음수→그대로 음수, NaN→NaN. 클라이언트 쪽 `if (!amount || amount <= 0) return;`가 0/음수/NaN을 전부 막아주긴 하지만, **이건 어차피 우회 가능한 방어선**이라는 걸 감안해서 서버 쪽(`donate_to_guild_bank`/`withdraw_from_guild_bank`)에 `if p_amount is null or p_amount <= 0 then raise exception`가 별도로 있는지 확인 — **있음, 정상**. 과도하게 큰 값도 `gold >= p_amount`/`bank_gold >= p_amount` 원자적 비교가 자연스럽게 차단(언더플로 불가능). `<select>`로 고르는 인출 대상(`withdrawTarget`)이 조작되더라도 Postgres `uuid` 타입 자체가 형식을 엄격히 검증해서 안전.
+
+**[코드 레벨] XSS 재검색**: `dangerouslySetInnerHTML`/`eval`/`new Function`/`document.write`/`innerHTML`을 전체 소스에서 다시 검색 — 이번에도 **0건**. 신규로 추가된 `guild_bank_log`의 닉네임 렌더링(`GuildPanel.jsx`)도 템플릿 리터럴을 JSX `{}` 안에 넣는 방식이라, 문자열 안에 HTML 태그가 섞여 있어도 React가 순수 텍스트로만 렌더링함(자동 이스케이프) — 안전.
+`window.location`/`window.open` 사용처도 전부 재확인 — 전부 `window.location.origin`(현재 origin, 사용자 입력 아님) 기반이라 오픈 리다이렉트 위험 없음.
+
+**[코드 레벨] SQL 인젝션**: 177~179 전체에서 동적 SQL(`EXECUTE`, `format()`) 사용 0건 재확인 — 문자열 연결(`||`)은 전부 INSERT할 텍스트 값을 조립하는 용도일 뿐, 실행되는 SQL 자체를 조립하는 게 아니라서 인젝션 경로 자체가 없음.
+
+**[로직] 동시성/이중클레임**: `claim_season_tier`는 `season_pass_progress` 행을 `for update`로 잠그고 나서 `claimed_tiers` 배열에 이미 있는지 확인 → 지급 → 배열에 추가 순서라, 같은 티어를 동시에 두 번 눌러도 두 번째 트랜잭션은 첫 번째가 커밋된 뒤에야 진행되어 "이미 수령한 단계"로 정상 차단됨. `donate`/`withdraw` 둘 다 원자적 `UPDATE ... WHERE 잔액조건` 패턴이라 이중지급/음수잔액 불가능.
+
+**[로직] 권한 검증**: `withdraw_from_guild_bank`가 "호출자가 그 특정 길드의 멤버이면서 동시에 그 길드의 리더인지"를 `guild_members`와 `guilds.leader_id`를 조인해서 함께 확인 — 다른 길드의 리더가 엉뚱한 길드에서 인출을 시도할 수 있는 경로 없음(재확인). `fetch_guild_bank_log`도 호출자 소속 길드로만 스코프 제한(RLS로 이중 방어까지 확인).
+
+**[로직] `grant_season_points` 내부전용 함수 보호**: `revoke execute ... from public, anon, authenticated` 존재 확인 — 직접 RPC 호출로 포인트를 무한정 적립하는 경로 차단됨(add_gold와 동일한 검증된 패턴).
+
+**결과**: 신규 발견 0건. 이번 3개 기능은 설계 단계에서부터 기존에 학습한 방어 패턴(우편 단일경로, 원자적 UPDATE...WHERE, 서버 권위 보상표, 내부함수 실행권한 회수)을 전부 재사용해서, 점검에서 새로 잡아낼 게 없을 정도로 처음부터 안전하게 설계됨.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 
