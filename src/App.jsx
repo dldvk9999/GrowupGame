@@ -53,6 +53,7 @@ import { fetchDailyFreeDrawState, buildFreeDrawUsedMap } from './lib/dailyFreeDr
 import { hasSeenLatestPatchNote } from './lib/patchNotes';
 import MissionFloatingButton from './components/MissionFloatingButton';
 import AttendanceModal from './components/AttendanceModal';
+import SeasonPassPanel from './components/organisms/SeasonPassPanel';
 import DailyChecklist from './components/DailyChecklist';
 import { toStageIndex, fromStageIndex, TOTAL_STAGES, STAGES_PER_CHAPTER } from './lib/stages';
 import { getChapterStory } from './lib/stageStory';
@@ -186,6 +187,7 @@ export default function App() {
   const [hasNewPatchNote, setHasNewPatchNote] = useState(() => !hasSeenLatestPatchNote());
   const [attendanceState, setAttendanceState] = useState(null);
   const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [showSeasonPass, setShowSeasonPass] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [freeDrawUsedMap, setFreeDrawUsedMap] = useState(null); // null=로딩중, {weapon,armor,gloves,shoes,skill}
   const [costumeCount, setCostumeCount] = useState(0);
@@ -727,6 +729,14 @@ export default function App() {
             }));
             setProfile((p) => (p ? { ...p, gold: (p.gold ?? 0) + result.reward_gold } : p));
           }}
+          onOpenSeasonPass={() => { setShowAttendanceModal(false); setShowSeasonPass(true); }}
+        />
+      )}
+      {showSeasonPass && (
+        <SeasonPassPanel
+          onClose={() => setShowSeasonPass(false)}
+          onGoldChange={handleGoldChange}
+          onRubiesChange={(newRubies) => setProfile((p) => (p ? { ...p, rubies: newRubies } : p))}
         />
       )}
       {stage === STAGE.GAME && (

@@ -9,7 +9,7 @@ const DAY_REWARDS = [500, 800, 1200, 1800, 2500, 3500, 8000];
  * claimedToday=false && attendanceState가 있으면 다음 받을 날(cycle_day+1, 7 넘으면 1)이
  * 하이라이트되고, 이미 지난 날들은 체크 표시로 보여줌.
  */
-export default function AttendanceModal({ attendanceState, onClose, onClaimed }) {
+export default function AttendanceModal({ attendanceState, onClose, onClaimed, onOpenSeasonPass }) {
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState('');
 
@@ -103,6 +103,12 @@ export default function AttendanceModal({ attendanceState, onClose, onClaimed })
         >
           {alreadyClaimedToday ? '오늘은 이미 받았어요 (내일 초기화)' : claiming ? '받는 중...' : `${nextDay}일차 출석하기`}
         </button>
+
+        {onOpenSeasonPass && (
+          <button type="button" className="btn btn-neutral" style={{ width: '100%', marginTop: 8 }} onClick={onOpenSeasonPass}>
+            🎫 시즌 패스 보러가기 (출석/미션으로 포인트 적립)
+          </button>
+        )}
       </div>
     </div>
   );
