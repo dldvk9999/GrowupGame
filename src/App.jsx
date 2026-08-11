@@ -1136,6 +1136,7 @@ export default function App() {
                 userId={session.user.id}
                 profile={profile}
                 loginAt={loginAt}
+                onGoldChange={handleGoldChange}
                 onGoToGuildRaid={() => {
                   setActiveTab('dungeon');
                   setDungeonActiveType('guildraid');

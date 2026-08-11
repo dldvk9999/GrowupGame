@@ -4,10 +4,11 @@ import {
   fetchMyGuild, fetchGuildList, fetchGuildMembers, fetchGuildLeaderboard,
 } from '../lib/guild';
 import { showToast } from '../lib/toast';
+import { donateToGuildBank, withdrawFromGuildBank, fetchGuildBankLog } from '../lib/guildBank';
 import InfoTooltip from './InfoTooltip';
 import GuildLobby from './GuildLobby';
 
-export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }) {
+export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid, onGoldChange }) {
   const [myGuild, setMyGuild] = useState(undefined); // undefined=로딩중, null=미가입
   const [members, setMembers] = useState(null);
   const [subTab, setSubTab] = useState('list'); // 'list' | 'ranking' | 'create'
@@ -19,6 +20,10 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
   const [newName, setNewName] = useState('');
   const [newTag, setNewTag] = useState('');
   const [announcementDraft, setAnnouncementDraft] = useState('');
+  const [donateAmount, setDonateAmount] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawTarget, setWithdrawTarget] = useState('');
+  const [bankLog, setBankLog] = useState(null);
 
   const loadMyGuild = useCallback(() => {
     fetchMyGuild().then((g) => {
@@ -122,6 +127,49 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
     }
   }
 
+  function refreshBankLog() {
+    fetchGuildBankLog().then(setBankLog).catch(() => setBankLog([]));
+  }
+
+  async function handleDonate() {
+    const amount = Math.floor(Number(donateAmount));
+    if (!amount || amount <= 0) return;
+    setBusy(true);
+    try {
+      const { newGold } = await donateToGuildBank(amount);
+      onGoldChange?.(newGold);
+      showToast(`🏦 길드 창고에 ${amount.toLocaleString()}골드를 기부했어요!`, 'success');
+      setDonateAmount('');
+      loadMyGuild();
+      refreshBankLog();
+    } catch (err) {
+      showToast(err.message ?? '기부에 실패했어요.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleWithdraw() {
+    const amount = Math.floor(Number(withdrawAmount));
+    if (!amount || amount <= 0 || !withdrawTarget) return;
+    setBusy(true);
+    try {
+      await withdrawFromGuildBank(amount, withdrawTarget);
+      showToast('🏦 길드원에게 골드를 지급했어요! (우편함으로 전달됨)', 'success');
+      setWithdrawAmount('');
+      loadMyGuild();
+      refreshBankLog();
+    } catch (err) {
+      showToast(err.message ?? '지급에 실패했어요.', 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (myGuild && viewingMyGuild) refreshBankLog();
+  }, [myGuild?.guildId, viewingMyGuild]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (myGuild === undefined) {
     return <p className="stage-select-hint">불러오는 중...</p>;
   }
@@ -179,6 +227,61 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid }
             <p className="mypage-locked-hint" style={{ margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>{myGuild.announcement}</p>
           </div>
         ) : null}
+
+        <div className="worldboss-hp-card" style={{ marginTop: 10 }}>
+          <div className="worldboss-hp-title">
+            🏦 길드 창고 <InfoTooltip text="길드원 누구나 골드를 기부할 수 있고, 인출은 길드장만 할 수 있어요(다른 길드원에게 우편으로 지급). 창고 골드는 새로 만들어지는 게 아니라 기부한 만큼만 오가는 거라 안전해요." />
+          </div>
+          <p className="mypage-locked-hint" style={{ margin: '4px 0 10px', fontSize: 16, fontWeight: 700, color: 'var(--accent-gold)' }}>
+            💰 {(myGuild.bankGold ?? 0).toLocaleString()} 골드
+          </p>
+
+          <div style={{ display: 'flex', gap: 6, marginBottom: myGuild.isLeader ? 10 : 0 }}>
+            <input
+              type="number"
+              min="1"
+              className="petname-input"
+              placeholder="기부할 골드"
+              value={donateAmount}
+              onChange={(e) => setDonateAmount(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button type="button" className="btn btn-neutral" disabled={busy || !donateAmount} onClick={handleDonate}>기부</button>
+          </div>
+
+          {myGuild.isLeader && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <select className="petname-input" value={withdrawTarget} onChange={(e) => setWithdrawTarget(e.target.value)} style={{ flex: '1 1 140px' }}>
+                <option value="">받을 길드원 선택</option>
+                {members?.map((m) => (
+                  <option key={m.userId} value={m.userId}>{m.nickname}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                min="1"
+                className="petname-input"
+                placeholder="지급할 골드"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                style={{ width: 100 }}
+              />
+              <button type="button" className="btn btn-challenge" disabled={busy || !withdrawAmount || !withdrawTarget} onClick={handleWithdraw}>지급</button>
+            </div>
+          )}
+
+          {bankLog && bankLog.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              {bankLog.map((log) => (
+                <p key={log.id} className="mypage-locked-hint" style={{ margin: '2px 0' }}>
+                  {log.amount > 0
+                    ? `➕ ${log.nickname}님이 ${log.amount.toLocaleString()}골드 기부`
+                    : `➖ ${log.nickname}님이 ${log.targetNickname}님에게 ${Math.abs(log.amount).toLocaleString()}골드 지급`}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
 
         <h3 className="mypage-subtitle">길드원 목록</h3>
         {members === null && <p className="stage-select-hint">불러오는 중...</p>}

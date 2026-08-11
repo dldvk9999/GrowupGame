@@ -8,7 +8,7 @@ import { copyToClipboardWithFeedback } from '../lib/clipboard';
 import InfoTooltip from './InfoTooltip';
 import GuildPanel from './GuildPanel';
 
-export default function Friends({ userId, profile, loginAt, onGoToGuildRaid }) {
+export default function Friends({ userId, profile, loginAt, onGoToGuildRaid, onGoldChange }) {
   const [mode, setMode] = useState('friends'); // 'friends' | 'guild'(신규, 사용자 요청)
   const [tab, setTab] = useState('list'); // 'list' | 'requests'
   const [uidCopied, setUidCopied] = useState(false);
@@ -126,7 +126,7 @@ export default function Friends({ userId, profile, loginAt, onGoToGuildRaid }) {
       </div>
 
       {mode === 'guild' ? (
-        <GuildPanel userId={userId} profile={profile} loginAt={loginAt} onGoToGuildRaid={onGoToGuildRaid} />
+        <GuildPanel userId={userId} profile={profile} loginAt={loginAt} onGoToGuildRaid={onGoToGuildRaid} onGoldChange={onGoldChange} />
       ) : (
       <>
       <div className="friends-uid-card">

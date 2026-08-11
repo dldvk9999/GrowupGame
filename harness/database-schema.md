@@ -620,4 +620,7 @@
 **176_pvp_no_opponent_chance.sql** — 사용자 요청
 - `start_pvp_battle` 재정의(반환타입 그대로, DROP 불필요) — 적합한 실유저 상대가 없을 때 예전엔 항상 가상 상대를 만들었는데, 이제 30%만 가상 상대 생성하고 70%는 `result: 'no_opponent'` 반환(전투 미성사, 재도전 쿨다운 미갱신). diff로 순수 추가만 확인. 자세한 내용은 [`pvp.md`](./pvp.md)
 
+**177_guild_bank.sql** — 신규 콘텐츠(todo.md 후속과제 이행)
+- `guilds.bank_gold` 컬럼 신설, `guild_bank_log` 테이블 신설(RLS로 같은 길드원만 조회), `donate_to_guild_bank`/`withdraw_from_guild_bank`/`fetch_guild_bank_log` 신설(전부 신규 함수, DROP 불필요) — 기부는 누구나, 인출은 길드장만(대상 검증 후 우편 지급). `fetch_my_guild`(169) 재정의로 `bank_gold` 노출(반환컬럼 추가, DROP FUNCTION 포함, diff로 기존 로직 순수 보존 확인). 자세한 내용은 [`guild.md`](./guild.md)
+
 (참고: 속성 상성 시스템, 전직스킬 3.2배 상향, 정예의 시련 난이도 상향, 속성상성 element 누락 버그 수정, 봉인 세트효과, PvP 체력% 반올림, 업적 검색/조건팝업, 길드목록 재설계는 전부 클라이언트 전용 변경이라 별도 migration 없음 — 각 관련 문서 참고)

@@ -36,6 +36,7 @@ export async function fetchMyGuild() {
     guildId: row.guild_id, name: row.name, tag: row.tag, announcement: row.announcement,
     leaderId: row.leader_id, memberCount: row.member_count, isLeader: row.is_leader,
     level: row.level ?? 1, exp: Number(row.exp ?? 0), expToNext: Number(row.exp_to_next ?? 0),
+    bankGold: Number(row.bank_gold ?? 0),
   };
 }
 
