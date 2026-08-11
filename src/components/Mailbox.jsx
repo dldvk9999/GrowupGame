@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { syncDailyMails, fetchMails, claimMail, deleteMail } from '../lib/mail';
+import { syncGuildRankingRewards } from '../lib/guild';
 import { getItem } from '../lib/itemCatalog';
 import { showToast } from '../lib/toast';
 import { playGoldSound } from '../lib/audio';
@@ -16,6 +17,7 @@ export default function Mailbox({ userId, onGoldChange, gold, onUnreadChange }) 
     setLoading(true);
     try {
       await syncDailyMails();
+      syncGuildRankingRewards().catch(() => {}); // 신규 콘텐츠 - 실패해도 우편함 로드 자체는 막지 않음
       const list = await fetchMails(userId);
       setMails(list);
       onUnreadChange?.(list.some((m) => !m.claimed));

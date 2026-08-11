@@ -57,3 +57,10 @@ export async function fetchGuildLeaderboard() {
   if (error) throw error;
   return (data ?? []).map((r) => ({ guildId: r.guild_id, name: r.name, tag: r.tag, memberCount: r.member_count, totalLevel: r.total_level }));
 }
+
+/** 주간 길드 랭킹 보상 지연생성 트리거(사용자 요청) - 우편함을 열 때마다 호출, 이미 이번 주
+ * 배분됐으면 서버가 즉시 조용히 리턴함(sync_daily_mails와 동일한 패턴) */
+export async function syncGuildRankingRewards() {
+  const { error } = await supabase.rpc('sync_guild_ranking_rewards');
+  if (error) throw error;
+}

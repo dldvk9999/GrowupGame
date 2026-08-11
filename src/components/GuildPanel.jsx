@@ -362,10 +362,14 @@ export default function GuildPanel({ userId, profile, loginAt, onGoToGuildRaid, 
 
       {subTab === 'ranking' && (
         <>
+          <p className="stage-select-hint">
+            <InfoTooltip text="매주 상위 10개 길드의 모든 길드원에게 골드 보상이 우편으로 지급돼요! 1위 30,000 · 2~3위 20,000 · 4~5위 12,000 · 6~10위 6,000골드. 우편함을 한 번 열면 그 시점에 지급돼요." />
+            {' '}🏆 상위 10개 길드는 매주 전원 보상을 받아요
+          </p>
           {leaderboard === null && <p className="stage-select-hint">불러오는 중...</p>}
           {leaderboard?.map((g, i) => (
             <div key={g.guildId} className="friend-row">
-              <span className="friend-row-name">#{i + 1} [{g.tag}] {g.name} <span className="mypage-locked-hint">{g.memberCount}명</span></span>
+              <span className="friend-row-name">{i < 10 && '🏆'} #{i + 1} [{g.tag}] {g.name} <span className="mypage-locked-hint">{g.memberCount}명</span></span>
               <span className="mypage-locked-hint">레벨합 {g.totalLevel.toLocaleString()}</span>
             </div>
           ))}

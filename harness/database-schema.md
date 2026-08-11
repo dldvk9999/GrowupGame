@@ -623,4 +623,10 @@
 **177_guild_bank.sql** — 신규 콘텐츠(todo.md 후속과제 이행)
 - `guilds.bank_gold` 컬럼 신설, `guild_bank_log` 테이블 신설(RLS로 같은 길드원만 조회), `donate_to_guild_bank`/`withdraw_from_guild_bank`/`fetch_guild_bank_log` 신설(전부 신규 함수, DROP 불필요) — 기부는 누구나, 인출은 길드장만(대상 검증 후 우편 지급). `fetch_my_guild`(169) 재정의로 `bank_gold` 노출(반환컬럼 추가, DROP FUNCTION 포함, diff로 기존 로직 순수 보존 확인). 자세한 내용은 [`guild.md`](./guild.md)
 
+**178_season_pass.sql** — 신규 콘텐츠(사용자 요청 - 리텐션 강화)
+- `season_pass_progress` 테이블 신설, `grant_season_points`(내부전용, authenticated 실행권한 회수)/`fetch_my_season_pass`/`claim_season_tier` 신설(전부 신규 함수, DROP 불필요 — 보상액은 서버 CASE문이 유일한 권위, 클라이언트가 금액을 파라미터로 안 넘김) — `claim_attendance`(056)/`claim_mission_reward`(081) 재정의(반환타입 그대로, DROP 불필요 — 각각 시즌포인트 +20/+30 적립 추가, diff로 기존 로직 순수 보존 확인). 자세한 내용은 [`attendance-and-achievements.md`](./attendance-and-achievements.md)
+
+**179_guild_ranking_reward.sql** — 신규 콘텐츠(사용자 요청 - 리텐션 강화)
+- `guild_ranking_reward_log` 테이블 신설(주차 키 게이트용), `sync_guild_ranking_rewards` 신설(신규 함수, DROP 불필요) — 매주 상위 10개 길드 전원에게 골드 보상 우편 지급, `sync_daily_mails`와 동일한 지연생성 패턴(`insert ... on conflict do nothing returning`으로 원자적 게이트). 자세한 내용은 [`guild.md`](./guild.md)
+
 (참고: 속성 상성 시스템, 전직스킬 3.2배 상향, 정예의 시련 난이도 상향, 속성상성 element 누락 버그 수정, 봉인 세트효과, PvP 체력% 반올림, 업적 검색/조건팝업, 길드목록 재설계는 전부 클라이언트 전용 변경이라 별도 migration 없음 — 각 관련 문서 참고)

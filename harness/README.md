@@ -6,7 +6,7 @@
 >
 > ⚠️ **새 파일(컴포넌트/훅/유틸)을 만들기 전에는 반드시 [`architecture.md`](./architecture.md)를 먼저 읽고, 그 기준에 따라 어느 폴더에 어떤 이름으로 만들지 판단할 것.**
 
-마지막 정리: migration 177까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
+마지막 정리: migration 179까지 반영. 자세한 변경 이력은 각 문서 하단과 `security.md`의 정기점검 로그 참고.
 
 ## 문서 목차
 
@@ -91,7 +91,7 @@ GrowupGame/
 │  │  ├─ organisms/                # 리팩토링(사용자 요청): DungeonSelect.jsx에서 분리된 던전 패널 10종
 │  │  │  ├─ ProgressiveDungeon.jsx, RubyDungeonPanel.jsx, StreakDungeonPanel.jsx, SealedDungeonPanel.jsx
 │  │  │  ├─ EliteTrialPanel.jsx, JobDungeonPanel.jsx, WorldBossPanel.jsx, GuildRaidPanel.jsx
-│  │  │  └─ TowerPanel.jsx, ExpeditionPanel.jsx
+│  │  │  └─ TowerPanel.jsx, ExpeditionPanel.jsx, SeasonPassPanel.jsx
 │  │  ├─ DungeonBattle.jsx         # 일일 던전 전투 화면
 │  │  ├─ JobDungeonBattle.jsx      # 전직 던전 전투 화면
 │  │  ├─ TimeLimitBar.jsx          # 던전 제한시간 시각적 게이지 - dungeon-time-limit.md
@@ -146,6 +146,7 @@ GrowupGame/
 │     ├─ useGuildChat.js           # 길드 전용 채팅 훅(useLobbyChat.js와 동일 패턴) - social-chat.md
 │     ├─ elements.js               # 속성 상성 계산(불>풀>물>불) - character-and-growth.md
 │     ├─ guildBank.js               # 길드 창고 RPC 연동 - guild.md
+│     ├─ seasonPass.js              # 시즌 패스 RPC 연동 - attendance-and-achievements.md
 │     ├─ eliteTrial.js             # 정예의 시련 던전 RPC 연동 - character-and-growth.md
 │     ├─ sealCostumeCatalog.js     # 봉인의 상점 전용 코스튬 4종 카탈로그(기존 20종과 분리) - sealed-dungeon.md
 │     ├─ jobSkillEnhance.js        # 전직스킬 강화 RPC 연동 - ruby-and-job-enhancement.md
