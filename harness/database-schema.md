@@ -632,4 +632,7 @@
 **180_relic_catalog_rls.sql** — [Supabase 린터 지적] 사용자 제보
 - `relic_catalog`(119)에 RLS 활성화 + "누구나 조회 가능" 정책 추가 — 56개 테이블 전수 스캔 결과 RLS 없이 공개된 유일한 테이블이었음(다른 카탈로그 테이블은 전부 RLS on + 공개정책 패턴). 실질 위험은 낮았으나(정적 밸런스 수치뿐, 쓰기 권한 GRANT 이력도 없음) 방어 계층을 다른 테이블과 동일하게 맞춤. 자세한 내용은 [`security.md`](./security.md) 83차, [`relics.md`](./relics.md)
 
+**181_fix_function_search_path.sql** — [Supabase 린터 지적] 사용자 제보
+- `public` 스키마의 모든 함수(180개 가까이)에 `search_path = public, extensions` 고정 — `pg_proc` 시스템 카탈로그를 순회하는 `DO` 블록으로 일괄 처리(사용자 입력이 섞이지 않는 관리용 동적 SQL이라 인젝션 경로 아님). `gen_random_uuid()`(29개 파일에서 사용) 파손 방지를 위해 `public` 단독이 아니라 `extensions`도 함께 포함. 앞으로 새 함수를 만들 때도 이 설정을 붙이는 규칙을 `dev-guide.md`에 추가함. 자세한 내용은 [`security.md`](./security.md) 84차
+
 (참고: 속성 상성 시스템, 전직스킬 3.2배 상향, 정예의 시련 난이도 상향, 속성상성 element 누락 버그 수정, 봉인 세트효과, PvP 체력% 반올림, 업적 검색/조건팝업, 길드목록 재설계는 전부 클라이언트 전용 변경이라 별도 migration 없음 — 각 관련 문서 참고)

@@ -22,6 +22,7 @@
 - `calc_combat_power`가 `language sql`인데 몸통을 `begin/return/end`(plpgsql 문법)로 써서 문법 오류가 난 적 있음 → `language sql` 함수는 몸통이 순수 SQL 표현식이어야 함
 - "column reference X is ambiguous" 패턴은 [`security.md`](./security.md) 참고
 - **함수 반환 컬럼을 추가/삭제/타입변경하는 재정의는 `CREATE OR REPLACE FUNCTION`만으로 안 됨** — PostgreSQL은 리턴 타입 구성이 다르면 `cannot change return type of existing function` 에러로 배포가 실패함(050에서 `fetch_leaderboard()`에 컬럼 추가 시 실제 발생). **반환 컬럼이 바뀌는 재정의는 `CREATE OR REPLACE` 앞에 `DROP FUNCTION IF EXISTS 함수명(인자타입...)`을 반드시 먼저 넣을 것.** 컬럼이 그대로고 로직만 바뀌면 `CREATE OR REPLACE`만으로 충분(절대다수 패턴). 새 마이그레이션 작성 시 `returns table(...)`을 이전 정의와 diff해서 확인할 것
+- ⚠️ **새 함수를 만들 때는 `$$ language plpgsql security definer;` 끝에 `set search_path = public, extensions`를 붙일 것**(사용자 제보, migration 181에서 기존 함수 180개 가까이를 일괄 수정한 뒤 생긴 규칙) — Supabase 린터가 "Function Search Path Mutable"로 지적하는 항목이고, 붙이지 않으면 이론상 search path hijacking 위험이 있음. `public` 하나만 넣지 말고 `extensions`도 같이 넣을 것(`pgcrypto`의 `gen_random_uuid()`가 실제로 어느 스키마에 있는지 이 환경에선 직접 확인이 안 돼서, 두 스키마를 다 넣어야 안전함 — `public`만 넣었다가 만약 다른 스키마에 있었으면 `gen_random_uuid()`를 쓰는 모든 기능이 깨짐). 예: `$$ language plpgsql security definer set search_path = public, extensions;`
 
 ### 재사용 가능한 자동 검증 스크립트 (배포 전 점검용)
 
