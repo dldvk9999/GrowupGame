@@ -629,4 +629,7 @@
 **179_guild_ranking_reward.sql** — 신규 콘텐츠(사용자 요청 - 리텐션 강화)
 - `guild_ranking_reward_log` 테이블 신설(주차 키 게이트용), `sync_guild_ranking_rewards` 신설(신규 함수, DROP 불필요) — 매주 상위 10개 길드 전원에게 골드 보상 우편 지급, `sync_daily_mails`와 동일한 지연생성 패턴(`insert ... on conflict do nothing returning`으로 원자적 게이트). 자세한 내용은 [`guild.md`](./guild.md)
 
+**180_relic_catalog_rls.sql** — [Supabase 린터 지적] 사용자 제보
+- `relic_catalog`(119)에 RLS 활성화 + "누구나 조회 가능" 정책 추가 — 56개 테이블 전수 스캔 결과 RLS 없이 공개된 유일한 테이블이었음(다른 카탈로그 테이블은 전부 RLS on + 공개정책 패턴). 실질 위험은 낮았으나(정적 밸런스 수치뿐, 쓰기 권한 GRANT 이력도 없음) 방어 계층을 다른 테이블과 동일하게 맞춤. 자세한 내용은 [`security.md`](./security.md) 83차, [`relics.md`](./relics.md)
+
 (참고: 속성 상성 시스템, 전직스킬 3.2배 상향, 정예의 시련 난이도 상향, 속성상성 element 누락 버그 수정, 봉인 세트효과, PvP 체력% 반올림, 업적 검색/조건팝업, 길드목록 재설계는 전부 클라이언트 전용 변경이라 별도 migration 없음 — 각 관련 문서 참고)
