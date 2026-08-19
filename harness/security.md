@@ -771,6 +771,20 @@ push 5회 주기와 별개로, 사용자 요청으로 한 번에 신규 기능 5
 
 **배포 후 확인 필요**: 이 마이그레이션이 실제로 라이브 DB에 적용된 뒤 Supabase 대시보드에서 경고가 사라졌는지, 그리고 우편함/파견 등 `gen_random_uuid()`를 쓰는 기능들이 정상 동작하는지 확인이 필요함 — 이쪽에서 직접 라이브 DB에 접속해 검증할 수단이 없어서 사용자 확인에 의존함.
 
+### 85차 — Supabase 린터 "Public Can Execute SECURITY DEFINER Function" 대량 경고 일괄 수정 (사용자 제보)
+
+84차(search_path)에 이어 또 Supabase 자체 린터 지적. 이번엔 로그인 안 한 `anon` 롤이 `SECURITY DEFINER` 함수를 실행할 수 있는 상태(PostgreSQL이 함수 생성 시 기본적으로 PUBLIC에 EXECUTE 권한을 자동으로 주기 때문) — 사용자가 준 예시는 `accept_friend_request` 하나였지만, 이 프로젝트의 거의 모든 SECURITY DEFINER 함수가 동일하게 해당됨.
+
+**실질 위험도**: 낮았음 — 거의 모든 함수가 몸통 맨 앞에 `if auth.uid() is null then raise exception`을 넣어놔서, anon이 호출을 "시도"할 권한은 있어도 실제로는 항상 예외로 즉시 막혔음(180/181과 동일 계열의 "이미 안전하게 짜여있었지만 방어 계층이 없었던" 케이스). 그래도 "함수를 아예 시도할 권한 자체"를 막아두는 게 더 안전한 기본값이라 일괄 수정함.
+
+**수정 방식**: 181과 동일하게 `pg_proc`을 순회하는 `DO` 블록(migration 182)으로 `public` 스키마의 SECURITY DEFINER 함수 전부에서 `PUBLIC`(anon 포함) 실행권한을 회수하고 `authenticated`에만 재부여함. 트리거 함수(반환타입 `trigger`)는 REST RPC로 직접 호출되는 대상이 아니라서 자동 제외.
+
+**⚠️ 예외 처리가 핵심이었음**: 무작정 전부 잠갔으면 **회원가입 자체가 막히는 심각한 장애**로 이어질 뻔했음 — `AuthScreen.jsx`(아직 로그인 세션이 없는 화면)가 실제로 호출하는 함수 3개(`is_nickname_taken` - 닉네임 중복확인, `find_masked_email_by_nickname` - 이메일 찾기, `fetch_total_achievement_claims` - 로그인 화면 통계 표시)는 anon 접근이 반드시 필요해서 확인 후 제외함. 이미 authenticated한테도 막아둔 내부전용 함수 6개(`add_gold`/`spend_gold`/`buy_item`/`enhance_item`/`grant_guild_exp`/`grant_season_points`)도 건드리면 오히려 다시 열어버리는 역효과가 나므로 제외.
+
+**검증 방법**: `AuthScreen.jsx`와 그게 import하는 `lib/auth.js` 전체에서 실제로 호출되는 모든 `.rpc(...)` 이름을 grep으로 전수 추출해서, 로그인 전 필요한 함수 목록을 코드 근거로 확정함(추측이 아니라 실제 호출부 확인).
+
+**덤으로 확인한 것(문제 없음)**: `fetch_guild_members(p_guild_id)`가 auth.uid() 체크 없이 아무 authenticated 유저나 임의의 길드 멤버 목록(닉네임/레벨/가입일)을 조회할 수 있는 구조인 걸 발견 — 다만 길드명/태그/인원수는 이미 `fetch_guild_list`로 전체 공개돼있고, 개별 멤버 닉네임/레벨도 리더보드/PvP/채팅 등에서 이미 전체 공개되는 정보라 새로운 정보 노출은 아님(오히려 최근 세션에 "가입 전에도 길드 목록/랭킹을 볼 수 있게" 의도적으로 개방한 방향과 일치) — 수정 불필요로 판단.
+
 ## 알려진 한계 (완벽한 서버 권위 구조는 아님)
 
 

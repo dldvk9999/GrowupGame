@@ -635,4 +635,7 @@
 **181_fix_function_search_path.sql** — [Supabase 린터 지적] 사용자 제보
 - `public` 스키마의 모든 함수(180개 가까이)에 `search_path = public, extensions` 고정 — `pg_proc` 시스템 카탈로그를 순회하는 `DO` 블록으로 일괄 처리(사용자 입력이 섞이지 않는 관리용 동적 SQL이라 인젝션 경로 아님). `gen_random_uuid()`(29개 파일에서 사용) 파손 방지를 위해 `public` 단독이 아니라 `extensions`도 함께 포함. 앞으로 새 함수를 만들 때도 이 설정을 붙이는 규칙을 `dev-guide.md`에 추가함. 자세한 내용은 [`security.md`](./security.md) 84차
 
+**182_revoke_anon_from_security_definer.sql** — [Supabase 린터 지적] 사용자 제보
+- `public` 스키마의 SECURITY DEFINER 함수 전부에서 `PUBLIC`(anon 포함) 실행권한 회수, `authenticated`에만 재부여 — `pg_proc` 순회 `DO` 블록. 로그인 전 화면(`AuthScreen.jsx`)에서 실제로 호출하는 3개 함수(`is_nickname_taken`/`find_masked_email_by_nickname`/`fetch_total_achievement_claims`)와 이미 완전 잠긴 내부전용 함수 6개는 grep으로 실제 호출부를 확인한 뒤 제외 처리(무작정 전부 잠갔으면 회원가입 자체가 막혔을 것). 자세한 내용은 [`security.md`](./security.md) 85차
+
 (참고: 속성 상성 시스템, 전직스킬 3.2배 상향, 정예의 시련 난이도 상향, 속성상성 element 누락 버그 수정, 봉인 세트효과, PvP 체력% 반올림, 업적 검색/조건팝업, 길드목록 재설계는 전부 클라이언트 전용 변경이라 별도 migration 없음 — 각 관련 문서 참고)
